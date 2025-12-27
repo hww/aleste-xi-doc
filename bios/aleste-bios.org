@@ -52,7 +52,7 @@
 В нашей системе вы просто пишете:
 
 #+BEGIN_SRC asm
-call 0xFD03  ; video_draw_pixel
+call _video_draw_pixel ; Эквивалени call 0xFD03  
 #+END_SRC
 
 *Почему это важно:* 17 тактов против 50+. При частоте кадров 50 Гц у вас есть всего 20 мс на кадр. Каждая экономия тактов — это возможность добавить больше спрайтов, больше эффектов.
@@ -99,7 +99,6 @@ crtc_detect:
 
 *Результат:* Локальность. Меньше прыжков по файлам, меньше ошибок.
 
-
 ** Полиморфные драйверы в BIOS Aleste: Два паттерна использования VTable
 
 В системе существуют два типа драйверов с разными схемами использования VTable:
@@ -127,6 +126,10 @@ _mmu_install:   jp mmu_install_impl
 - В заголовочном файле: прямые вызовы по именам меток
 - В коде: `call _mmu_install`
 - VTable используется только системой при загрузке
+
+#+BEGIN_SRC c
+bool mmu_detect(); // direct call _mmu_detect
+#+END_SRC
 
 *** Полиморфные драйверы (многорежимные, заменяемые)
 
@@ -538,8 +541,302 @@ ERR_TIMEOUT      equ 4
 ERR_NO_DEVICE    equ 11   ; Устройство отсутствует
 #+END_SRC
 
-** Пример из реальной жизни: Аудиодрайвер для YM2149
+** Правила именования констант
+#+END_SRC
 
+*** Уровни иерархии (слева направо):
+
+#+BEGIN_SRC text
+[УСТРОЙСТВО]_[ТИП]_[ИМЯ]_[КВАЛИФИКАТОР]_[СУФФИКС]
+#+END_SRC
+
+Пример: MMU_PORT_CTRL_SUPER_BIT
+
+*** Устройство (Device) - всегда первый компонент:
+
+#+BEGIN_SRC text
+MMU_      - Memory Management Unit
+VIDEO_    - Видеоконтроллер
+AUDIO_    - Звуковой чип
+CRTC_     - Видеоконтроллер 6845
+PALETTE_  - Палитра цветов
+PSG_      - Программируемый генератор звука
+FDC_      - Контроллер дисковода
+DMA_      - DMA контроллер
+RTC_      - Часы реального времени
+SYS_      - Системные (общие)
+#+END_SRC
+
+*** Тип (Type) - что это за сущность:
+
+#+BEGIN_SRC text
+PORT_     - Порты ввода-вывода (I/O address)
+REG_      - Регистры в памяти (MMIO address)
+CMD_      - Команды (для command-метода)
+FLAG_     - Флаги возможностей
+ERR_      - Коды ошибок
+BUF_      - Буферы/области памяти
+IRQ_      - Прерывания/векторы
+#+END_SRC
+
+*** Имя (Name) - конкретный элемент:
+
+#+BEGIN_SRC text
+CTRL      - Управление/контроль
+STATUS    - Статус
+DATA      - Данные
+ADDR      - Адрес
+INDEX     - Индекс
+CLOCK     - Тактовая частота
+BANK      - Банк памяти
+MODE      - Режим работы
+CONFIG    - Конфигурация
+#+END_SRC
+
+*** Квалификатор (Qualifier) - уточнение:
+
+#+BEGIN_SRC text
+SUPER     - Супервизор/привилегированный
+USER      - Пользовательский
+NATIVE    - Нативный режим
+LEGACY    - Совместимость с CPC
+ENABLE    - Включение
+DISABLE   - Выключение
+RESET     - Сброс
+INIT      - Инициализация
+#+END_SRC
+
+*** Суффикс (Suffix) - тип значения:
+
+#+BEGIN_SRC text
+_BIT      - Одиночный бит (0x01, 0x02, 0x04...)
+_MASK     - Битовая маска (0x0F, 0xF0...)
+_SIZE     - Размер в байтах
+_COUNT    - Количество элементов
+_BASE     - Базовый адрес/значение
+_OFFSET   - Смещение
+_MIN      - Минимальное значение
+_MAX      - Максимальное значение
+_DEFAULT  - Значение по умолчанию
+#+END_SRC
+
+Примеры правильного именования:
+Порты ввода-вывода:
+
+#+BEGIN_SRC asm
+MMU_PORT_CTRL       equ 0xF0    ; Порт управления MMU
+MMU_PORT_CLOCK      equ 0xF3    ; Порт управления частотой
+MMU_PORT_BANK0      equ 0xFC    ; Порт банка окна 0
+MMU_PORT_BANK1      equ 0xFD    ; Порт банка окна 1
+
+VIDEO_PORT_PALETTE  equ 0x??    ; Порт палитры
+AUDIO_PORT_PSG      equ 0x??    ; Порт PSG
+#+END_SRC
+
+Значения для портов (биты/маски):
+
+#+BEGIN_SRC asm
+; Для MMU_PORT_CTRL
+MMU_CTRL_SUPER_BIT  equ 0x01    ; Бит супервизора
+MMU_CTRL_NATIVE_BIT equ 0x02    ; Бит нативного режима
+MMU_CTRL_TRAP_BIT   equ 0x04    ; Бит захвата прерываний
+MMU_CTRL_USERLOCK_BIT equ 0x10  ; Бит блокировки User MMIO
+
+MMU_CTRL_MODE_MASK  equ 0x03    ; Маска режимов (биты 0-1)
+MMU_CTRL_DEFAULT    equ MMU_CTRL_SUPER_BIT | MMU_CTRL_NATIVE_BIT
+
+; Для MMU_PORT_CLOCK
+MMU_CLOCK_DIV2      equ 0x02    ; Делитель 2
+MMU_CLOCK_DIV4      equ 0x04    ; Делитель 4
+MMU_CLOCK_CPC_BIT   equ 0x10    ; Бит режима CPC
+
+MMU_CLOCK_DIV_MASK  equ 0x0F    ; Маска делителя (биты 0-3)
+#+END_SRC
+
+*** MMIO регистры (через MMIO_WINDOW):
+
+#+BEGIN_SRC asm
+; При MMIO_PAGE = 0x02
+PALETTE_REG_INDEX   equ 0x00    ; Регистр индекса цвета
+PALETTE_REG_DATA_LO equ 0x01    ; Регистр данных (мл. байт)
+PALETTE_REG_DATA_HI equ 0x02    ; Регистр данных (ст. байт)
+PALETTE_REG_CTRL    equ 0x05    ; Регистр управления
+
+CRTC_REG_ADDR       equ 0x10    ; Регистр адреса CRTC
+CRTC_REG_DATA       equ 0x11    ; Регистр данных CRTC
+#+END_SRC
+
+Команды для драйверов:
+
+#+BEGIN_SRC asm
+; Базовые команды (все драйверы)
+DRIVER_CMD_RESET    equ 0x00
+DRIVER_CMD_STATUS   equ 0x01
+
+; Специфичные команды
+MMU_CMD_GET_TOTAL   equ 0x60    ; В диапазоне MMU
+MMU_CMD_GET_FREE    equ 0x61
+
+VIDEO_CMD_SET_MODE  equ 0x10    ; В диапазоне VIDEO
+VIDEO_CMD_SET_PALETTE equ 0x11
+
+AUDIO_CMD_PLAY      equ 0x20    ; В диапазоне AUDIO
+AUDIO_CMD_STOP      equ 0x21
+#+END_SRC
+
+Флаги возможностей драйверов:
+
+#+BEGIN_SRC asm
+DRIVER_FLAG_IRQ_BIT     equ 1 << 0  ; Использует прерывания
+DRIVER_FLAG_STATIC_BIT  equ 1 << 1  ; Статическое устройство
+DRIVER_FLAG_DMA_BIT     equ 1 << 2  ; Использует DMA
+DRIVER_FLAG_BANKED_BIT  equ 1 << 3  ; Работает с банками
+
+; Пример использования
+MMU_INFO_FLAGS      equ DRIVER_FLAG_STATIC_BIT | DRIVER_FLAG_BANKED_BIT
+#+END_SRC
+
+Области памяти:
+
+#+BEGIN_SRC asm
+MEMORY_WINDOW0_BASE equ 0x0000  ; Базовый адрес окна 0
+MEMORY_WINDOW0_SIZE equ 0x4000  ; Размер окна 0 (16К)
+
+MMIO_LO_BASE        equ 0xFF0000 ; Базовый адрес MMIO_LO
+MMIO_LO_SIZE        equ 0x4000   ; Размер MMIO_LO (16К)
+
+ROM_BIOS_BASE       equ 0xFF0000 ; Базовый адрес BIOS
+ROM_BIOS_SIZE       equ 0x8000   ; Размер BIOS (32К)
+#+END_SRC
+
+Специальные случаи:
+
+**** Для очень длинных имён можно опустить некоторые уровни:
+
+#+BEGIN_SRC asm
+; Вместо: MMU_PORT_MAPPER_SLOT0_WINDOW0
+MMU_PORT_SLOT0_WIN0 equ 0xE0    ; Достаточно ясно
+
+; Вместо: VIDEO_CRTC_REG_HORIZONTAL_TOTAL
+CRTC_REG_HTOTAL     equ 0x00    ; CRTC уже подразумевает VIDEO
+#+END_SRC
+
+**** Legacy/совместимые порты (CPC):
+
+#+BEGIN_SRC asm
+CPC_PORT_RMR        equ 0x7F00  ; CPC RMR регистр
+CPC_PORT_UPPER_ROM  equ 0xDF00  ; CPC выбор верхнего ROM
+CPC_PORT_SYSCALL    equ 0xF200  ; Legacy системный вызов
+#+END_SRC
+
+*** Системные/общие константы (без префикса устройства):
+
+#+BEGIN_SRC asm
+; Ошибки (уже есть ERR_ префикс в errors.inc)
+ERR_SUCCESS         equ 0x00
+ERR_NOT_SUPPORTED   equ 0x01
+
+; Системные вызовы
+SYS_CALL_BASE       equ 0xF2    ; Базовый порт syscall
+SYS_CALL_MAX        equ 255     ; Максимальный номер вызова
+#+END_SRC
+
+*** Правила в одном предложении:
+
+Начинай с устройства (MMU_), затем тип (PORT_/REG_/CMD_), затем имя, уточняй квалификатором, заканчивай суффиксом типа значения.
+
+** Правило канона Aleste BIOS для констант и импорта:
+*** Правило: Разделение определений и объявлений
+
+1. ВСЕ определения констант через defc делаются ТОЛЬКО ВНУТРИ самого драйвера (.asm файл)
+2. Заголовочный файл (.inc) содержит ТОЛЬКО:
+   - extern объявления для публичных символов драйвера
+   - equ или = константы (директивы ассемблера), которые можно безопасно дублировать
+     * Чисто числовые значения (0xFD00, 255 и т.д.)
+     * Простые вычисления (PORT_BASE + 3)
+     * Без создания новых символов для линкера
+   - Макросы для удобства использования (но не нарушая KISS)
+
+*** Важное различие:
+   - equ/=' = директива АССЕМБЛЕРА, заменяется на этапе ассемблирования
+   - defc = директива ЛИНКЕРА, создает уникальный символ в объектном файле
+   В .inc файлах используйте ТОЛЬКО equ/=, НИКОГДА defc
+   
+*** Правило: Структура заголовочного файла (.inc)
+
+#+BEGIN_SRC asm
+; example.inc
+module example
+
+; 1. ТОЛЬКО extern объявления
+extern _driver_init, _driver_process
+
+; 2. ТОЛЬКО КОНСТАНТЫ ДЛЯ АССЕМБЛЕРА (не defc!)
+;    Используйте 'equ' или '=' для чисто числовых значений
+;    которые не требуют уникальных символов в линковке
+DRIVER_SLOT        equ 0xFD00
+CMD_INIT           equ 0x00
+CMD_PROCESS        equ 0x01
+
+; 3. ТОЛЬКО макросы
+macro DRIVER_CALL addr
+    call addr
+endm
+#+END_SRC
+
+*** Правило: Структура файла драйвера (.asm)
+
+defc используется ТОЛЬКО в .asm файлах для:
+- Создания символов линкера (адреса функций, переменных)
+- Когда значение должно быть уникальным в итоговом бинарнике
+- Когда символ будет использоваться через extern в других модулях
+
+#+BEGIN_SRC asm
+; example.asm
+module example_driver
+
+; Включаем ТОЛЬКО equ-константы
+include "palette_const.inc"  ; если нужны общие числовые константы
+
+; 1. Включаем константы (если нужны)
+; 2. Определяем ВСЕ константы defc
+defc _driver_const_a = 0xFD00
+defc _driver_const_b = 0xFD03
+
+; 3. Экспортируем публичные символы
+public _driver_init, _driver_process
+public _driver_vtable, DRIVER_VTABLE_ADDR
+
+; 4. Определяем данные и код
+section driver_data
+_driver_vtable:
+_driver_init:     jp driver_init
+_driver_process:  jp driver_process
+
+; 5. Внешние зависимости (если есть)
+extern _some_external_func
+
+; 6. Объявления PUBLIC
+public _foo
+_foo:
+    ret
+public _bar
+_bar:
+    ret
+#+END_#+END_SRC
+
+*** Краткая формулировка для канона:
+
+В .inc файлах — только extern, equ и макросы. Все defc определения — строго в .asm файлах драйверов. Equ для числовых констант, defc для символов линкера.
+
+Такой подход исключает переопределения и делает архитектуру предсказуемой и надежной.
+
+** Важнейшее правило KISS
+
+Лучше не объявлять и реализовывать функцию, переменную, константу или макрос чем реализовать не понятно зачем и для чего KISS 
+
+
+* Пример из реальной жизни: Аудиодрайвер для YM2149
 #+BEGIN_SRC asm
 ; ===================================================================
 ; Драйвер звукового чипа YM2149
@@ -658,236 +955,47 @@ ym_irq_handler:
     ret
 #+END_SRC
 
-** Структура проекта: Как это всё собирается
+
+* Структура проекта: Как это всё собирается
+
 
 #+BEGIN_SRC bash
-project/
- ├── core/
- │   ├── kernel.asm       * 1000 строк: планировщик, IRQ
- │   ├── memory.asm       * 500 строк: require_memory, банки
- │   └── loader.asm       * 300 строк: загрузка драйверов
- ├── drivers/
- │   ├── video/crtc.asm   * 1500 строк: весь драйвер CRTC
- │   ├── audio/ym2149.asm * 800 строк: весь драйвер YM2149
- │   └── input/kbd.asm    * 600 строк: вся клавиатура
- ├── services/
- │   ├── fs/fat16.asm     * Файловая система
- │   └── console/text.asm * Текстовый вывод
- └── build/
-     └── memmap.cfg       * Кто где живёт
+# Правильная структура для проекта
+XiAlesteBIOS/
+├── include/                    ← для C программ
+│   ├── aleste.h               ← главный для C
+│   ├── bios/                  ← подсистемы BIOS (C)
+│   │   ├── drivers.h          ← DriverInfo, флаги (C)
+│   │   ├── errors.h           ← ERR_SUCCESS (C)
+│   │   └── system.h           ← системные вызовы (C)
+│   └── drivers/               ← публичные API драйверов (C)
+│       ├── mmu.h
+│       └── video.h
+│
+├── inc/                       ← для ассемблера (те же константы)
+│   ├── aleste.inc             ← главный для ASM
+│   ├── bios/                  ← подсистемы BIOS (ASM)
+│   │   ├── drivers.inc        ← DRV_FLAG_* (ASM эквивалент)
+│   │   ├── errors.inc         ← ERR_SUCCESS equ (ASM)
+│   │   └── system.inc         ← системные вызовы (ASM)
+│   ├── drivers/               ← интерфейсы драйверов (ASM)
+│   │   ├── mmu.inc            ← метки методов
+│   │   └── video.inc
+│   └── hardware/
+│       ├── ports.inc
+│       └── memory.inc
+│
+└── drivers/                   ← РЕАЛИЗАЦИЯ драйверов
+    ├── mmu/
+    │   ├── mmu.asm            ← include "../../inc/bios/drivers.inc"
+    │   └── mmu_private.inc    ← приватные константы
+    └── video/
+        ├── video.asm          ← include "../../inc/bios/drivers.inc"
+        └── video_private.inc
 #+END_SRC
 
-*Конфигурация memmap.cfg:*
 
-#+BEGIN_SRC bash
-# Фиксированные слоты
-0xFD00: drivers/audio/
-0xFD20: drivers/video/  
-0xFD40: drivers/input/
-0xFD60: services/fs/
-#+END_SRC
+**Ключевое правило:**
 
-
-* Правила именования констант в Aleste BIOS
-** Уровни иерархии (слева направо):
-
-#+BEGIN_SRC text
-[УСТРОЙСТВО]_[ТИП]_[ИМЯ]_[КВАЛИФИКАТОР]_[СУФФИКС]
-#+END_SRC
-
-Пример: MMU_PORT_CTRL_SUPER_BIT
-
-** Устройство (Device) - всегда первый компонент:
-
-#+BEGIN_SRC text
-MMU_      - Memory Management Unit
-VIDEO_    - Видеоконтроллер
-AUDIO_    - Звуковой чип
-CRTC_     - Видеоконтроллер 6845
-PALETTE_  - Палитра цветов
-PSG_      - Программируемый генератор звука
-FDC_      - Контроллер дисковода
-DMA_      - DMA контроллер
-RTC_      - Часы реального времени
-SYS_      - Системные (общие)
-#+END_SRC
-
-** Тип (Type) - что это за сущность:
-
-#+BEGIN_SRC text
-PORT_     - Порты ввода-вывода (I/O address)
-REG_      - Регистры в памяти (MMIO address)
-CMD_      - Команды (для command-метода)
-FLAG_     - Флаги возможностей
-ERR_      - Коды ошибок
-BUF_      - Буферы/области памяти
-IRQ_      - Прерывания/векторы
-#+END_SRC
-
-** Имя (Name) - конкретный элемент:
-
-#+BEGIN_SRC text
-CTRL      - Управление/контроль
-STATUS    - Статус
-DATA      - Данные
-ADDR      - Адрес
-INDEX     - Индекс
-CLOCK     - Тактовая частота
-BANK      - Банк памяти
-MODE      - Режим работы
-CONFIG    - Конфигурация
-#+END_SRC
-
-** Квалификатор (Qualifier) - уточнение:
-
-#+BEGIN_SRC text
-SUPER     - Супервизор/привилегированный
-USER      - Пользовательский
-NATIVE    - Нативный режим
-LEGACY    - Совместимость с CPC
-ENABLE    - Включение
-DISABLE   - Выключение
-RESET     - Сброс
-INIT      - Инициализация
-#+END_SRC
-
-** Суффикс (Suffix) - тип значения:
-
-#+BEGIN_SRC text
-_BIT      - Одиночный бит (0x01, 0x02, 0x04...)
-_MASK     - Битовая маска (0x0F, 0xF0...)
-_SIZE     - Размер в байтах
-_COUNT    - Количество элементов
-_BASE     - Базовый адрес/значение
-_OFFSET   - Смещение
-_MIN      - Минимальное значение
-_MAX      - Максимальное значение
-_DEFAULT  - Значение по умолчанию
-#+END_SRC
-
-Примеры правильного именования:
-Порты ввода-вывода:
-
-#+BEGIN_SRC asm
-MMU_PORT_CTRL       equ 0xF0    ; Порт управления MMU
-MMU_PORT_CLOCK      equ 0xF3    ; Порт управления частотой
-MMU_PORT_BANK0      equ 0xFC    ; Порт банка окна 0
-MMU_PORT_BANK1      equ 0xFD    ; Порт банка окна 1
-
-VIDEO_PORT_PALETTE  equ 0x??    ; Порт палитры
-AUDIO_PORT_PSG      equ 0x??    ; Порт PSG
-#+END_SRC
-
-Значения для портов (биты/маски):
-
-#+BEGIN_SRC asm
-; Для MMU_PORT_CTRL
-MMU_CTRL_SUPER_BIT  equ 0x01    ; Бит супервизора
-MMU_CTRL_NATIVE_BIT equ 0x02    ; Бит нативного режима
-MMU_CTRL_TRAP_BIT   equ 0x04    ; Бит захвата прерываний
-MMU_CTRL_USERLOCK_BIT equ 0x10  ; Бит блокировки User MMIO
-
-MMU_CTRL_MODE_MASK  equ 0x03    ; Маска режимов (биты 0-1)
-MMU_CTRL_DEFAULT    equ MMU_CTRL_SUPER_BIT | MMU_CTRL_NATIVE_BIT
-
-; Для MMU_PORT_CLOCK
-MMU_CLOCK_DIV2      equ 0x02    ; Делитель 2
-MMU_CLOCK_DIV4      equ 0x04    ; Делитель 4
-MMU_CLOCK_CPC_BIT   equ 0x10    ; Бит режима CPC
-
-MMU_CLOCK_DIV_MASK  equ 0x0F    ; Маска делителя (биты 0-3)
-#+END_SRC
-
-** MMIO регистры (через MMIO_WINDOW):
-
-#+BEGIN_SRC asm
-; При MMIO_PAGE = 0x02
-PALETTE_REG_INDEX   equ 0x00    ; Регистр индекса цвета
-PALETTE_REG_DATA_LO equ 0x01    ; Регистр данных (мл. байт)
-PALETTE_REG_DATA_HI equ 0x02    ; Регистр данных (ст. байт)
-PALETTE_REG_CTRL    equ 0x05    ; Регистр управления
-
-CRTC_REG_ADDR       equ 0x10    ; Регистр адреса CRTC
-CRTC_REG_DATA       equ 0x11    ; Регистр данных CRTC
-#+END_SRC
-
-Команды для драйверов:
-
-#+BEGIN_SRC asm
-; Базовые команды (все драйверы)
-DRIVER_CMD_RESET    equ 0x00
-DRIVER_CMD_STATUS   equ 0x01
-
-; Специфичные команды
-MMU_CMD_GET_TOTAL   equ 0x60    ; В диапазоне MMU
-MMU_CMD_GET_FREE    equ 0x61
-
-VIDEO_CMD_SET_MODE  equ 0x10    ; В диапазоне VIDEO
-VIDEO_CMD_SET_PALETTE equ 0x11
-
-AUDIO_CMD_PLAY      equ 0x20    ; В диапазоне AUDIO
-AUDIO_CMD_STOP      equ 0x21
-#+END_SRC
-
-Флаги возможностей драйверов:
-
-#+BEGIN_SRC asm
-DRIVER_FLAG_IRQ_BIT     equ 1 << 0  ; Использует прерывания
-DRIVER_FLAG_STATIC_BIT  equ 1 << 1  ; Статическое устройство
-DRIVER_FLAG_DMA_BIT     equ 1 << 2  ; Использует DMA
-DRIVER_FLAG_BANKED_BIT  equ 1 << 3  ; Работает с банками
-
-; Пример использования
-MMU_INFO_FLAGS      equ DRIVER_FLAG_STATIC_BIT | DRIVER_FLAG_BANKED_BIT
-#+END_SRC
-
-Области памяти:
-
-#+BEGIN_SRC asm
-MEMORY_WINDOW0_BASE equ 0x0000  ; Базовый адрес окна 0
-MEMORY_WINDOW0_SIZE equ 0x4000  ; Размер окна 0 (16К)
-
-MMIO_LO_BASE        equ 0xFF0000 ; Базовый адрес MMIO_LO
-MMIO_LO_SIZE        equ 0x4000   ; Размер MMIO_LO (16К)
-
-ROM_BIOS_BASE       equ 0xFF0000 ; Базовый адрес BIOS
-ROM_BIOS_SIZE       equ 0x8000   ; Размер BIOS (32К)
-#+END_SRC
-
-Специальные случаи:
-
-*** Для очень длинных имён можно опустить некоторые уровни:
-
-#+BEGIN_SRC asm
-; Вместо: MMU_PORT_MAPPER_SLOT0_WINDOW0
-MMU_PORT_SLOT0_WIN0 equ 0xE0    ; Достаточно ясно
-
-; Вместо: VIDEO_CRTC_REG_HORIZONTAL_TOTAL
-CRTC_REG_HTOTAL     equ 0x00    ; CRTC уже подразумевает VIDEO
-#+END_SRC
-
-*** Legacy/совместимые порты (CPC):
-
-#+BEGIN_SRC asm
-CPC_PORT_RMR        equ 0x7F00  ; CPC RMR регистр
-CPC_PORT_UPPER_ROM  equ 0xDF00  ; CPC выбор верхнего ROM
-CPC_PORT_SYSCALL    equ 0xF200  ; Legacy системный вызов
-#+END_SRC
-
-** Системные/общие константы (без префикса устройства):
-
-#+BEGIN_SRC asm
-; Ошибки (уже есть ERR_ префикс в errors.inc)
-ERR_SUCCESS         equ 0x00
-ERR_NOT_SUPPORTED   equ 0x01
-
-; Системные вызовы
-SYS_CALL_BASE       equ 0xF2    ; Базовый порт syscall
-SYS_CALL_MAX        equ 255     ; Максимальный номер вызова
-#+END_SRC
-
-** Правила в одном предложении:
-
-Начинай с устройства (MMU_), затем тип (PORT_/REG_/CMD_), затем имя, уточняй квалификатором, заканчивай суффиксом типа значения.
-
-
+- include/ - что видят ВНЕШНИЕ программы (твой main.c и другие приложения)
+- drivers/ - внутренняя реализация (собирается в библиотеку BIOS)
