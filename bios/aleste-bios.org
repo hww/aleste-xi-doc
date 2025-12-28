@@ -57,13 +57,26 @@ call _video_draw_pixel ; Эквивалени call 0xFD03
 
 *Почему это важно:* 17 тактов против 50+. При частоте кадров 50 Гц у вас есть всего 20 мс на кадр. Каждая экономия тактов — это возможность добавить больше спрайтов, больше эффектов.
 
+Но не в коем случае не вызвать математикой или константой
+
+#+BEGIN_SRC asm
+;; очень плохо
+call 0xFD40
+;; очень плохо
+call DRV_BASE + 3
+#+END_SRC
+
 *** Реальные цифры:
 
 - Стандартный вызов через фиксированный слот: *17 тактов*
 - Вызов через таблицу указателей: ~50 тактов
 - Динамический поиск в runtime: 100+ тактов
 
-** Структура драйвера: Один файл — одно устройство
+** Важнейшее правило KISS
+
+Лучше не объявлять и реализовывать функцию, переменную, константу или макрос чем реализовать не понятно зачем и для чего KISS
+
+** Принцип: Один файл — одно устройство
 
 Мы отказались от разделения на `_api.asm` и `_impl.asm`. Почему?
 
@@ -80,7 +93,8 @@ call _video_draw_pixel ; Эквивалени call 0xFD03
 SECTION DRV_VTABLE
     ; луче устанавливать allign.
     allign 32
-crtc_vtable:
+    public _crtc_vtable
+_crtc_vtable:
     jp crtc_detect
     jp crtc_install
     ...
@@ -98,12 +112,82 @@ crtc_detect:
 #+END_SRC
 
 *Результат:* Локальность. Меньше прыжков по файлам, меньше ошибок.
+** Принцип: Один файл — одна ответственность
 
-** Полиморфные драйверы в BIOS Aleste: Два паттерна использования VTable
+Три четких уровня:
+#+BEGIN_SRC text
+Уровень 1: C-интерфейс (palette.h)
+          ↓
+Уровень 2: Полиморфная таблица + диспетчер (palette.asm + palette.inc)
+          ↓
+Уровень 3: Конкретные реализации (palette_native.asm, palette_cpc.asm, ...)
+#+END_SRC
 
-В системе существуют два типа драйверов с разными схемами использования VTable:
+*Иначе говоря*
 
-*** Синглтон-драйверы (статичные, неделимые)
+- palette.h - только интерфейсы
+- palette.c - только интерфейсы реализация
+- palette.inc - только константы и файл допускает множественное включение
+- palette.asm - ТОЛЬКО полиморфная система
+- palette_native.asm - конкретная реализация  
+
+*Диаграмма зависимостей:*
+
+#+BEGIN_SRC text
+
+               palette.h/c (C интерфейс)
+                     ↑
+               palette.inc (константы)
+              ↗             ↖
+palette.asm (полиморфный)  palette_native.asm (драйвер)
+    ↓                           ↓
+системный слот              VTable драйвера
+  0xFD40                    (экспортируется)
+#+END_SRC
+
+** Трёхслойная архитектура драйверов
+
+*Слой 1: C-интерфейс (.h + .c)*
+- .h файл: объявления функций для C программ
+- .c файл: преобразование вызовов из стека в регистры
+- Имена: без префиксов в C, с '_' для линкера
+
+*Слой 2: VTable интерфейс (.asm)*
+- Полиморфная VTable с методами '__*'
+- Фиксированные адреса для прямых вызовов
+- Только переходы на реализации
+
+*Слой 3: ASM реализация (.asm)*
+- Полные имена без лишеих префиксов или суффиксов
+- Работают напрямую с регистрами
+- Быстрые, без накладных расходов
+
+** Соглашения вызовов:
+
+Для драйвера палитры:
+
+1. C программа:
+   palette_set_color(10, 0xFFF);
+
+2. C-интерфейсный слой:
+   - Извлекает 10 и 0xFFF из стека
+   - Кладёт в регистры
+   - Вызывает __palette_set_color
+
+3. VTable:
+   __palette_set_color: jp palette_set_color
+
+4. ASM реализация:
+   palette_set_color:
+       ; A=10, BC=0xFFF уже здесь!
+       ; ... быстрая реализация ...
+
+
+** Полиморфные драйверы: Два паттерна использования VTable
+
+В системе существуют два типа драйверов с разными схемами использования VTable. В одном случе где драйвер-синглетон и предоставляет свою таблицу внешним модулям. В другом случае полиморфный драйвер который подменяет методы драйвера в зависимости от режима.
+
+*** Синглтон-драйвер
 
 Это драйверы для уникального железа, которое не имеет альтернатив:
 - *MMU* - только один тип маппера в системе
@@ -112,19 +196,21 @@ crtc_detect:
 
 *Структура:*
 
+К методу стоит домавть префикс __ что означает виртулаьный, или часть vtable
+
 #+BEGIN_SRC asm
 ; Единая таблица переходов
-PUBLIC _mmu_vtable, _mmu_detect, _mmu_install
+PUBLIC __mmu_vtable, __mmu_detect, __mmu_install
 
-_mmu_vtable:
-_mmu_detect:    jp mmu_detect_impl
-_mmu_install:   jp mmu_install_impl
+__mmu_vtable:
+__mmu_detect:    jp mmu_detect_impl
+__mmu_install:   jp mmu_install_impl
 #+END_SRC
 
-**Использование:**
+*Использование:*
 
 - В заголовочном файле: прямые вызовы по именам меток
-- В коде: `call _mmu_install`
+- В коде: `call __mmu_install`
 - VTable используется только системой при загрузке
 
 #+BEGIN_SRC c
@@ -137,42 +223,130 @@ bool mmu_detect(); // direct call _mmu_detect
 - *Видео* - разные видеорежимы (текст, графика)
 - *Консоль* - разные кодировки или шрифты
 - *Файловая система* - FAT12, FAT16, TR-DOS
+**** Философия:
+
+1. *Единый интерфейс вызова* - код приложения всегда вызывает `_video_draw_char`, независимо от режима
+2. *Нулевые накладные расходы* - вызов всегда 17 тактов, даже при полиморфизме
+3. *Простота переключения* - сменить драйвер = скопировать 15 байт
+4. *Прозрачность* - отладчик видит прямой jump, а не косвенный вызов через регистр
+
+**Именно поэтому в документации говорится "прямой вызов драйвера стоит ровно 17 тактов"** - потому что даже полиморфный вызов это прямой `jp` на конкретный адрес, просто этот адрес может меняться в runtime.
+
+Полиморфизм достигается не через таблицы указателей в памяти (что давало бы +50 тактов), а через физическое копирование инструкций перехода. Это гениально просто для Z80.
 
 **** Структура:
 
 #+BEGIN_SRC asm
-; Полиморфная таблица верхнего уровня
-PUBLIC _video_vtable, _video_draw_char, _video_set_mode
-
+; ПРАВИЛЬНЫЙ ПОДХОД: объявляем метки прямо в VTable
+PUBLIC _video_draw_char, _video_set_mode, ...
 _video_vtable:
-_video_draw_char:    jp 0          ; Заполняется при активации
-_video_set_mode:     jp 0          ; Заполняется при активации
+_video_draw_char:    jp 0          ; Адрес = _video_vtable + 0
+_video_set_mode:     jp 0          ; Адрес = _video_vtable + 3 (вычисляется автоматически!)
+; ... и так далее ...
+SRC
 
-; Конкретная реализация (например, текстовый режим)
-PUBLIC _text_vtable
-_text_vtable:
-    jp text_draw_char_impl
-    jp text_set_mode_impl
+Не делайте лишних вычислений через defc:
+    
+#+BEGIN_SRC asm
+; НЕПРАВИЛЬНЫЙ ПОДХОД (нарушает KISS):
+defc _video_draw_char = _video_vtable + 0   ; Лишнее вычисление!
+defc _video_set_mode = _video_vtable + 3    ; Ассемблер сделает это сам!
 #+END_SRC
+
+Для конкретной реализации драйвера например video_monochrome метки методов не обязательны. Так как они не могут использоваться напрямую.
+
+#+BEGIN_SRC asm
+; ПРАВИЛЬНЫЙ ПОДХОД: объявляем метки прямо в VTable
+PUBLIC _video_draw_char, _video_set_mode, ...
+_video_mono_vtable:
+_video_mono_draw_char:    jp video_mono_draw_char         ; Адрес = _video_vtable + 0
+_video_mono_set_mode:     jp video_mono_set_mode          ; Адрес = _video_vtable + 3 (вычисляется автоматически!)
+; ... и так далее ...
+SRC
+
+*Правило для меток VTable:*
+
+1. Объявляйте метки методов прямо в определении VTable
+2. Ассемблер автоматически вычислит правильные адреса
+3. Не используйте defc для вычисления смещений внутри одного модуля
+4. defc используйте ТОЛЬКО для:
+   - Экспорта констант в другие модули
+   - Определения абсолютных адресов (если нужно)
+   - Создания псевдонимов (алиасов)
 
 **** Процесс активации:
 
+*** Процесс активации драйвера
+
 Конкретная реализация может иметь или не иметь метки, так как чаще всего будет использованп полиморфная таблица. Для этого, когда драйверу устанавливается режим он копирует конкретную таблицу в полиморфную версию.
 
+**** Фиксированный размер VTable
 
+Каждая VTable имеет ФИКСИРОВАННЫЙ размер:
+- 5 обязательных методов × 3 байта = 15 байт
+- + N специфичных методов × 3 байта
+
+Пример для палитры (8 методов):
+defc PALETTE_VTABLE_SIZE = 24  ; 8 × 3
+
+Это позволяет использовать простой ldir без вычислений.
+
+**** Автоматическая инициализация: ДА или НЕТ?
+
+Два подхода:
+
+1. Активация БЕЗ инициализации:
 
 #+BEGIN_SRC asm
-; Система копирует таблицу конкретного драйвера в слот
-copy_driver_table:
-    ; HL = source (_text_vtable)
-    ; DE = destination (_video_vtable)
-    ld bc, 15        ; 5 методов × 3 байта
-    ldir
+   ; Программист сам решает когда инициализировать
+   call __palette_activate_driver
+   ; ... что-то делаем ...
+   call __palette_install      ; Явный вызов когда нужно
 #+END_SRC
 
-*Использование:*
+2. Активация С инициализацией:
 
-**** Ключевые отличия:
+#+BEGIN_SRC asm
+   ; Удобно для большинства случаев
+   call _palette_activate_and_init
+#+END_SRC
+
+Правило: Желательно исполльзовать ручную активацию и вот почему. Она позволяет сделать вызхвать методы драйвера до активации, например детектирование аппаратных возможноестей и т.д.
+
+**** Размер VTable в коде vs вычисление
+
+Размер таблицы лучше вычислять
+
+#+BEGIN_SRC asm
+; ХОРОШО
+ld bc, _palette_vtable_end - _palette_vtable
+#+END_SRC
+
+**** Пример выбора драйвера
+
+#+BEGIN_SRC asm
+; Активировать конкретный драйвер палитры
+; Вход: HL = адрес VTable конкретного драйвера
+PUBLIC palette_activate_driver
+palette_activate_driver:
+    ld de, palette_vtable
+    ld (current_driver), de
+    ld bc, palette_vtable_end-palette_vtable
+    ldir
+    ret
+
+; Получить текущую активную VTable
+; Выход: HL = адрес текущей VTable
+PUBLIC palette_get_current_vtable
+palette_get_current_vtable:
+    ld hl, (current_driver)
+    ret
+
+SECTION DRV_DATA
+current_driver: dw 0x0000
+#+END_SRC
+
+*Ключевые отличия:*
 
 - В заголовочном файле: всё те же прямые вызовы `call _video_draw_char`
 - Runtime: вызов автоматически идет в текущую активную реализацию
@@ -188,20 +362,18 @@ copy_driver_table:
 | *Заголовочный файл*     | Содержит фиксированные адреса методов   | Содержит адреса полиморфного слота                  |
 | *Примеры*               | MMU, таймер, PSG                        | Видео, консоль, FS                                  |
 
-**** Философия:
+*** Метод по упочанию в пустой таблице
 
-1. *Единый интерфейс вызова* - код приложения всегда вызывает `_video_draw_char`, независимо от режима
-2. *Нулевые накладные расходы* - вызов всегда 17 тактов, даже при полиморфизме
-3. *Простота переключения* - сменить драйвер = скопировать 15 байт
-4. *Прозрачность* - отладчик видит прямой jump, а не косвенный вызов через регистр
+Полиморфная таблица должна иметь значение по умолчанию _undefined_method
+#+BEGIN_SRC asm
+__vbuf_draw_pixe: JP _undefined_method
+__vbuf_draw_line: JP _undefined_method
+#+END_SRC
 
-**Именно поэтому в документации говорится "прямой вызов драйвера стоит ровно 17 тактов"** - потому что даже полиморфный вызов это прямой `jp` на конкретный адрес, просто этот адрес может меняться в runtime.
+Этот метод долже вывести сообщение об ошибке со стек трейсом. Впрочем стек трейс в связи со сложностью качественной реализации не так важен. Самое главное система должа прервать исполнение и сообщить максимум возможного.
 
-Полиморфизм достигается не через таблицы указателей в памяти (что давало бы +50 тактов), а через физическое копирование инструкций перехода. Это гениально просто для Z80.
-
-** Table API: Минимум обязательного, максимум возможного
-
-*** Обязательные методы (первые 15 байт)
+** Driver API: Минимум обязательного, максимум возможного
+*** Обязательные методы
 
 Каждый драйвер обязан реализовать 5 методов:
 
@@ -288,9 +460,8 @@ ld a, CMD_AUD_STOP  ; 0x21
 call 0xFD00
 #+END_SRC
 
-** Информация о драйвере: Система должна знать, с кем имеет дело
-
-*** Структура DRIVER_INFO
+** Информация о драйвере (driver info)
+*** Информация о драйвере
 
 #+BEGIN_SRC asm
 ; Что возвращает get_info
@@ -316,8 +487,7 @@ API_POWER_SAVE     equ 1 << 4  ; Поддерживает энергосбере
 
 *Зачем это нужно:* Система видит флаг `API_STATIC_DEVICE` и понимает — этот видеоконтроллер встроенный, не нужно опрашивать его каждые 100 мс на предмет "не исчез ли он".
 
-** Горячее обнаружение: Для тех, кто может исчезнуть
-
+** Горячее обнаружение устройств
 *** Два типа устройств
 
 1. *Статические* (встроенные): Видеоконтроллер, системный таймер
@@ -348,7 +518,7 @@ check_hotplug:
 
 *Важный момент:* `uninstall` должен быть идемпотентным. Если вызвать его дважды — ничего страшного не случится.
 
-** Прерывания: Быстро или безопасно — выбор разработчика
+** Прерывания: Быстро или безопасно
 
 *** Проблема стандартных обработчиков
 
@@ -370,7 +540,7 @@ irq_handler:
 
 Для аудиодрайвера, который должен обновлять буфер каждые 20 мс, это неприемлемо.
 
-*** Наше решение: Гибкость
+*** Гибкость
 
 Драйвер регистрирует обработчик как есть. Если он написан на ассемблере и знает, какие регистры использует:
 
@@ -393,7 +563,7 @@ ym_irq_handler:
 
 *Но предупреждение:* Если обработчик написан на C или использует библиотечные функции — он ДОЛЖЕН сохранять все регистры. Система доверяет разработчику.
 
-*** 7.3 Регистрация обработчика
+*** Регистрация обработчика
 
 #+BEGIN_SRC asm
 ; В install драйвера:
@@ -403,8 +573,7 @@ ld bc, IRQ_VECTOR
 call SYS_CALL  ; зарегистрировать
 #+END_SRC
 
-** Зависимости: Явное лучше неявного
-
+** Зависимости между драйверами
 *** Декларация зависимостей
 
 В начале файла драйвера:
@@ -454,7 +623,7 @@ out (MMU_PORT), a
 
 ~50 такстов на переключение туда-обратно!
 
-*** Наше решение: Кэширование
+*** Кэширование
 
 Каждый драйвер хранит свой "отпечаток пальца":
 
@@ -486,7 +655,7 @@ require_memory:
 
 *Результат:* Если два вызова идут к одному драйверу подряд — переключение произойдет только при первом вызове.
 
-** Соглашения о регистрах: Естественность для Z80
+** Соглашения о регистрах
 
 *** Передача параметров
 
@@ -751,16 +920,14 @@ SYS_CALL_MAX        equ 255     ; Максимальный номер вызов
 1. ВСЕ определения констант через defc делаются ТОЛЬКО ВНУТРИ самого драйвера (.asm файл)
 2. Заголовочный файл (.inc) содержит ТОЛЬКО:
    - extern объявления для публичных символов драйвера
-   - equ или = константы (директивы ассемблера), которые можно безопасно дублировать
-     * Чисто числовые значения (0xFD00, 255 и т.д.)
-     * Простые вычисления (PORT_BASE + 3)
-     * Без создания новых символов для линкера
    - Макросы для удобства использования (но не нарушая KISS)
+3. Заголовочный файл (.inc) не должее содержать:
+   - equ или = константы (директивы ассемблера) так как они приводять к ошибкам редекларации
 
-*** Важное различие:
-   - equ/=' = директива АССЕМБЛЕРА, заменяется на этапе ассемблирования
-   - defc = директива ЛИНКЕРА, создает уникальный символ в объектном файле
-   В .inc файлах используйте ТОЛЬКО equ/=, НИКОГДА defc
+*Важное различие:*
+   - equ  директива АССЕМБЛЕРА, заменяется на этапе ассемблирования
+   - defc  директива ЛИНКЕРА, создает уникальный символ в объектном файле
+   - В .inc файлах используйте extern и макросы, но никогда equ, =, defc
    
 *** Правило: Структура заголовочного файла (.inc)
 
@@ -831,10 +998,43 @@ _bar:
 
 Такой подход исключает переопределения и делает архитектуру предсказуемой и надежной.
 
-** Важнейшее правило KISS
+*** Соглашения о вызовах: C vs Assembly
+**** Правило 1: Разделение интерфейсов
 
-Лучше не объявлять и реализовывать функцию, переменную, константу или макрос чем реализовать не понятно зачем и для чего KISS 
+- C программы используют .h файлы и вызывают C функции
+- Ассемблерные программы используют .inc файлы и вызывают ассемблерные функции напрямую
 
+**** Правило 2: Два слоя реализации
+
+Для каждого драйвера должно быть:
+
+1. C-слой (.c файл) - преобразует вызовы из стека в регистры
+2. ASM-слой (.asm файл) - работает только с регистрами
+
+**** Правило 3: Чёткая документация
+
+В .h файле должно быть ясно указано:
+- Какие функции для C программ
+- Какие inline-функции для ассемблера
+- Где какие параметры ожидаются
+
+**** Пример вызова:
+
+#+BEGIN_SRC c
+// C код:
+palette_set_color(10, 0xFFF);
+
+// Преобразуется в:
+// 1. Кладёт 10 и 0xFFF в стек
+// 2. Вызывает C-функцию из palette.c
+// 3. Та извлекает из стека в A и BC
+// 4. Вызывает _palette_set_color (ассемблер)
+
+; Ассемблерный код:
+ld a, 10
+ld bc, 0xFFF
+call _palette_set_color  ; Или через макрос
+#+END_SRC
 
 * Пример из реальной жизни: Аудиодрайвер для YM2149
 #+BEGIN_SRC asm
@@ -849,7 +1049,8 @@ ym2149_vtable:
     jp ym_get_info    ; +6
     jp ym_command     ; +9
     jp ym_uninstall   ; +12
-    jp ym_play_note   ; +15 (специфичный метод)
+    jp ym_play_note   ; +15 (специфичный метод
+ym2149_vtable_end:
 
 ; -------------------------------------------------------------------
 ; Зависимости: нет, самостоятельное устройство
@@ -882,18 +1083,18 @@ SECTION DRV_CODE
 ym_detect:
     ; Проверяем наличие YM2149
     call require_memory
-    
+
     ; Пробуем записать/считать тестовое значение
     ld a, 0xFF
     out (YM_REG), a
     in a, (YM_REG)
     cp 0xFF
     jr nz, .not_found
-    
+
     ; Устройство найдено
     ld a, 1
     ret
-    
+
 .not_found:
     xor a
     ret
@@ -906,7 +1107,7 @@ ym_command:
     jr z, .play_cmd
     cp CMD_AUD_STOP
     jr z, .stop_cmd
-    
+
     ; Неизвестная команда
     ld a, ERR_NOT_SUPPORTED
     scf
@@ -939,21 +1140,41 @@ ym_command:
 ym_irq_handler:
     push af
     push hl
-    
+
     ; Обновляем частоты
     ld hl, (ym_freq_ptr)
     ld a, (hl)
     out (YM_FREQ_A), a
-    
+
     ; Следующий байт
     inc hl
     ld (ym_freq_ptr), hl
-    
+
     pop hl
     pop af
     ei
     ret
 #+END_SRC
+
+Тогда виртуальный драйвер
+
+#+BEGIN_SRC asm
+
+SECTION DRV_VTABLE
+psg_vtable:
+    jp ym_detect      ; +0
+    jp ym_install     ; +3
+    jp ym_get_info    ; +6
+    jp ym_command     ; +9
+    jp ym_uninstall   ; +12
+    jp ym_play_note   ; +15 (специфичный метод
+psg_vtable_end:
+#+END_SRC
+
+
+
+
+
 
 
 * Структура проекта: Как это всё собирается
@@ -999,3 +1220,793 @@ XiAlesteBIOS/
 
 - include/ - что видят ВНЕШНИЕ программы (твой main.c и другие приложения)
 - drivers/ - внутренняя реализация (собирается в библиотеку BIOS)
+
+* Дополнения
+
+** ports_aleste.asm
+
+#+BEGIN_SRC asm
+; ==============================================================================
+; MEMORY_ALESTE@INC - Карта памяти Aleste LX с режимами Supervisor/User
+; Соответствует спецификации MMU Architecture v2@0
+; ==============================================================================
+
+; ==============================================================================
+; БАЗОВЫЕ КОНСТАНТЫ ПАМЯТИ
+; ==============================================================================
+
+; Адресное пространство (24 бита)
+MEMORY_SIZE        equ 0x01000000  ; 16 МБ общее адресное пространство
+PHYSICAL_RAM_SIZE  equ 0x00100000  ; 1 МБ физической оперативной памяти
+
+; Базовые адреса
+RAM_BASE           equ 0x00000000  ; Начало оперативной памяти
+MMIO_BASE          equ 0x00FF0000  ; Начало MMIO пространства (последние 64К)
+
+; ==============================================================================
+; ОКОННАЯ БАНКОВАЯ ПАМЯТЬ (WINDOWED BANK MEMORY)
+; ==============================================================================
+
+; Общее оконное пространство (до MMIO)
+WB_MEMORY_BEGIN    equ 0x000000    ; Начало оконной памяти
+WB_MEMORY_END      equ 0xFEFFFF    ; Конец оконной памяти (перед MMIO)
+WB_MEMORY_SIZE     equ 0xFF0000    ; Размер: 16МБ - 64К
+
+; Логические окна (по 16К каждое)
+WB_WINDOW_SIZE     equ 0x00004000  ; 16 КБ на окно
+
+; Окно 0: 0000-3FFF
+WB_WINDOW0_BEGIN   equ 0x000000
+WB_WINDOW0_END     equ 0x003FFF
+WB_WINDOW0_DEFAULT equ 0           ; Банк по умолчанию
+
+; Окно 1: 4000-7FFF
+WB_WINDOW1_BEGIN   equ 0x004000
+WB_WINDOW1_END     equ 0x007FFF
+WB_WINDOW1_DEFAULT equ 1
+
+; Окно 2: 8000-BFFF
+WB_WINDOW2_BEGIN   equ 0x008000
+WB_WINDOW2_END     equ 0x00BFFF
+WB_WINDOW2_DEFAULT equ 2
+
+; Окно 3: C000-FFFF
+WB_WINDOW3_BEGIN   equ 0x00C000
+WB_WINDOW3_END     equ 0x00FFFF
+WB_WINDOW3_DEFAULT equ 3
+
+; Размер банка (64К)
+BANK_SIZE          equ 0x00010000  ; 64 КБ
+
+; ==============================================================================
+; MMIO ПРОСТРАНСТВО (Memory Mapped I/O)
+; ==============================================================================
+
+MMIO_BEGIN         equ 0xFF0000    ; Начало MMIO (адрес 16МБ - 64К)
+MMIO_END           equ 0xFFFFFF    ; Конец MMIO (адрес 16МБ - 1)
+MMIO_SIZE          equ 0x00010000  ; 64 КБ
+
+; MMIO_LO (новые устройства Aleste)
+MMIO_LO_BEGIN      equ 0xFF0000    ; Начало MMIO_LO
+MMIO_LO_END        equ 0xFF3FFF    ; Конец MMIO_LO
+MMIO_LO_SIZE       equ 0x00004000  ; 16 КБ
+
+; MMIO_HI (эмуляция Legacy устройств)
+MMIO_HI_BEGIN      equ 0xFF4000    ; Начало MMIO_HI
+MMIO_HI_END        equ 0xFFFFFF    ; Конец MMIO_HI
+MMIO_HI_SIZE       equ 0x0000C000  ; 48 КБ
+
+; ==============================================================================
+; УСТРОЙСТВА В MMIO_LO (новые устройства Aleste)
+; ==============================================================================
+
+; Страница 0 MMIO_LO (FF0000-FF007F)
+MMIO_PAGE0_BEGIN   equ 0xFF0000
+
+; PIC Controller (Прерывания)
+MMIO_PIC_BASE      equ 0xFF0000
+MMIO_PIC_SIZE      equ 32
+
+; IPC Mailbox (Системный почтовый ящик)
+MMIO_IPC_BASE      equ 0xFF0020
+MMIO_IPC_SIZE      equ 32
+
+; System Timer
+MMIO_TIMER_BASE    equ 0xFF0040
+MMIO_TIMER_SIZE    equ 32
+
+; RTC Controller
+MMIO_RTC_BASE      equ 0xFF0060
+MMIO_RTC_SIZE      equ 32
+
+; Расширенный доступ к MMU
+MMIO_MMU_EXT_BEGIN equ 0xFF0080
+MMIO_MMU_EXT_END   equ 0xFF00BF
+MMIO_MMU_EXT_SIZE  equ 64          ; 16 регистров × 4 байта
+
+; Legacy Emulation (страница 2: FF0100-FF017F)
+MMIO_LEGACY_BEGIN  equ 0xFF0100
+MMIO_LEGACY_END    equ 0xFF017F
+MMIO_LEGACY_SIZE   equ 128
+
+; Палитра цветов (в Legacy области)
+MMIO_PALETTE_BASE  equ 0xFF0100    ; Первые 32 байта Legacy области
+MMIO_PALETTE_SIZE  equ 32
+
+; 6845 CRTC (в Legacy области)
+MMIO_6845_BASE     equ 0xFF0120    ; Следующие 32 байта
+MMIO_6845_SIZE     equ 32
+
+; ==============================================================================
+; MMIO_HI (эмуляция Legacy устройств CPC)
+; ==============================================================================
+
+; Gate Array (7FXXh порты)
+MMIO_GA_BASE       equ 0xFF7F00
+MMIO_GA_SIZE       equ 256         ; Полное отображение портов 00-FF
+
+; CRTC 6845 (BCXXh/BDXXh порты)
+MMIO_CRTC_INDEX    equ 0xFFBC00    ; BCXXh
+MMIO_CRTC_DATA     equ 0xFFBD00    ; BDXXh
+
+; Верхний ROM (DFXXh)
+MMIO_UPPER_ROM     equ 0xFFDF00
+
+; PPI 8255 (F4XXh-F7XXh)
+MMIO_PPI_PORTA     equ 0xFFF400    ; F4XXh
+MMIO_PPI_PORTB     equ 0xFFF500    ; F5XXh
+MMIO_PPI_PORTC     equ 0xFFF600    ; F6XXh
+MMIO_PPI_CTRL      equ 0xFFF700    ; F7XXh
+
+; ==============================================================================
+; СИСТЕМНЫЕ РЕГИСТРЫ MMU (порты ввода-вывода)
+; ==============================================================================
+
+; Регистры Native Mode (порты F0-FF)
+PORT_GLOBAL_CTRL   equ 0xF0        ; Главный регистр управления
+PORT_MMIO_PAGE     equ 0xF1        ; Выбор страницы MMIO
+PORT_SYSCALL       equ 0xF2        ; Системный вызов
+PORT_CLOCK_CTRL    equ 0xF3        ; Управление частотой CPU
+PORT_SUPER_SLOT    equ 0xF9        ; Активный слот для Supervisor
+PORT_USER_SLOT     equ 0xFB        ; Активный слот для User
+PORT_BANK_0        equ 0xFC        ; Банк для окна 0
+PORT_BANK_1        equ 0xFD        ; Банк для окна 1
+PORT_BANK_2        equ 0xFE        ; Банк для окна 2
+PORT_BANK_3        equ 0xFF        ; Банк для окна 3
+
+; Регистры Legacy Mode
+PORT_LEGACY_RMR    equ 0x7F00      ; RMR регистр CPC
+PORT_LEGACY_MMR    equ 0x7F00      ; MMR регистр CPC
+PORT_LEGACY_UPPER_ROM equ 0xDF00   ; Выбор верхнего ROM
+PORT_LEGACY_SYSCALL equ 0xF200     ; Системный вызов в Legacy
+
+; ==============================================================================
+; БИТЫ РЕГИСТРА GLOBAL_CTRL
+; ==============================================================================
+
+; Позиции битов в регистре GLOBAL_CTRL (порт F0h)
+GLOBAL_SUPERVISOR  equ 0           ; Бит 0: supervisor_mode
+GLOBAL_NATIVE      equ 1           ; Бит 1: native_mode
+GLOBAL_TRAP_ENABLE equ 2           ; Бит 2: supervisor_hook (включение trap)
+GLOBAL_RESERVED1   equ 3           ; Бит 3: зарезервировано
+GLOBAL_MMIO_UNLOCK equ 4           ; Бит 4: mmio_user_unlock
+GLOBAL_RESERVED2   equ 5           ; Бит 5: зарезервировано
+GLOBAL_RESERVED3   equ 6           ; Бит 6: зарезервировано
+GLOBAL_RESERVED4   equ 7           ; Бит 7: зарезервировано
+
+; Значения по умолчанию после сброса
+GLOBAL_DEFAULT     equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
+                                   ; supervisor=1, native=1, mmio_userlock=0
+
+; ==============================================================================
+; СЛОТЫ ПАМЯТИ (для SUPER_SLOT/USER_SLOT)
+; ==============================================================================
+
+; Доступные слоты (0-3)
+SLOT_0             equ 0           ; Слот 0
+SLOT_1             equ 1           ; Слот 1
+SLOT_2             equ 2           ; Слот 2
+SLOT_3             equ 3           ; Слот 3
+
+; ==============================================================================
+; МАКРОСЫ ДЛЯ РАБОТЫ С MMU
+; ==============================================================================
+
+; Получить текущий активный слот (в зависимости от режима)
+; Выход: A = текущий слот (0-3)
+MACRO GET_CURRENT_SLOT
+    in a, (PORT_GLOBAL_CTRL)
+    bit GLOBAL_SUPERVISOR, a
+    jr z, @user_mode
+    ; Supervisor mode
+    in a, (PORT_SUPER_SLOT)
+    jr @end
+@user_mode:
+    ; User mode
+    in a, (PORT_USER_SLOT)
+@end:
+ENDM
+
+; Переключить банк в текущем активном слоте
+; Вход: window (0-3), bank (0-255)
+MACRO SWITCH_BANK window, bank
+    ld a, bank
+    if window = 0
+        out (PORT_BANK_0), a
+    else if window = 1
+        out (PORT_BANK_1), a
+    else if window = 2
+        out (PORT_BANK_2), a
+    else if window = 3
+        out (PORT_BANK_3), a
+    endif
+ENDM
+
+; Быстрое переключение банка кода (окно 1)
+MACRO SWITCH_CODE_BANK bank
+    ld a, bank
+    out (PORT_BANK_1), a
+ENDM
+
+; Быстрое переключение банка данных (окно 2)
+MACRO SWITCH_DATA_BANK bank
+    ld a, bank
+    out (PORT_BANK_2), a
+ENDM
+
+; Системный вызов
+; Вход: A = код функции
+MACRO SYSCALL code
+    ld a, code
+    out (PORT_SYSCALL), a
+ENDM
+
+; Legacy системный вызов
+MACRO SYSCALL_LEGACY code
+    ld a, code
+    out (PORT_LEGACY_SYSCALL), a
+ENDM
+
+; Вход в Supervisor Mode через trap
+; Установить обработчики прерываний и включить trap
+MACRO ENABLE_TRAP
+    ld a, GLOBAL_DEFAULT | (1 << GLOBAL_TRAP_ENABLE)
+    out (PORT_GLOBAL_CTRL), a
+ENDM
+
+; Выход из Supervisor Mode
+MACRO EXIT_SUPERVISOR native_mode
+    if native_mode = 1
+        ld a, (1 << GLOBAL_NATIVE)  ; supervisor=0, native=1
+    else
+        xor a                       ; supervisor=0, native=0
+    endif
+    out (PORT_GLOBAL_CTRL), a
+ENDM
+
+; ==============================================================================
+; MMIO РАБОТА (доступ через окно)
+; ==============================================================================
+
+; Выбрать страницу MMIO
+; Вход: A = номер страницы (0-127)
+MACRO SET_MMIO_PAGE page
+    ld a, page
+    out (PORT_MMIO_PAGE), a
+ENDM
+
+; Запись в регистр MMIO
+; Вход: page = страница, offset = смещение (0-127), value = значение
+MACRO WRITE_MMIO page, offset, value
+    ld a, page
+    out (PORT_MMIO_PAGE), a
+    ld a, value
+    out (offset), a
+ENDM
+
+; Чтение из регистра MMIO
+; Вход: page = страница, offset = смещение (0-127)
+; Выход: A = значение
+MACRO READ_MMIO page, offset
+    ld a, page
+    out (PORT_MMIO_PAGE), a
+    in a, (offset)
+ENDM
+
+; ==============================================================================
+; РАБОТА С РАСШИРЕННЫМ MMU (MMU_EXT область)
+; ==============================================================================
+
+; Сохранить состояние маппера
+; Вход: HL = указатель на буфер (64 байта)
+MACRO SAVE_MMU_STATE buffer
+    ld hl, buffer
+    ld bc, 0040h           ; 64 байта
+    ld a, 0                ; Страница 0
+    out (PORT_MMIO_PAGE), a
+    ld a, 80h              ; Начало MMU_EXT области
+    ld d, 16               ; 16 регистров
+@save_loop:
+    ; Здесь должен быть код чтения через MMIO_WINDOW
+    ; (зависит от конкретной реализации доступа)
+    inc a
+    dec d
+    jr nz, @save_loop
+ENDM
+
+; ==============================================================================
+; КОНСТАНТЫ ДЛЯ СИСТЕМНЫХ ВЫЗОВОВ
+; ==============================================================================
+
+; Коды системных вызовов
+SYS_MMIO_ACCESS_REQUEST equ 0xFE  ; Запрос доступа к MMIO
+
+; ==============================================================================
+; СИСТЕМНЫЕ ОБЛАСТИ ПАМЯТИ
+; ==============================================================================
+
+; Таблица векторов прерываний (в начале памяти)
+IVT_BEGIN          equ 0x000000
+IVT_END            equ 0x0000FF
+IVT_SIZE          equ 0x00000100  ; 256 байт
+
+; Системный стек (в Supervisor слоте)
+SYS_STACK_BEGIN    equ 0x00FF00    ; В конце окна 3
+SYS_STACK_END      equ 0x00FFFF
+SYS_STACK_SIZE     equ 0x00000100  ; 256 байт
+
+; Область системных переменных
+SYS_VARS_BEGIN     equ 0x000100
+SYS_VARS_END       equ 0x0003FF
+SYS_VARS_SIZE      equ 0x00000300  ; 768 байт
+
+; ==============================================================================
+; РАЗМЕЩЕНИЕ ПРОГРАММ
+; ==============================================================================
+
+; Базовый адрес загрузки программ (окно 1)
+PROGRAM_LOAD_BASE  equ 0x004000
+PROGRAM_LOAD_END   equ 0x007FFF
+PROGRAM_LOAD_SIZE  equ 0x00004000  ; 16К
+
+; Область данных программы (окно 2)
+PROGRAM_DATA_BASE  equ 0x008000
+PROGRAM_DATA_END   equ 0x00BFFF
+PROGRAM_DATA_SIZE  equ 0x00004000  ; 16К
+
+; Стек программы (окно 3)
+PROGRAM_STACK_BASE equ 0x00C000
+PROGRAM_STACK_TOP  equ 0x00FFFF    ; Растёт вниз
+PROGRAM_STACK_SIZE equ 0x00004000  ; 16К
+
+; ==============================================================================
+; РЕЖИМЫ ДОСТУПА
+; ==============================================================================
+
+; Режимы пользователя (сочетания supervisor/native)
+MODE_SUPERVISOR_NATIVE equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
+MODE_USER_NATIVE      equ (1 << GLOBAL_NATIVE)
+MODE_USER_LEGACY      equ 0
+
+; Проверка режима доступа
+; Вход: mode = режим для проверки
+; Выход: Z=1 если текущий режим совпадает
+MACRO CHECK_MODE mode
+    in a, (PORT_GLOBAL_CTRL)
+    and (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
+    cp mode
+ENDM
+
+; ==============================================================================
+; ФЛАГИ БЕЗОПАСНОСТИ
+; ==============================================================================
+
+; Проверка блокировки MMIO в User Mode
+; Выход: Z=0 если доступ заблокирован (и мы в User Mode)
+MACRO CHECK_MMIO_LOCK
+    in a, (PORT_GLOBAL_CTRL)
+    bit GLOBAL_SUPERVISOR, a
+    jr nz, @supervisor    ; В Supervisor - всегда разрешено
+    bit GLOBAL_MMIO_UNLOCK, a
+    jr z, @locked         ; В User и mmio_userlock=0
+@supervisor:
+    xor a                 ; Z=1 (разрешено)
+    ret
+@locked:
+    or 1                  ; Z=0 (запрещено)
+ENDM
+#+END_SRC
+
+** memory_aleste.asm
+
+#+BEGIN_SRC asm
+; ==============================================================================
+; MEMORY_ALESTE@INC - Карта памяти Aleste LX с режимами Supervisor/User
+; Соответствует спецификации MMU Architecture v2@0
+; ==============================================================================
+
+; ==============================================================================
+; БАЗОВЫЕ КОНСТАНТЫ ПАМЯТИ
+; ==============================================================================
+
+; Адресное пространство (24 бита)
+MEMORY_SIZE        equ 0x01000000  ; 16 МБ общее адресное пространство
+PHYSICAL_RAM_SIZE  equ 0x00100000  ; 1 МБ физической оперативной памяти
+
+; Базовые адреса
+RAM_BASE           equ 0x00000000  ; Начало оперативной памяти
+MMIO_BASE          equ 0x00FF0000  ; Начало MMIO пространства (последние 64К)
+
+; ==============================================================================
+; ОКОННАЯ БАНКОВАЯ ПАМЯТЬ (WINDOWED BANK MEMORY)
+; ==============================================================================
+
+; Общее оконное пространство (до MMIO)
+WB_MEMORY_BEGIN    equ 0x000000    ; Начало оконной памяти
+WB_MEMORY_END      equ 0xFEFFFF    ; Конец оконной памяти (перед MMIO)
+WB_MEMORY_SIZE     equ 0xFF0000    ; Размер: 16МБ - 64К
+
+; Логические окна (по 16К каждое)
+WB_WINDOW_SIZE     equ 0x00004000  ; 16 КБ на окно
+
+; Окно 0: 0000-3FFF
+WB_WINDOW0_BEGIN   equ 0x000000
+WB_WINDOW0_END     equ 0x003FFF
+WB_WINDOW0_DEFAULT equ 0           ; Банк по умолчанию
+
+; Окно 1: 4000-7FFF
+WB_WINDOW1_BEGIN   equ 0x004000
+WB_WINDOW1_END     equ 0x007FFF
+WB_WINDOW1_DEFAULT equ 1
+
+; Окно 2: 8000-BFFF
+WB_WINDOW2_BEGIN   equ 0x008000
+WB_WINDOW2_END     equ 0x00BFFF
+WB_WINDOW2_DEFAULT equ 2
+
+; Окно 3: C000-FFFF
+WB_WINDOW3_BEGIN   equ 0x00C000
+WB_WINDOW3_END     equ 0x00FFFF
+WB_WINDOW3_DEFAULT equ 3
+
+; Размер банка (64К)
+BANK_SIZE          equ 0x00010000  ; 64 КБ
+
+; ==============================================================================
+; MMIO ПРОСТРАНСТВО (Memory Mapped I/O)
+; ==============================================================================
+
+MMIO_BEGIN         equ 0xFF0000    ; Начало MMIO (адрес 16МБ - 64К)
+MMIO_END           equ 0xFFFFFF    ; Конец MMIO (адрес 16МБ - 1)
+MMIO_SIZE          equ 0x00010000  ; 64 КБ
+
+; MMIO_LO (новые устройства Aleste)
+MMIO_LO_BEGIN      equ 0xFF0000    ; Начало MMIO_LO
+MMIO_LO_END        equ 0xFF3FFF    ; Конец MMIO_LO
+MMIO_LO_SIZE       equ 0x00004000  ; 16 КБ
+
+; MMIO_HI (эмуляция Legacy устройств)
+MMIO_HI_BEGIN      equ 0xFF4000    ; Начало MMIO_HI
+MMIO_HI_END        equ 0xFFFFFF    ; Конец MMIO_HI
+MMIO_HI_SIZE       equ 0x0000C000  ; 48 КБ
+
+; ==============================================================================
+; УСТРОЙСТВА В MMIO_LO (новые устройства Aleste)
+; ==============================================================================
+
+; Страница 0 MMIO_LO (FF0000-FF007F)
+MMIO_PAGE0_BEGIN   equ 0xFF0000
+
+; PIC Controller (Прерывания)
+MMIO_PIC_BASE      equ 0xFF0000
+MMIO_PIC_SIZE      equ 32
+
+; IPC Mailbox (Системный почтовый ящик)
+MMIO_IPC_BASE      equ 0xFF0020
+MMIO_IPC_SIZE      equ 32
+
+; System Timer
+MMIO_TIMER_BASE    equ 0xFF0040
+MMIO_TIMER_SIZE    equ 32
+
+; RTC Controller
+MMIO_RTC_BASE      equ 0xFF0060
+MMIO_RTC_SIZE      equ 32
+
+; Расширенный доступ к MMU
+MMIO_MMU_EXT_BEGIN equ 0xFF0080
+MMIO_MMU_EXT_END   equ 0xFF00BF
+MMIO_MMU_EXT_SIZE  equ 64          ; 16 регистров × 4 байта
+
+; Legacy Emulation (страница 2: FF0100-FF017F)
+MMIO_LEGACY_BEGIN  equ 0xFF0100
+MMIO_LEGACY_END    equ 0xFF017F
+MMIO_LEGACY_SIZE   equ 128
+
+; Палитра цветов (в Legacy области)
+MMIO_PALETTE_BASE  equ 0xFF0100    ; Первые 32 байта Legacy области
+MMIO_PALETTE_SIZE  equ 32
+
+; 6845 CRTC (в Legacy области)
+MMIO_6845_BASE     equ 0xFF0120    ; Следующие 32 байта
+MMIO_6845_SIZE     equ 32
+
+; ==============================================================================
+; MMIO_HI (эмуляция Legacy устройств CPC)
+; ==============================================================================
+
+; Gate Array (7FXXh порты)
+MMIO_GA_BASE       equ 0xFF7F00
+MMIO_GA_SIZE       equ 256         ; Полное отображение портов 00-FF
+
+; CRTC 6845 (BCXXh/BDXXh порты)
+MMIO_CRTC_INDEX    equ 0xFFBC00    ; BCXXh
+MMIO_CRTC_DATA     equ 0xFFBD00    ; BDXXh
+
+; Верхний ROM (DFXXh)
+MMIO_UPPER_ROM     equ 0xFFDF00
+
+; PPI 8255 (F4XXh-F7XXh)
+MMIO_PPI_PORTA     equ 0xFFF400    ; F4XXh
+MMIO_PPI_PORTB     equ 0xFFF500    ; F5XXh
+MMIO_PPI_PORTC     equ 0xFFF600    ; F6XXh
+MMIO_PPI_CTRL      equ 0xFFF700    ; F7XXh
+
+; ==============================================================================
+; СИСТЕМНЫЕ РЕГИСТРЫ MMU (порты ввода-вывода)
+; ==============================================================================
+
+; Регистры Native Mode (порты F0-FF)
+PORT_GLOBAL_CTRL   equ 0xF0        ; Главный регистр управления
+PORT_MMIO_PAGE     equ 0xF1        ; Выбор страницы MMIO
+PORT_SYSCALL       equ 0xF2        ; Системный вызов
+PORT_CLOCK_CTRL    equ 0xF3        ; Управление частотой CPU
+PORT_SUPER_SLOT    equ 0xF9        ; Активный слот для Supervisor
+PORT_USER_SLOT     equ 0xFB        ; Активный слот для User
+PORT_BANK_0        equ 0xFC        ; Банк для окна 0
+PORT_BANK_1        equ 0xFD        ; Банк для окна 1
+PORT_BANK_2        equ 0xFE        ; Банк для окна 2
+PORT_BANK_3        equ 0xFF        ; Банк для окна 3
+
+; Регистры Legacy Mode
+PORT_LEGACY_RMR    equ 0x7F00      ; RMR регистр CPC
+PORT_LEGACY_MMR    equ 0x7F00      ; MMR регистр CPC
+PORT_LEGACY_UPPER_ROM equ 0xDF00   ; Выбор верхнего ROM
+PORT_LEGACY_SYSCALL equ 0xF200     ; Системный вызов в Legacy
+
+; ==============================================================================
+; БИТЫ РЕГИСТРА GLOBAL_CTRL
+; ==============================================================================
+
+; Позиции битов в регистре GLOBAL_CTRL (порт F0h)
+GLOBAL_SUPERVISOR  equ 0           ; Бит 0: supervisor_mode
+GLOBAL_NATIVE      equ 1           ; Бит 1: native_mode
+GLOBAL_TRAP_ENABLE equ 2           ; Бит 2: supervisor_hook (включение trap)
+GLOBAL_RESERVED1   equ 3           ; Бит 3: зарезервировано
+GLOBAL_MMIO_UNLOCK equ 4           ; Бит 4: mmio_user_unlock
+GLOBAL_RESERVED2   equ 5           ; Бит 5: зарезервировано
+GLOBAL_RESERVED3   equ 6           ; Бит 6: зарезервировано
+GLOBAL_RESERVED4   equ 7           ; Бит 7: зарезервировано
+
+; Значения по умолчанию после сброса
+GLOBAL_DEFAULT     equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
+                                   ; supervisor=1, native=1, mmio_userlock=0
+
+; ==============================================================================
+; СЛОТЫ ПАМЯТИ (для SUPER_SLOT/USER_SLOT)
+; ==============================================================================
+
+; Доступные слоты (0-3)
+SLOT_0             equ 0           ; Слот 0
+SLOT_1             equ 1           ; Слот 1
+SLOT_2             equ 2           ; Слот 2
+SLOT_3             equ 3           ; Слот 3
+
+; ==============================================================================
+; МАКРОСЫ ДЛЯ РАБОТЫ С MMU
+; ==============================================================================
+
+; Получить текущий активный слот (в зависимости от режима)
+; Выход: A = текущий слот (0-3)
+MACRO GET_CURRENT_SLOT
+    in a, (PORT_GLOBAL_CTRL)
+    bit GLOBAL_SUPERVISOR, a
+    jr z, @user_mode
+    ; Supervisor mode
+    in a, (PORT_SUPER_SLOT)
+    jr @end
+@user_mode:
+    ; User mode
+    in a, (PORT_USER_SLOT)
+@end:
+ENDM
+
+; Переключить банк в текущем активном слоте
+; Вход: window (0-3), bank (0-255)
+MACRO SWITCH_BANK window, bank
+    ld a, bank
+    if window = 0
+        out (PORT_BANK_0), a
+    else if window = 1
+        out (PORT_BANK_1), a
+    else if window = 2
+        out (PORT_BANK_2), a
+    else if window = 3
+        out (PORT_BANK_3), a
+    endif
+ENDM
+
+; Быстрое переключение банка кода (окно 1)
+MACRO SWITCH_CODE_BANK bank
+    ld a, bank
+    out (PORT_BANK_1), a
+ENDM
+
+; Быстрое переключение банка данных (окно 2)
+MACRO SWITCH_DATA_BANK bank
+    ld a, bank
+    out (PORT_BANK_2), a
+ENDM
+
+; Системный вызов
+; Вход: A = код функции
+MACRO SYSCALL code
+    ld a, code
+    out (PORT_SYSCALL), a
+ENDM
+
+; Legacy системный вызов
+MACRO SYSCALL_LEGACY code
+    ld a, code
+    out (PORT_LEGACY_SYSCALL), a
+ENDM
+
+; Вход в Supervisor Mode через trap
+; Установить обработчики прерываний и включить trap
+MACRO ENABLE_TRAP
+    ld a, GLOBAL_DEFAULT | (1 << GLOBAL_TRAP_ENABLE)
+    out (PORT_GLOBAL_CTRL), a
+ENDM
+
+; Выход из Supervisor Mode
+MACRO EXIT_SUPERVISOR native_mode
+    if native_mode = 1
+        ld a, (1 << GLOBAL_NATIVE)  ; supervisor=0, native=1
+    else
+        xor a                       ; supervisor=0, native=0
+    endif
+    out (PORT_GLOBAL_CTRL), a
+ENDM
+
+; ==============================================================================
+; MMIO РАБОТА (доступ через окно)
+; ==============================================================================
+
+; Выбрать страницу MMIO
+; Вход: A = номер страницы (0-127)
+MACRO SET_MMIO_PAGE page
+    ld a, page
+    out (PORT_MMIO_PAGE), a
+ENDM
+
+; Запись в регистр MMIO
+; Вход: page = страница, offset = смещение (0-127), value = значение
+MACRO WRITE_MMIO page, offset, value
+    ld a, page
+    out (PORT_MMIO_PAGE), a
+    ld a, value
+    out (offset), a
+ENDM
+
+; Чтение из регистра MMIO
+; Вход: page = страница, offset = смещение (0-127)
+; Выход: A = значение
+MACRO READ_MMIO page, offset
+    ld a, page
+    out (PORT_MMIO_PAGE), a
+    in a, (offset)
+ENDM
+
+; ==============================================================================
+; РАБОТА С РАСШИРЕННЫМ MMU (MMU_EXT область)
+; ==============================================================================
+
+; Сохранить состояние маппера
+; Вход: HL = указатель на буфер (64 байта)
+MACRO SAVE_MMU_STATE buffer
+    ld hl, buffer
+    ld bc, 0040h           ; 64 байта
+    ld a, 0                ; Страница 0
+    out (PORT_MMIO_PAGE), a
+    ld a, 80h              ; Начало MMU_EXT области
+    ld d, 16               ; 16 регистров
+@save_loop:
+    ; Здесь должен быть код чтения через MMIO_WINDOW
+    ; (зависит от конкретной реализации доступа)
+    inc a
+    dec d
+    jr nz, @save_loop
+ENDM
+
+; ==============================================================================
+; КОНСТАНТЫ ДЛЯ СИСТЕМНЫХ ВЫЗОВОВ
+; ==============================================================================
+
+; Коды системных вызовов
+SYS_MMIO_ACCESS_REQUEST equ 0xFE  ; Запрос доступа к MMIO
+
+; ==============================================================================
+; СИСТЕМНЫЕ ОБЛАСТИ ПАМЯТИ
+; ==============================================================================
+
+; Таблица векторов прерываний (в начале памяти)
+IVT_BEGIN          equ 0x000000
+IVT_END            equ 0x0000FF
+IVT_SIZE          equ 0x00000100  ; 256 байт
+
+; Системный стек (в Supervisor слоте)
+SYS_STACK_BEGIN    equ 0x00FF00    ; В конце окна 3
+SYS_STACK_END      equ 0x00FFFF
+SYS_STACK_SIZE     equ 0x00000100  ; 256 байт
+
+; Область системных переменных
+SYS_VARS_BEGIN     equ 0x000100
+SYS_VARS_END       equ 0x0003FF
+SYS_VARS_SIZE      equ 0x00000300  ; 768 байт
+
+; ==============================================================================
+; РАЗМЕЩЕНИЕ ПРОГРАММ
+; ==============================================================================
+
+; Базовый адрес загрузки программ (окно 1)
+PROGRAM_LOAD_BASE  equ 0x004000
+PROGRAM_LOAD_END   equ 0x007FFF
+PROGRAM_LOAD_SIZE  equ 0x00004000  ; 16К
+
+; Область данных программы (окно 2)
+PROGRAM_DATA_BASE  equ 0x008000
+PROGRAM_DATA_END   equ 0x00BFFF
+PROGRAM_DATA_SIZE  equ 0x00004000  ; 16К
+
+; Стек программы (окно 3)
+PROGRAM_STACK_BASE equ 0x00C000
+PROGRAM_STACK_TOP  equ 0x00FFFF    ; Растёт вниз
+PROGRAM_STACK_SIZE equ 0x00004000  ; 16К
+
+; ==============================================================================
+; РЕЖИМЫ ДОСТУПА
+; ==============================================================================
+
+; Режимы пользователя (сочетания supervisor/native)
+MODE_SUPERVISOR_NATIVE equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
+MODE_USER_NATIVE      equ (1 << GLOBAL_NATIVE)
+MODE_USER_LEGACY      equ 0
+
+; Проверка режима доступа
+; Вход: mode = режим для проверки
+; Выход: Z=1 если текущий режим совпадает
+MACRO CHECK_MODE mode
+    in a, (PORT_GLOBAL_CTRL)
+    and (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
+    cp mode
+ENDM
+
+; ==============================================================================
+; ФЛАГИ БЕЗОПАСНОСТИ
+; ==============================================================================
+
+; Проверка блокировки MMIO в User Mode
+; Выход: Z=0 если доступ заблокирован (и мы в User Mode)
+MACRO CHECK_MMIO_LOCK
+    in a, (PORT_GLOBAL_CTRL)
+    bit GLOBAL_SUPERVISOR, a
+    jr nz, @supervisor    ; В Supervisor - всегда разрешено
+    bit GLOBAL_MMIO_UNLOCK, a
+    jr z, @locked         ; В User и mmio_userlock=0
+@supervisor:
+    xor a                 ; Z=1 (разрешено)
+    ret
+@locked:
+    or 1                  ; Z=0 (запрещено)
+ENDM
+#+END_SRC
