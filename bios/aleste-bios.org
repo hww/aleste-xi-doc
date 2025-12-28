@@ -99,7 +99,7 @@ crtc_detect:
 
 *Результат:* Локальность. Меньше прыжков по файлам, меньше ошибок.
 
-** Полиморфные драйверы в BIOS Aleste: Два паттерна использования VTable
+** Полиморфные драйверы: Два паттерна использования VTable
 
 В системе существуют два типа драйверов с разными схемами использования VTable:
 
@@ -141,25 +141,53 @@ bool mmu_detect(); // direct call _mmu_detect
 **** Структура:
 
 #+BEGIN_SRC asm
-; Полиморфная таблица верхнего уровня
-PUBLIC _video_vtable, _video_draw_char, _video_set_mode
+; ПРАВИЛЬНЫЙ ПОДХОД: объявляем метки прямо в VTable
+PUBLIC _video_draw_char, _video_set_mode
 
 _video_vtable:
-_video_draw_char:    jp 0          ; Заполняется при активации
-_video_set_mode:     jp 0          ; Заполняется при активации
+_video_draw_char:    jp 0          ; Адрес = _video_vtable + 0
+_video_set_mode:     jp 0          ; Адрес = _video_vtable + 3 (вычисляется автоматически!)
+_video_clear:        jp 0          ; Адрес = _video_vtable + 6
+_video_scroll:       jp 0          ; Адрес = _video_vtable + 9
+; ... и так далее ...
+SRC
 
-; Конкретная реализация (например, текстовый режим)
-PUBLIC _text_vtable
-_text_vtable:
-    jp text_draw_char_impl
-    jp text_set_mode_impl
+НЕ ДЕЛАЙТЕ лишних вычислений через defc:
+    
+#+BEGIN_SRC asm
+; НЕПРАВИЛЬНЫЙ ПОДХОД (нарушает KISS):
+defc _video_draw_char = _video_vtable + 0   ; Лишнее вычисление!
+defc _video_set_mode = _video_vtable + 3    ; Ассемблер сделает это сам!
+#+END_SRC
+
+**** Правило для меток VTable:
+
+1. Объявляйте метки методов прямо в определении VTable
+2. Ассемблер автоматически вычислит правильные адреса
+3. Не используйте defc для вычисления смещений внутри одного модуля
+4. defc используйте ТОЛЬКО для:
+   - Экспорта констант в другие модули
+   - Определения абсолютных адресов (если нужно)
+   - Создания псевдонимов (алиасов)
+
+**** Пример правильной структуры:
+
+#+BEGIN_SRC asm
+; drivers/video/video_slot.asm
+defc VIDEO_SLOT_ADDR = 0xFD00  ; Один defc на весь модуль
+
+SECTION DRV_VIDEO_SLOT
+public _video_draw_char, _video_set_mode
+
+_video_vtable:
+_video_draw_char:    jp 0      ; Адрес = VIDEO_SLOT_ADDR + 0
+_video_set_mode:     jp 0      ; Адрес = VIDEO_SLOT_ADDR + 3
+; ... методы ...
 #+END_SRC
 
 **** Процесс активации:
 
 Конкретная реализация может иметь или не иметь метки, так как чаще всего будет использованп полиморфная таблица. Для этого, когда драйверу устанавливается режим он копирует конкретную таблицу в полиморфную версию.
-
-
 
 #+BEGIN_SRC asm
 ; Система копирует таблицу конкретного драйвера в слот
