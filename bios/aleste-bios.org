@@ -1,6 +1,6 @@
-#+TITLE: Архитектура BIOS Aleste
+#+TITLE: XI ALESTE BIOS
  
-#+SUBTITLE: Дизайн для реального железа
+#+SUBTITLE: ARCHITECTURE SPECIFICATION
 #+AUTHOR: h2w
 #+DATE: \today
 #+LANGUAGE: ru
@@ -27,2016 +27,1557 @@
 #+STARTUP: content
 
 
-* Архитектура BIOS Aleste: Дизайн для реального железа
+**Status: Draft**
 
-*Введение: Зачем нам нужен новый стандарт?*
+* DOCUMENT REVISION HISTORY
 
-Когда пишешь код для Z80 на реальном железе вроде Aleste, каждая инструкция на счету. Существующие стандарты часто приходят с больших платформ и не учитывают специфику 8-битных систем. Мы создаем не абстракцию ради абстракции, а практичную систему, где:
+| Version |       Date | Changes                                            | Author |
+|---------+------------+----------------------------------------------------+--------|
+|     1.1 | 2026-01-01 | Simplified API, added memory context, fixed states | h2w    |
+|     1.0 | 2024-01-15 | Initial specification                              | h2w    |
 
-- Прямой вызов драйвера стоит ровно 17 тактов
-- Переключение банков памяти происходит только когда действительно нужно
-- Обработчик прерываний аудио не тратит время на сохранение регистров, которые не использует
 
-Этот документ — не просто спецификация. Это философия разработки для ограниченных ресурсов.
+* PURPOSE
+:PROPERTIES:
+:CUSTOM_ID: purpose
+:END:
+This document defines the architectural standards, interfaces, and
+requirements for device driver implementation in the Aleste BIOS system.
+It serves as the authoritative reference for driver developers and
+system integrators.
 
-** Философия: Скорость через предсказуемость
+* SCOPE
+:PROPERTIES:
+:CUSTOM_ID: scope
+:END:
+This specification covers: - Device driver architecture - Interfaces and
+protocols - Data formats and structures - Implementation requirements -
+Driver lifecycle and states
 
-*** Фиксированные слоты вместо поиска
+Excluded from this document are hardware-specific details, memory maps,
+and port addresses, which are defined in separate hardware specification
+documents.
 
-Представьте, что вам нужно вывести пиксель на экран. В сложных системах вы бы:
+* ARCHITECTURAL OVERVIEW
+:PROPERTIES:
+:CUSTOM_ID: architectural-overview
+:END:
+** Core Philosophy
+:PROPERTIES:
+:CUSTOM_ID: core-philosophy
+:END:
+The Aleste BIOS driver architecture follows the principle of "speed
+through predictability." Unlike complex driver models that introduce
+abstraction layers at the cost of performance, this architecture
+prioritizes deterministic execution times and minimal overhead. Each
+architectural decision balances functionality with the constraints of
+8-bit hardware.
 
-1. Искали драйвер видео в таблице
-2. Запрашивали функцию вывода
-3. Вызывали её через указатель
+The system achieves polymorphism without runtime indirection overhead by
+using fixed memory slots and copyable VTable structures. This approach
+maintains the simplicity of direct calls while enabling driver
+substitution when needed.
 
-В нашей системе вы просто пишете:
+** Performance Guarantees
+:PROPERTIES:
+:CUSTOM_ID: performance-guarantees
+:END:
+*Key performance characteristics:* - Direct driver call: 17 clock cycles
+(JP + RET) - Context switch (when needed): ~30-50 cycles - Hot cache hit
+(same driver repeated): 0 extra cycles - Command execution: ≤ 100 cycles
+for common operations
 
-#+BEGIN_SRC asm
-call _video_draw_pixel ; Эквивалени call 0xFD03  
+These guarantees are achieved through fixed addressing, hash-based
+context validation, and minimal abstraction layers.
+
+* CORE PHILOSOPHY: SPEED THROUGH PREDICTABILITY
+:PROPERTIES:
+:CUSTOM_ID: core-philosophy-speed-predictability
+:END:
+
+This specification embodies a fundamental principle: on 8-bit hardware, **abstraction costs clock cycles**. The Aleste BIOS driver architecture rejects complex runtime indirection models that add overhead for theoretical flexibility.
+
+Our design is governed by Z80 and banked memory realities:
+
+- *Every call matters*: At 50Hz frame rate, you have only 20ms per frame. Saving tens of cycles per operation determines whether you can have dynamic graphics or just static screens.
+- *Memory is banked*: Switching memory contexts is expensive. We must minimize switches and make them lightning-fast when unavoidable.
+- *Simplicity enables speed*: The fastest code never executes. The most predictable system is the simplest.
+
+Thus, we achieve polymorphism not through function pointer tables (adding ~50 cycles) but through **physical copying of jump instructions** into fixed slots. We manage banked memory not with constant switching but with **hash-based lazy context validation**. The result:
+
+- Direct driver call: exactly **17 clock cycles** (JP + RET)
+- Context switch: **0 cycles** if already in correct bank
+- Video driver switch: copying 15 bytes, with **zero runtime overhead** thereafter
+
+This document specifies *how* to build for this reality—a blueprint for performance through simplicity.
+
+**The KISS Principle (Keep It Simple, Stupid)**
+
+A cardinal rule for all development under this specification:
+
+#+BEGIN_QUOTE
+It is better NOT to declare and implement a function, variable, constant, or macro than to implement one without a clear, immediate purpose.
+#+END_QUOTE
+
+Complexity is the enemy of performance and reliability. Before adding any element:
+- Is this required by the hardware?
+- Does it eliminate a proven bottleneck?
+- Does it simplify the driver API for the caller?
+
+*Do NOT* create abstraction layers "just in case."
+*Do NOT* add wrapper functions that only rename existing calls.
+*Do NOT* define constants for values used only once.
+
+Every element must justify its existence by contributing directly to speed, predictability, or clarity.
+
+* DRIVER TYPES AND PATTERNS
+:PROPERTIES:
+:CUSTOM_ID: driver-types-and-patterns
+:END:
+** Singleton Drivers
+:PROPERTIES:
+:CUSTOM_ID: singleton-drivers
+:END:
+Singleton drivers represent hardware components that exist in a single,
+non-replaceable form within the system. These typically include core
+system components like memory management units, interrupt controllers,
+and system timers.
+
+Singleton drivers feature fixed VTable implementations that never change
+during system operation. Their detection occurs once during system
+initialization, and they remain active for the duration of system
+operation. The system treats these drivers as fundamental building
+blocks that other drivers may depend upon.
+
+** Polymorphic Drivers
+:PROPERTIES:
+:CUSTOM_ID: polymorphic-drivers
+:END:
+Polymorphic drivers support multiple implementations for a single
+hardware interface. Common examples include video controllers with
+different display modes, storage systems supporting various filesystem
+formats, and audio chips with alternative programming models.
+
+These drivers employ a copy-on-activation mechanism where the system
+copies a specific implementation's VTable into a fixed memory slot. This
+approach enables runtime driver switching without modifying calling code
+or introducing indirect call overhead. All polymorphic drivers for a
+given interface share identical VTable layouts, ensuring compatibility.
+
+* DRIVER INTERFACES
+:PROPERTIES:
+:CUSTOM_ID: driver-interfaces
+:END:
+** Mandatory Driver Methods
+:PROPERTIES:
+:CUSTOM_ID: mandatory-driver-methods
+:END:
+Every driver, regardless of type or purpose, must implement exactly five
+core methods that form the foundation of driver management and
+operation.
+
+*detect()* - Tests for the physical presence of the target device
+through minimal hardware verification. This method performs only basic
+communication tests without allocating resources. It must be safe to
+call at any time for hot-plug detection and returns success when the
+device responds predictably.
+
+*init()* - Performs complete software initialization including memory
+allocation, data structure creation, and initial device configuration.
+This method prepares the driver for operational use but does not
+necessarily power on the physical device. Installation is idempotent,
+allowing safe multiple calls.
+
+*deinit()* - Releases all software resources acquired during
+initialization and returns the driver to post-detect() state. This
+method must handle partial initialization states gracefully and ensure
+complete resource cleanup without affecting hardware power state.
+
+*get_info()* - Returns immutable metadata about the driver
+implementation and device capabilities. The information block includes
+version data, capability flags, and descriptive strings that enable
+system-level driver management and dependency resolution.
+
+*command()* - Provides unified access to all hardware control operations
+including power management, mode switching, and device-specific
+functionality. This extensible interface accepts standardized command
+codes with device-specific parameters, preventing VTable bloat while
+maintaining performance.
+
+** Driver Information Structure
+:PROPERTIES:
+:CUSTOM_ID: driver-information-structure
+:END:
+The driver information structure provides standardized metadata that
+enables automated system management:
+
+#+begin_src asm
+DriverInfo:
+    .name_ptr:      dw 0        ; Pointer to ASCIIZ name string
+    .version_major: db 0        ; Major version number
+    .version_minor: db 0        ; Minor version number
+    .flags:         dw 0        ; Capability flags
+    .device_id:     db 0        ; Device type identifier
+    .reserved:      db 0        ; Alignment padding
+#+end_src
+
+*Capability flags include:* - =DRIVER_FLAG_HOTPLUG= (1 << 0): Supports
+hot-plug detection - =DRIVER_FLAG_POWER_CTRL= (1 << 1): Supports power
+management commands - =DRIVER_FLAG_HAS_IRQ= (1 << 2): Uses interrupt
+service routines - =DRIVER_FLAG_POLYMORPHIC= (1 << 3): Multiple
+implementations available - =DRIVER_FLAG_BANKED_MEM= (1 << 4): Requires
+banked memory context
+
+* DRIVER STATE MANAGEMENT
+:PROPERTIES:
+:CUSTOM_ID: driver-state-management
+:END:
+** State Definitions
+:PROPERTIES:
+:CUSTOM_ID: state-definitions
+:END:
+Drivers progress through three primary states with clear, unambiguous
+transitions:
+
+*ABSENT* - The device is not detected or verified. The driver may be
+loaded in memory but cannot confirm hardware presence. Only the detect()
+and get_info() methods are valid in this state.
+
+*PRESENT* - The device has been verified through successful detect() but
+software resources are not allocated. Hardware communication is
+established but the driver is not operational. The detect(), init(),
+deinit(), and get_info() methods are valid.
+
+*READY* - The driver is fully initialized and operational. All API
+methods including device-specific functionality are available. The
+device may be in various power states (normal, suspended) controlled
+through the command() interface.
+
+** State Transition Diagram
+:PROPERTIES:
+:CUSTOM_ID: state-transition-diagram
+:END:
+#+BEGIN_SRC plantuml :file states_simplified.png
+@startuml
+title Driver State Diagram
+
+state "ABSENT" as ABS
+state "PRESENT" as PRE
+state "READY" as RDY
+
+ABS --> PRE : detect() success
+ABS --> ABS : detect() failure
+
+PRE --> RDY : init() success
+PRE --> ABS : deinit()
+
+RDY --> PRE : deinit()
+RDY --> ABS : device removed
+
+RDY --> RDY : command()
+
+note right of ABS
+Methods: detect(), get_info()
+No hardware access
+end note
+
+note right of PRE
+Methods: detect(), init(), deinit(), get_info()
+Hardware verified
+end note
+
+note right of RDY
+All methods available
+Hardware operational
+end note
+
+@enduml
 #+END_SRC
 
-*Почему это важно:* 17 тактов против 50+. При частоте кадров 50 Гц у вас есть всего 20 мс на кадр. Каждая экономия тактов — это возможность добавить больше спрайтов, больше эффектов.
+** State-Specific Method Validity
+:PROPERTIES:
+:CUSTOM_ID: state-specific-method-validity
+:END:
+| State     | detect | init | deinit | command | get_info | Device Methods |
+|-----------+--------+------+--------+---------+----------+----------------|
+| *ABSENT*  | +      | -    | -      | -       | +        | -              |
+| *PRESENT* | +      | +    | +      | ​+(1)   | +        | -              |
+| *READY*   | +(2)   | -    | +      | +       | +        | +              |
 
-Но не в коем случае не вызвать математикой или константой
+- (1) Only power management and status commands (POWER_ON, POWER_OFF, GET_STATUS)
+- (2) Hot-plug verification only; successful detection does not change state from READY
 
+* MEMORY CONTEXT MANAGEMENT
+:PROPERTIES:
+:CUSTOM_ID: memory-context-management
+:END:
+** Context Structure for Banked Memory
+:PROPERTIES:
+:CUSTOM_ID: context-structure-for-banked-memory
+:END:
+Drivers requiring specific memory bank configurations define
+MemoryContext structures that enable zero-overhead context switching:
+
+#+begin_src asm
+;; MemoryContext Structure (8 bytes)
+MemoryContext:
+    .hash:      db 0    ;; XOR hash of bank configuration
+    .slot_reg:  db 0    ;; Slot register value
+    .bank_w0:   db 0    ;; Window 0 bank number
+    .bank_w1:   db 0    ;; Window 1 bank number
+    .bank_w2:   db 0    ;; Window 2 bank number
+    .bank_w3:   db 0    ;; Window 3 bank number
+    .flags:     db 0    ;; Context-specific flags
+    .reserved:  db 0    ;; Alignment padding
+#+end_src
+
+** Context Switching Protocol
+:PROPERTIES:
+:CUSTOM_ID: context-switching-protocol
+:END:
+Before executing driver code, the system ensures the correct memory
+context is active through a hash-based validation mechanism:
+
+1. *Fast path*: Compare current context hash with driver's required hash
+   - If hashes match: proceed immediately (5-8 cycle overhead)
+   - If hashes differ: proceed to slow path
+2. *Slow path*: Save current context, apply driver context, update cache
+   - Save current bank configuration to previous_context buffer
+   - Apply new configuration from driver's MemoryContext
+   - Update current_context_hash and cache
+
+This lazy switching approach eliminates context switch overhead for
+repeated calls to the same driver while maintaining correctness for
+cross-driver operations.
+
+** Context Caching (TLB)
+:PROPERTIES:
+:CUSTOM_ID: context-caching-tlb
+:END:
+In systems with banked memory architecture, drivers often require specific memory configurations to access their code and data. The Memory Context mechanism provides an efficient way to switch between these configurations with minimal overhead.
+
+Each driver defines a MemoryContext structure that encapsulates its required memory configuration:
+
+#+begin_src asm
+;; TLB Cache - 4 entries (32 bytes total)
+context_tlb:
+    hash:          db 0        ; Unique Hash value of the context
+    slot_reg:      db 0        ; The content of the slot register
+    mapper_state:  ds 4        ; The mapper's syaye
+    ds 2                        ; 2 reserved bytes
+#+end_src
+
+The .hash field contains an XOR checksum of all configuration bytes (slot_reg ^ bank_w0 ^ bank_w1 ^ bank_w2 ^ bank_w3 ^ flags). This enables rapid comparison to determine if a context switch is necessary.
+
+#+begin_src asm
+hash = slot_reg ^ bank_w0 ^ bank_w1 ^ bank_w2 ^ bank_w3 ^ flags
+#+end_src
+
+* VTABLE ARCHITECTURE
+:PROPERTIES:
+:CUSTOM_ID: vtable-architecture
+:END:
+** VTable Structure and Layout
+:PROPERTIES:
+:CUSTOM_ID: vtable-structure-and-layout
+:END:
+Driver VTable structures occupy fixed 64-byte memory slots and consist
+of contiguous JP (jump) instructions:
+
+#+begin_src asm
+;; Standard VTable Layout (mandatory + optional methods)
+__driver_vtable:
+__driver_detect:      jp detect_impl      ;; Offset 0
+__driver_init:        jp init_impl        ;; Offset 3
+__driver_deinit:      jp deinit_impl      ;; Offset 6
+__driver_get_info:    jp get_info_impl    ;; Offset 9
+__driver_command:     jp command_impl     ;; Offset 12
+__driver_method_1:    jp method_1_impl    ;; Offset 15 (optional)
+__driver_method_2:    jp method_2_impl    ;; Offset 18 (optional)
+;; ... up to 21 total methods (5 mandatory + 16 optional)
+#+end_src
+
+Each VTable slot provides space for 21 methods (64 bytes ÷ 3 bytes per
+JP). Unused method slots must point to a standard =_undefined_method=
+handler.
+
+** Polymorphic Driver Activation
+:PROPERTIES:
+:CUSTOM_ID: polymorphic-driver-activation
+:END:
+Polymorphic drivers implement driver switching through the
+=CMD_SWITCH_DRIVER= command:
+
+#+begin_src asm
+;; Example: Switching video driver implementation
+switch_to_vga_mode:
+    ld a, CMD_SWITCH_DRIVER
+    ld hl, vga_driver_vtable
+    call __video_command
+    ret
+#+end_src
+
+*Activation process:* System validates new VTable size and
+structure 2. Current driver's context is saved (if in READY state) 3.
+New VTable is copied to the fixed memory slot 4. New driver's context is
+applied 5. System updates internal references
+
+This mechanism provides zero-call-overhead polymorphism after activation
+while maintaining full driver state preservation.
+
+* COMMAND INTERFACE
+:PROPERTIES:
+:CUSTOM_ID: command-interface
+:END:
+** Standard Command Set
+:PROPERTIES:
+:CUSTOM_ID: standard-command-set
+:END:
+The command() interface provides access to common device operations
+through standardized command codes:
+
+| Command          | Code | Parameters    | Description                 |
+|------------------+------+---------------+-----------------------------|
+| POWER_ON         | 0x01 | None          | Enable device power         |
+| POWER_OFF        | 0x02 | None          | Disable device power        |
+| SUSPEND          | 0x03 | None          | Enter low-power suspend     |
+| RESUME           | 0x04 | None          | Resume from suspend         |
+| RESET            | 0x05 | None          | Hardware reset              |
+| GET_STATUS       | 0x06 | None          | Read device status          |
+| GET_CAPABILITIES | 0x07 | None          | Read device capabilities    |
+| SET_CONFIG       | 0x08 | HL=config_ptr | Apply configuration         |
+| GET_CONFIG       | 0x09 | HL=buffer_ptr | Read configuration          |
+| SWITCH_DRIVER    | 0x10 | HL=vtable_ptr | Activate new implementation |
+
+** Device-Specific Command Ranges
+:PROPERTIES:
+:CUSTOM_ID: device-specific-command-ranges
+:END:
+Command codes are allocated in ranges to prevent conflicts:
+
+- *0x00-0x0F*: System commands (common to all drivers)
+- *0x10-0x1F*: Driver management commands
+- *0x20-0x3F*: Audio device commands
+- *0x40-0x5F*: Video device commands\\
+- *0x60-0x7F*: Storage device commands
+- *0x80-0x9F*: Network device commands
+- *0xA0-0xFF*: Device-specific extensions
+
+** Power Management Example
+:PROPERTIES:
+:CUSTOM_ID: power-management-example
+:END:
+#+begin_src asm
+;; Complete power management sequence
+    call __sd_detect      ; Check device presence
+    jr c, .no_device
+
+    call __sd_init        ; Initialize software
+    jr c, .init_failed
+
+    ; Enable power (device-specific)
+    ld a, CMD_POWER_ON
+    call __sd_command
+
+    ; Use device
+    ld hl, buffer
+    ld bc, sector_num
+    call __sd_read_sector
+
+    ; Suspend for power saving
+    ld a, CMD_SUSPEND
+    call __sd_command
+
+    ; ... later, resume
+    ld a, CMD_RESUME
+    call __sd_command
+
+    ; Clean shutdown
+    call __sd_deinit
+    ld a, CMD_POWER_OFF
+    call __sd_command
+*#+end_src
+
+* ERROR HANDLING
+:PROPERTIES:
+:CUSTOM_ID: error-handling
+:END:
+** Error Reporting Convention
+:PROPERTIES:
+:CUSTOM_ID: error-reporting-convention
+:END:
+All driver methods follow a uniform error reporting protocol:
+
+- *Success*: Carry flag cleared (CF=0), register A = 0x00
+- *Failure*: Carry flag set (CF=1), register A = error code
+- *Additional data*: Registers may contain supplemental information
+
+This enables efficient error checking with minimal instruction overhead:
+
+#+begin_src asm
+    call __driver_method
+    jr c, .handle_error
+    ; Continue on success
+#+end_src
+
+** Standard Error Codes
+:PROPERTIES:
+:CUSTOM_ID: standard-error-codes
+:END:
+| Code | Constant          | Description                      |
+|------+-------------------+----------------------------------|
+| 0x00 | ERR_SUCCESS       | Operation completed successfully |
+| 0x01 | ERR_NOT_SUPPORTED | Operation not supported          |
+| 0x02 | ERR_NO_DEVICE     | Target device not present        |
+| 0x03 | ERR_BAD_PARAMETER | Invalid parameter value          |
+| 0x04 | ERR_TIMEOUT       | Operation timed out              |
+| 0x05 | ERR_BUSY          | Device busy                      |
+| 0x06 | ERR_NO_MEMORY     | Insufficient memory              |
+| 0x07 | ERR_IO_ERROR      | General I/O failure              |
+| 0x08 | ERR_WRONG_STATE   | Invalid in current state         |
+| 0x09 | ERR_HARDWARE      | Hardware failure                 |
+| 0x0A | ERR_CONFIG        | Configuration error              |
+
+* DEPENDENCY MANAGEMENT
+:PROPERTIES:
+:CUSTOM_ID: dependency-management
+:END:
+** Dependency Declaration
+:PROPERTIES:
+:CUSTOM_ID: dependency-declaration
+:END:
+Drivers declare dependencies through a null-terminated string list:
+
+#+begin_src asm
+;; Example: Video driver dependencies
+DEPENDS_ON:
+    db "MMU", 0        ; Memory management unit
+    db "PIC", 0        ; Programmable interrupt controller
+    db 0               ; List terminator
+#+end_src
+
+** Resolution Process
+:PROPERTIES:
+:CUSTOM_ID: resolution-process
+:END:
+The system performs topological analysis during initialization,
+ensuring: 1. All prerequisites are satisfied before driver
+initialization 2. Circular dependencies are detected and reported 3.
+Missing dependencies prevent driver initialization with clear error
+reporting
+
+* PERFORMANCE REQUIREMENTS
+:PROPERTIES:
+:CUSTOM_ID: performance-requirements
+:END:
+** Timing Constraints
+:PROPERTIES:
+:CUSTOM_ID: timing-constraints
+:END:
+- *detect()*: ≤ 1000 cycles (device presence verification)
+- *init()/deinit()*: No specific limit (one-time operations)
+- *command()*: ≤ 2000 cycles (control operations)
+- *Context switch*: 0 cycles (cached), ≤ 50 cycles (uncached)
+- *Interrupt handlers*: ≤ 200 cycles (minimal latency)
+
+** Memory Usage
+:PROPERTIES:
+:CUSTOM_ID: memory-usage
+:END:
+- *VTable*: Fixed 64-byte slot
+- *Driver code*: ≤ 4096 bytes recommended
+- *Driver data*: ≤ 1024 bytes recommended\\
+- *MemoryContext*: 8 bytes per required context
+- *State information*: ≤ 256 bytes
+
+* COMPLIANCE AND TESTING
+:PROPERTIES:
+:CUSTOM_ID: compliance-and-testing
+:END:
+** Compliance Verification
+:PROPERTIES:
+:CUSTOM_ID: compliance-verification
+:END:
+All drivers must pass the Driver Compliance Test Suite which
+validates: - API conformance and calling conventions - State transition
+correctness - Error handling protocols - Resource management (leak
+detection) - Performance requirements - Interoperability with system
+services
+
+** Quality Requirements
+:PROPERTIES:
+:CUSTOM_ID: quality-requirements
+:END:
+Production drivers must demonstrate: - 95%+ test coverage for all code
+paths - Stress testing under resource exhaustion - Fault injection
+testing for error recovery - Complete documentation of device-specific
+commands - Backward compatibility across minor versions
+
+* PRACTICAL IMPLEMENTATION GUIDANCE
+:PROPERTIES:
+:CUSTOM_ID: practical-implementation-guidance
+:END:
+
+** Driver Patterns: Singleton vs. Polymorphic
+:PROPERTIES:
+:CUSTOM_ID: driver-patterns-practical
+:END:
+
+The specification defines two driver types with distinct practical applications:
+
+*** Singleton Drivers (Fixed Hardware)
+:PROPERTIES:
+:CUSTOM_ID: singleton-practical
+:END:
+- *Examples*: System MMU, Primary Interrupt Controller (PIC), Core system timer
+- *Characteristics*: Represent unique, non-replaceable hardware. Their VTable is fixed at compile time.
+- *Calling Convention*: Applications call their methods directly via fixed labels (e.g., =call __mmu_switch_bank=)
+- *VTable Role*: Used internally by the system during boot—not a runtime polymorphism mechanism.
+
+*** Polymorphic Drivers (Replaceable Interfaces)
+:PROPERTIES:
+:CUSTOM_ID: polymorphic-practical
+:END:
+- *Examples*: Video controller (monochrome/VGA), Filesystem (FAT12/TR-DOS), Console output
+- *Characteristics*: Multiple implementations for a single abstract interface
+- *Calling Convention*: Applications **always** call the *polymorphic slot* (e.g., =call __video_draw_pixel=)
+- *Activation*: =CMD_SWITCH_DRIVER= copies the chosen VTable into the fixed slot—a **copy operation**, not pointer assignment
+- *Key Philosophy*: The application is **oblivious to implementation**
+
+*** Practical Comparison
+:PROPERTIES:
+:CUSTOM_ID: driver-patterns-comparison
+:END:
+
+#+CAPTION: Driver Patterns: Practical Differences
+| Aspect              | Singleton Driver                   | Polymorphic Driver                   |
+|---------------------+------------------------------------+--------------------------------------|
+| *Hardware*          | Unique, fixed device (MMU, CRTC)   | Interface with multiple implementations |
+| *VTable in Memory*  | Fixed, immutable                   | Changes when implementation switches |
+| *Called by App*     | Directly via its own labels        | Via polymorphic interface slot       |
+| *Switching*         | Not applicable                     | Via =CMD_SWITCH_DRIVER=              |
+| *Performance*       | Always 17-cycle direct call        | 17-cycle direct call (post-activation) |
+
+** Concrete Conventions: Naming and Files
+:PROPERTIES:
+:CUSTOM_ID: conventions-naming-files
+:END:
+
+*** Naming Convention for Constants
+:PROPERTIES:
+:CUSTOM_ID: naming-convention-constants
+:END:
+
+Constants follow a hierarchical pattern:
+
+=[DEVICE]_[TYPE]_[NAME]_[QUALIFIER]_[SUFFIX]=
+
+#+CAPTION: Constant Naming Components
+| Component   | Description                         | Examples                         |
+|-------------+-------------------------------------+----------------------------------|
+| *DEVICE*    | Hardware component                  | =MMU_=, =VIDEO_=, =AUDIO_=, =SYS_= |
+| *TYPE*      | Entity kind                         | =PORT_= (I/O), =REG_= (MMIO), =CMD_= |
+| *NAME*      | Specific element                    | =CTRL=, =STATUS=, =DATA=, =MODE=  |
+| *QUALIFIER* | Clarifying modifier                 | =SUPER=, =USER=, =NATIVE=, =ENABLE= |
+| *SUFFIX*    | Value type                          | =_BIT=, =_MASK=, =_SIZE=, =_BASE= |
+
+*Examples:*
 #+BEGIN_SRC asm
-;; очень плохо
-call 0xFD40
-;; очень плохо
-call DRV_BASE + 3
+MMU_PORT_CTRL_SUPER_BIT    ; Single bit in MMU control port
+VIDEO_CMD_SET_MODE         ; Command to set video mode
+AUDIO_REG_VOLUME_A         ; MMIO register for audio volume
 #+END_SRC
 
-*** Реальные цифры:
+*** File Structure and Scope Rules
+:PROPERTIES:
+:CUSTOM_ID: file-structure-rules
+:END:
 
-- Стандартный вызов через фиксированный слот: *17 тактов*
-- Вызов через таблицу указателей: ~50 тактов
-- Динамический поиск в runtime: 100+ тактов
+- *One File, One Device*: Driver VTable, data, and code reside in a single =.asm= file
+- *Header Files (.inc) are for Declarations Only*:
+  - Contain =extern= declarations
+  - Contain =equ= or == for numeric constants
+  - **Must NOT contain =defc=** (causes redefinition errors)
+- *Implementation Files (.asm) are for Definitions*:
+  - Use =defc= for linker symbols
+  - Include relevant =.inc= files
+- *C Interface Layer*: Separate =.h=/.c= pair marshals C stack arguments to Z80 registers
 
-** Важнейшее правило KISS
+*** Project Directory Structure
+:PROPERTIES:
+:CUSTOM_ID: project-directory-structure
+:END:
 
-Лучше не объявлять и реализовывать функцию, переменную, константу или макрос чем реализовать не понятно зачем и для чего KISS
+#+BEGIN_SRC text
+XiAlesteBIOS/
+ ├── include/                   # For C programs
+ │   ├── bios/                  # BIOS subsystems (C)
+ │   │   ├── drivers.h
+ │   │   └── errors.h
+ │   └── drivers/               # Public driver APIs (C)
+ │       ├── mmu.h
+ │       └── video.h
+ ├── inc/                       # For Assembly
+ │   ├── bios/                  # BIOS subsystems (ASM)
+ │   │   ├── drivers.inc        # DRV_FLAG_*
+ │   │   └── errors.inc
+ │   ├── drivers/               # Driver interfaces (ASM)
+ │   │   ├── mmu.inc            # extern labels
+ │   │   └── video.inc
+ │   └── hardware/              # Hardware maps
+ │       ├── ports.inc
+ │       └── memory.inc
+ └── drivers/                   # IMPLEMENTATIONS
+     ├── mmu/
+     │   └── mmu.asm
+     └── video/
+         ├── video.asm          # Polymorphic slot
+         └── video_mode0.asm    # Concrete implementation
+#+END_SRC
 
-** Принцип: Один файл — одно устройство
+** Working with Real Hardware: MMU and Banked Memory
+:PROPERTIES:
+:CUSTOM_ID: real-hardware-mmu
+:END:
 
-Мы отказались от разделения на `_api.asm` и `_impl.asm`. Почему?
+The =MemoryContext= structure (Section 4.1) applies practically to Aleste MMU:
 
-*Проблема:* Когда драйвер раскидан по нескольким файлам:
-
-1. Ты открываешь `video_api.asm`, видишь прототипы
-2. Переходишь в `video_impl.asm`, ищешь реализацию
-3. Забываешь, где лежат данные драйвера
-
-*Наше решение:* Открой `drivers/video/crtc.asm` — и увидишь всё:
+*** Port Definitions (from =ports.inc=)
+:PROPERTIES:
+:CUSTOM_ID: mmu-port-definitions
+:END:
 
 #+BEGIN_SRC asm
-; В начале файла — таблица переходов
+PORT_BANK_0        equ 0xFC    ; Window 0 (0000-3FFF)
+PORT_BANK_1        equ 0xFD    ; Window 1 (4000-7FFF)
+PORT_BANK_2        equ 0xFE    ; Window 2 (8000-BFFF)
+PORT_BANK_3        equ 0xFF    ; Window 3 (C000-FFFF)
+PORT_GLOBAL_CTRL   equ 0xF0    ; Master control register
+#+END_SRC
+
+*** Practical Macros (from =memory.inc=)
+:PROPERTIES:
+:CUSTOM_ID: mmu-practical-macros
+:END:
+
+#+BEGIN_SRC asm
+; Switch code bank (window 1). Preserves registers.
+MACRO SWITCH_CODE_BANK bank
+    ld a, bank
+    out (PORT_BANK_1), a
+ENDM
+
+; Switch data bank (window 2).
+MACRO SWITCH_DATA_BANK bank
+    ld a, bank
+    out (PORT_BANK_2), a
+ENDM
+
+; Get current memory slot (0-3).
+MACRO GET_CURRENT_SLOT
+    in a, (PORT_GLOBAL_CTRL)
+    bit 0, a               ; Check SUPERVISOR bit
+    jr z, .user_mode
+    in a, (0xF9)           ; PORT_SUPER_SLOT
+    jr .end
+.user_mode:
+    in a, (0xFB)           ; PORT_USER_SLOT
+.end:
+ENDM
+#+END_SRC
+
+*** Example: Driver with Banked Resources
+:PROPERTIES:
+:CUSTOM_ID: mmu-driver-example
+:END:
+
+#+BEGIN_SRC asm
+; Driver context for sound with samples in specific bank
+snd_context:
+    .hash:      db 0xA5        ; Hash = 0x10 ^ 0x20 ^ 0x30
+    .slot_reg:  db 1           ; Uses slot 1
+    .bank_w0:   db 0x10        ; Window 0: System
+    .bank_w1:   db 0x20        ; Window 1: Driver CODE
+    .bank_w2:   db 0x30        ; Window 2: Sample DATA
+    .bank_w3:   db 0x01        ; Window 3: System stack
+    .flags:     db 0
+    .reserved:  db 0
+
+; Wrapper ensuring correct context
+play_sound_safe:
+    push hl
+    ld hl, snd_context
+    call ensure_memory_context   ; System routine (Section 4.2)
+    pop hl
+    call play_sound_impl        ; Actual implementation
+    jp restore_previous_context
+#+END_SRC
+
+By adhering to these practical guidelines derived from hardware constraints, developers implement the formal specification while delivering the promised "speed through predictability."
+
+
+
+* APPENDIX A: COMPLETE DRIVER TEMPLATE
+:PROPERTIES:
+:CUSTOM_ID: appendix-a-complete-driver-template
+:END:
+** Polymorphic Sound Driver
+#+begin_src asm
+; =============================================================================
+; AUDIO.ASM - Polymorphic Audio Driver Structure
+; For Aleste LX BIOS
+; =============================================================================
+
+module audio_driver
+
+include "../../inc/bios/undefined_method.inc"
+
+include "../../inc/bios/drivers.inc"
+
+; -----------------------------------------------------------------------------
+; ПОЛИМОРФНАЯ VTABLE АУДИО
+; -----------------------------------------------------------------------------
+
 SECTION DRV_VTABLE
-    ; луче устанавливать allign.
-    allign 32
-    public _crtc_vtable
-_crtc_vtable:
-    jp crtc_detect
-    jp crtc_install
-    ...
+ALIGN 32
 
-; Прямо здесь же — данные драйвера  
+; Экспортируем ВСЕ метки VTable с двойным подчеркиванием
+PUBLIC __audio_vtable
+PUBLIC __audio_detect, __audio_install, __audio_command, __audio_uninstall
+PUBLIC __audio_play_note, __audio_stop, __audio_set_volume
+PUBLIC __audio_set_noise_type, __audio_set_noise_custom, __audio_enable_noise
+PUBLIC __audio_set_envelope, __audio_enable_envelope, __audio_enable_tone
+PUBLIC __audio_read_register, __audio_write_register
+PUBLIC __audio_play_chord, __audio_beep
+
+__audio_vtable:
+__audio_detect:           jp _undefined_method    ; 0
+__audio_install:          jp _undefined_method    ; 3
+__audio_command:          jp _undefined_method    ; 6
+__audio_uninstall:        jp _undefined_method    ; 9
+__audio_play_note:        jp _undefined_method    ; 12
+__audio_stop:             jp _undefined_method    ; 15
+__audio_set_volume:       jp _undefined_method    ; 18
+__audio_set_noise_type:   jp _undefined_method    ; 21
+__audio_set_noise_custom: jp _undefined_method    ; 24
+__audio_enable_noise:     jp _undefined_method    ; 27
+__audio_set_envelope:     jp _undefined_method    ; 30
+__audio_enable_envelope:  jp _undefined_method    ; 33
+__audio_enable_tone:      jp _undefined_method    ; 36
+__audio_read_register:    jp _undefined_method    ; 39
+__audio_write_register:   jp _undefined_method    ; 42
+__audio_play_chord:       jp _undefined_method    ; 45
+__audio_beep:             jp _undefined_method    ; 48
+__audio_vtable_end:
+
+; -----------------------------------------------------------------------------
+; ЗАВИСИМОСТИ И ДАННЫЕ
+; -----------------------------------------------------------------------------
+
 SECTION DRV_DATA
-crtc_mode: db 0
-crtc_buffer: ds 256
+DEPENDS_ON:
+    db 0  ; Конец списка
 
-; И сразу код
+
+_audio_info:
+    dw @name
+    db 1, 0        ; Версия 1.0
+    dw API_STATIC_BIT      ; Флаги: DRIVER_FLAG_STATIC
+    db 0           ; Нет IRQ
+    db 0           ; Резерв
+@name:
+    db "AY-3-8910 Audio Driver", 0
+
+
 SECTION DRV_CODE
-crtc_detect:
-    ; проверка наличия CRTC
-    ...
-#+END_SRC
 
-*Результат:* Локальность. Меньше прыжков по файлам, меньше ошибок.
-** Принцип: Один файл — одна ответственность
+; -----------------------------------------------------------------------------
+; Системные функции управления полиморфизмом
+; -----------------------------------------------------------------------------
 
-<<<<<<< HEAD
-Три четких уровня:
-#+BEGIN_SRC text
-Уровень 1: C-интерфейс (palette.h)
-          ↓
-Уровень 2: Полиморфная таблица + диспетчер (palette.asm + palette.inc)
-          ↓
-Уровень 3: Конкретные реализации (palette_native.asm, palette_cpc.asm, ...)
-#+END_SRC
-=======
-** Полиморфные драйверы: Два паттерна использования VTable
->>>>>>> e60c1d90921187ed2d8b5147572df93bda60f320
-
-*Иначе говоря*
-
-- palette.h - только интерфейсы
-- palette.c - только интерфейсы реализация
-- palette.inc - только константы и файл допускает множественное включение
-- palette.asm - ТОЛЬКО полиморфная система
-- palette_native.asm - конкретная реализация  
-
-*Диаграмма зависимостей:*
-
-#+BEGIN_SRC text
-
-               palette.h/c (C интерфейс)
-                     ↑
-               palette.inc (константы)
-              ↗             ↖
-palette.asm (полиморфный)  palette_native.asm (драйвер)
-    ↓                           ↓
-системный слот              VTable драйвера
-  0xFD40                    (экспортируется)
-#+END_SRC
-
-** Трёхслойная архитектура драйверов
-
-*Слой 1: C-интерфейс (.h + .c)*
-- .h файл: объявления функций для C программ
-- .c файл: преобразование вызовов из стека в регистры
-- Имена: без префиксов в C, с '_' для линкера
-
-*Слой 2: VTable интерфейс (.asm)*
-- Полиморфная VTable с методами '__*'
-- Фиксированные адреса для прямых вызовов
-- Только переходы на реализации
-
-*Слой 3: ASM реализация (.asm)*
-- Полные имена без лишеих префиксов или суффиксов
-- Работают напрямую с регистрами
-- Быстрые, без накладных расходов
-
-** Соглашения вызовов:
-
-Для драйвера палитры:
-
-1. C программа:
-   palette_set_color(10, 0xFFF);
-
-2. C-интерфейсный слой:
-   - Извлекает 10 и 0xFFF из стека
-   - Кладёт в регистры
-   - Вызывает __palette_set_color
-
-3. VTable:
-   __palette_set_color: jp palette_set_color
-
-4. ASM реализация:
-   palette_set_color:
-       ; A=10, BC=0xFFF уже здесь!
-       ; ... быстрая реализация ...
-
-
-** Полиморфные драйверы: Два паттерна использования VTable
-
-В системе существуют два типа драйверов с разными схемами использования VTable. В одном случе где драйвер-синглетон и предоставляет свою таблицу внешним модулям. В другом случае полиморфный драйвер который подменяет методы драйвера в зависимости от режима.
-
-*** Синглтон-драйвер
-
-Это драйверы для уникального железа, которое не имеет альтернатив:
-- *MMU* - только один тип маппера в системе
-- *CRTC* - конкретный видеоконтроллер
-- *PSG* - конкретный звуковой чип
-
-*Структура:*
-
-К методу стоит домавть префикс __ что означает виртулаьный, или часть vtable
-
-#+BEGIN_SRC asm
-; Единая таблица переходов
-PUBLIC __mmu_vtable, __mmu_detect, __mmu_install
-
-__mmu_vtable:
-__mmu_detect:    jp mmu_detect_impl
-__mmu_install:   jp mmu_install_impl
-#+END_SRC
-
-*Использование:*
-
-- В заголовочном файле: прямые вызовы по именам меток
-- В коде: `call __mmu_install`
-- VTable используется только системой при загрузке
-
-#+BEGIN_SRC c
-bool mmu_detect(); // direct call _mmu_detect
-#+END_SRC
-
-*** Полиморфные драйверы (многорежимные, заменяемые)
-
-Это драйверы, имеющие несколько реализаций для одного интерфейса:
-- *Видео* - разные видеорежимы (текст, графика)
-- *Консоль* - разные кодировки или шрифты
-- *Файловая система* - FAT12, FAT16, TR-DOS
-**** Философия:
-
-1. *Единый интерфейс вызова* - код приложения всегда вызывает `_video_draw_char`, независимо от режима
-2. *Нулевые накладные расходы* - вызов всегда 17 тактов, даже при полиморфизме
-3. *Простота переключения* - сменить драйвер = скопировать 15 байт
-4. *Прозрачность* - отладчик видит прямой jump, а не косвенный вызов через регистр
-
-**Именно поэтому в документации говорится "прямой вызов драйвера стоит ровно 17 тактов"** - потому что даже полиморфный вызов это прямой `jp` на конкретный адрес, просто этот адрес может меняться в runtime.
-
-Полиморфизм достигается не через таблицы указателей в памяти (что давало бы +50 тактов), а через физическое копирование инструкций перехода. Это гениально просто для Z80.
-
-**** Структура:
-
-#+BEGIN_SRC asm
-; ПРАВИЛЬНЫЙ ПОДХОД: объявляем метки прямо в VTable
-PUBLIC _video_draw_char, _video_set_mode, ...
-_video_vtable:
-_video_draw_char:    jp 0          ; Адрес = _video_vtable + 0
-_video_set_mode:     jp 0          ; Адрес = _video_vtable + 3 (вычисляется автоматически!)
-; ... и так далее ...
-SRC
-
-Не делайте лишних вычислений через defc:
-
-
-#+BEGIN_SRC asm
-; НЕПРАВИЛЬНЫЙ ПОДХОД (нарушает KISS):
-defc _video_draw_char = _video_vtable + 0   ; Лишнее вычисление!
-defc _video_set_mode = _video_vtable + 3    ; Ассемблер сделает это сам!
-#+END_SRC
-
-**** Правило для меток VTable:
-
-1. Объявляйте метки методов прямо в определении VTable
-2. Ассемблер автоматически вычислит правильные адреса
-3. Не используйте defc для вычисления смещений внутри одного модуля
-4. defc используйте ТОЛЬКО для:
-   - Экспорта констант в другие модули
-   - Определения абсолютных адресов (если нужно)
-   - Создания псевдонимов (алиасов)
-
-**** Пример правильной структуры:
-
-#+BEGIN_SRC asm
-; drivers/video/video_slot.asm
-defc VIDEO_SLOT_ADDR = 0xFD00  ; Один defc на весь модуль
-
-SECTION DRV_VIDEO_SLOT
-public _video_draw_char, _video_set_mode
-
-_video_vtable:
-_video_draw_char:    jp 0      ; Адрес = VIDEO_SLOT_ADDR + 0
-_video_set_mode:     jp 0      ; Адрес = VIDEO_SLOT_ADDR + 3
-; ... методы ...
-#+END_SRC
-
-Для конкретной реализации драйвера например video_monochrome метки методов не обязательны. Так как они не могут использоваться напрямую.
-
-#+BEGIN_SRC asm
-; ПРАВИЛЬНЫЙ ПОДХОД: объявляем метки прямо в VTable
-PUBLIC _video_draw_char, _video_set_mode, ...
-_video_mono_vtable:
-_video_mono_draw_char:    jp video_mono_draw_char         ; Адрес = _video_vtable + 0
-_video_mono_set_mode:     jp video_mono_set_mode          ; Адрес = _video_vtable + 3 (вычисляется автоматически!)
-; ... и так далее ...
-SRC
-
-*Правило для меток VTable:*
-
-1. Объявляйте метки методов прямо в определении VTable
-2. Ассемблер автоматически вычислит правильные адреса
-3. Не используйте defc для вычисления смещений внутри одного модуля
-4. defc используйте ТОЛЬКО для:
-   - Экспорта констант в другие модули
-   - Определения абсолютных адресов (если нужно)
-   - Создания псевдонимов (алиасов)
-
-**** Процесс активации:
-
-*** Процесс активации драйвера
-
-Конкретная реализация может иметь или не иметь метки, так как чаще всего будет использованп полиморфная таблица. Для этого, когда драйверу устанавливается режим он копирует конкретную таблицу в полиморфную версию.
-
-**** Фиксированный размер VTable
-
-Каждая VTable имеет ФИКСИРОВАННЫЙ размер:
-- 5 обязательных методов × 3 байта = 15 байт
-- + N специфичных методов × 3 байта
-
-Пример для палитры (8 методов):
-defc PALETTE_VTABLE_SIZE = 24  ; 8 × 3
-
-Это позволяет использовать простой ldir без вычислений.
-
-**** Автоматическая инициализация: ДА или НЕТ?
-
-Два подхода:
-
-1. Активация БЕЗ инициализации:
-
-#+BEGIN_SRC asm
-   ; Программист сам решает когда инициализировать
-   call __palette_activate_driver
-   ; ... что-то делаем ...
-   call __palette_install      ; Явный вызов когда нужно
-#+END_SRC
-
-2. Активация С инициализацией:
-
-#+BEGIN_SRC asm
-   ; Удобно для большинства случаев
-   call _palette_activate_and_init
-#+END_SRC
-
-Правило: Желательно исполльзовать ручную активацию и вот почему. Она позволяет сделать вызхвать методы драйвера до активации, например детектирование аппаратных возможноестей и т.д.
-
-**** Размер VTable в коде vs вычисление
-
-Размер таблицы лучше вычислять
-
-#+BEGIN_SRC asm
-; ХОРОШО
-ld bc, _palette_vtable_end - _palette_vtable
-#+END_SRC
-
-**** Пример выбора драйвера
-
-#+BEGIN_SRC asm
 ; Активировать конкретный драйвер палитры
 ; Вход: HL = адрес VTable конкретного драйвера
-PUBLIC palette_activate_driver
-palette_activate_driver:
-    ld de, palette_vtable
+PUBLIC __audio_activate_driver
+__audio_activate_driver:
+    ld de, __audio_vtable
     ld (current_driver), de
-    ld bc, palette_vtable_end-palette_vtable
+    ld bc, __audio_vtable_end-__audio_vtable
     ldir
     ret
 
 ; Получить текущую активную VTable
 ; Выход: HL = адрес текущей VTable
-PUBLIC palette_get_current_vtable
-palette_get_current_vtable:
+PUBLIC __audio_get_current_vtable
+__audio_get_current_vtable:
     ld hl, (current_driver)
     ret
 
+
 SECTION DRV_DATA
 current_driver: dw 0x0000
-#+END_SRC
+#+end_src
 
-*Ключевые отличия:*
+** AY8910 Sound Driver
 
-- В заголовочном файле: всё те же прямые вызовы `call _video_draw_char`
-- Runtime: вызов автоматически идет в текущую активную реализацию
-- Переключение: копирование VTable без изменения вызывающего кода
+#+begin_src asm
+; =============================================================================
+; AUDIO_AY8910.ASM - AY-3-8910 Specific Driver
+; Конкретная реализация семантического API
+; =============================================================================
 
-#+ATTR_LATEX: :width \textwidth
-#+ATTR_LATEX: :environment tabularx :width \textwidth :align |X|X|X|
-| Аспект                  | Синглтон-драйвер                        | Полиморфный драйвер                                 |
-|-------------------------+-----------------------------------------+-----------------------------------------------------|
-| *Количество реализаций* | 1                                       | Много                                               |
-| *VTable в памяти*       | Фиксированная, никогда не меняется      | Меняется при переключении режима                    |
-| *Вызов из кода*         | Прямой переход по фиксированному адресу | Прямой переход по адресу, который меняет реализацию |
-| *Заголовочный файл*     | Содержит фиксированные адреса методов   | Содержит адреса полиморфного слота                  |
-| *Примеры*               | MMU, таймер, PSG                        | Видео, консоль, FS                                  |
+module audio_ay8910
 
-*** Метод по упочанию в пустой таблице
+include "../../inc/bios/undefined_method.inc"
 
-Полиморфная таблица должна иметь значение по умолчанию _undefined_method
-#+BEGIN_SRC asm
-__vbuf_draw_pixe: JP _undefined_method
-__vbuf_draw_line: JP _undefined_method
-#+END_SRC
+; -----------------------------------------------------------------------------
+; ВСЕ defc КОНСТАНТЫ ЭТОГО ДРАЙВЕРА
+; -----------------------------------------------------------------------------
 
-Этот метод долже вывести сообщение об ошибке со стек трейсом. Впрочем стек трейс в связи со сложностью качественной реализации не так важен. Самое главное система должа прервать исполнение и сообщить максимум возможного.
+; Порты AY
+defc AY_REGISTER_PORT = 0xFD
+defc AY_DATA_PORT = 0xFE
 
-** Driver API: Минимум обязательного, максимум возможного
-*** Обязательные методы
+; Регистры AY
+defc AY_REG_TONE_A_FINE = 0
+defc AY_REG_TONE_A_COARSE = 1
+defc AY_REG_TONE_B_FINE = 2
+defc AY_REG_TONE_B_COARSE = 3
+defc AY_REG_TONE_C_FINE = 4
+defc AY_REG_TONE_C_COARSE = 5
+defc AY_REG_NOISE_PERIOD = 6
+defc AY_REG_ENABLE = 7
+defc AY_REG_VOLUME_A = 8
+defc AY_REG_VOLUME_B = 9
+defc AY_REG_VOLUME_C = 10
+defc AY_REG_ENV_FINE = 11
+defc AY_REG_ENV_COARSE = 12
+defc AY_REG_ENV_SHAPE = 13
+defc AY_REG_IO_A = 14
+defc AY_REG_IO_B = 15
 
-Каждый драйвер обязан реализовать 5 методов:
+; Предустановки шума
+defc NOISE_PERIOD_LOW = 0x1F      ; ~30 Гц
+defc NOISE_PERIOD_MEDIUM = 0x0F   ; ~500 Гц
+defc NOISE_PERIOD_HIGH = 0x03     ; ~15 кГц
 
-#+ATTR_LATEX: :width \textwidth
-#+ATTR_LATEX: :environment tabularx :width \textwidth :align |X|X|X|
-| Метод       | Что делает                            | Когда вызывается                          |
-|-------------+---------------------------------------+-------------------------------------------|
-| `detect`    | Проверяет, присутствует ли устройство | При загрузке и (опционально) периодически |
-| `install`   | Инициализирует устройство             | После успешного detect                    |
-| `get_info`  | Возвращает информацию о драйвере      | По запросу системы или приложения         |
-| `command`   | Универсальная точка расширения        | Когда нужно специфичное действие          |
-| `uninstall` | Освобождает ресурсы                   | При выгрузке драйвера                     |
+; Предустановки огибающей
+defc ENV_PERIOD_SLOW = 0x0FFF
+defc ENV_PERIOD_MEDIUM = 0x07FF
+defc ENV_PERIOD_FAST = 0x01FF
+defc ENV_PERIOD_VERY_FAST = 0x007F
 
-*** Магия команды `command`
+; Формы огибающей
+defc ENV_SHAPE_DOWN = 0x00
+defc ENV_SHAPE_UP = 0x0C
+defc ENV_SHAPE_TRIANGLE = 0x0A
+defc ENV_SHAPE_SAWTOOTH = 0x08
 
-Вместо того чтобы расширять таблицу прыжков для каждой новой функции:
+; Громкость
+defc VOLUME_NORMAL = 15
 
-#+BEGIN_SRC asm
-; ПЛОХО: Таблица раздувается
-jp video_set_mode
-jp video_set_palette  
-jp video_set_sprite
-jp video_scroll
-... и ещё 20 функций
+; -----------------------------------------------------------------------------
+; VTABLE КОНКРЕТНОГО ДРАЙВЕРА AY-3-8910
+; -----------------------------------------------------------------------------
 
-; ХОРОШО: Один метод на всё
-jp video_command
-#+END_SRC
+SECTION DRV_VTABLE
+ALIGN 32
 
-*Как это работает:*
+; Экспортируем VTable драйвера
+PUBLIC __audio_ay8910_vtable
 
-#+BEGIN_SRC asm
-; Установить видеорежим
-ld a, CMD_VID_SET_MODE
-ld hl, MODE_256x192
-call 0xFD00  ; video_command
+__audio_ay8910_vtable:
+    jp _audio_ay8910_detect
+    jp _audio_ay8910_install
+    jp _audio_ay8910_command
+    jp _audio_ay8910_uninstall
+    jp _audio_ay8910_play_note
+    jp _audio_ay8910_stop
+    jp _audio_ay8910_set_volume
+    jp _audio_ay8910_set_noise_type
+    jp _audio_ay8910_set_noise_custom
+    jp _audio_ay8910_enable_noise
+    jp _audio_ay8910_set_envelope
+    jp _audio_ay8910_enable_envelope
+    jp _audio_ay8910_enable_tone
+    jp _audio_ay8910_read_register
+    jp _audio_ay8910_write_register
+    jp _audio_ay8910_play_chord
+    jp _audio_ay8910_beep
 
-; Прокрутить экран
-ld a, CMD_VID_SCROLL  
-ld bc, 10  ; на 10 пикселей
-call 0xFD00
-#+END_SRC
+; -----------------------------------------------------------------------------
+; ДАННЫЕ ДРАЙВЕРА
+; -----------------------------------------------------------------------------
 
-*Преимущество:* Таблица прыжков всегда занимает 15 байт + специфичные методы. Не нужно резервировать слоты под функции, которые драйвер не поддерживает.
+SECTION DRV_DATA
 
-** Типизация команд: Избегаем хаоса
+; Тень регистров (16 байт)
+_ay_shadow_regs:
+    ds 16
 
-*** Диапазоны команд
+; Текущий выбранный регистр
+_ay_selected_reg:
+    db 0
 
-Чтобы команды разных драйверов не конфликтовали:
+; Флаги инициализации
+_ay_initialized:
+    db 0
 
-#+BEGIN_SRC asm
-0x00-0x0F: Системные (все драйверы)
-  0x00 = RESET
-  0x01 = STATUS
-  0x02 = SUSPEND
-  0x03 = RESUME
+; Предустановленные периоды шума
+_noise_periods:
+    db 0            ; NOISE_OFF
+    db NOISE_PERIOD_LOW
+    db NOISE_PERIOD_MEDIUM
+    db NOISE_PERIOD_HIGH
+    db 0            ; NOISE_CUSTOM (будет установлен отдельно)
 
-0x10-0x1F: Видео
-  0x10 = SET_MODE
-  0x11 = SET_PALETTE
-  0x12 = SCROLL
+; Предустановленные периоды огибающей
+_env_periods:
+    dw 0            ; ENVELOPE_OFF
+    dw ENV_PERIOD_SLOW
+    dw ENV_PERIOD_MEDIUM
+    dw ENV_PERIOD_FAST
+    dw ENV_PERIOD_VERY_FAST
 
-0x20-0x2F: Аудио  
-  0x20 = PLAY
-  0x21 = STOP
-  0x22 = SET_VOLUME
+; Формы огибающей
+_env_shapes:
+    db 0            ; ENVELOPE_OFF
+    db ENV_SHAPE_DOWN
+    db ENV_SHAPE_UP
+    db ENV_SHAPE_TRIANGLE
+    db ENV_SHAPE_SAWTOOTH
 
-0x30-0x3F: Хранилище
-  0x30 = READ_SECTOR
-  0x31 = WRITE_SECTOR
-#+END_SRC
+; Таблица частот нот (96 нот × 2 байта)
+_notes_freq_table:
+    dw 3822, 3608, 3405, 3214, 3034, 2863, 2703, 2551, 2408, 2273, 2145, 2025
+    dw 1911, 1804, 1703, 1607, 1517, 1432, 1351, 1276, 1204, 1136, 1073, 1012
+    dw 956, 902, 851, 804, 758, 716, 676, 638, 602, 568, 536, 506
+    dw 478, 451, 426, 402, 379, 358, 338, 319, 301, 284, 268, 253
+    dw 239, 225, 213, 201, 190, 179, 169, 159, 150, 142, 134, 127
+    dw 119, 113, 106, 100, 95, 89, 84, 80, 75, 71, 67, 63
+    dw 60, 56, 53, 50, 47, 45, 42, 40, 38, 36, 34, 32
+    dw 30, 28, 26, 25, 24, 22, 21, 20, 19, 18, 17, 16
 
-*Пример использования:*
+; -----------------------------------------------------------------------------
+; ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (приватные, без подчеркиваний)
+; -----------------------------------------------------------------------------
 
-#+BEGIN_SRC asm
-; Играть музыку
-ld a, CMD_AUD_PLAY  ; 0x20
-ld hl, song_data
-call 0xFD00  ; audio_command
+SECTION DRV_CODE
 
-; Остановить
-ld a, CMD_AUD_STOP  ; 0x21
-call 0xFD00
-#+END_SRC
-
-** Информация о драйвере (driver info)
-*** Информация о драйвере
-
-#+BEGIN_SRC asm
-; Что возвращает get_info
-driver_info:
-  dw .name        ; "YM2149 Audio Driver"
-  db 2, 1         ; Версия 2.1
-  dw API_HAS_IRQ | API_STATIC_DEVICE  ; Флаги
-  db IRQ_VECTOR   ; Номер вектора прерывания (если нужно)
-  db 0            ; Резерв
-.name:
-  db "YM2149 v2.1", 0
-#+END_SRC
-
-*** Флаги возможностей:
-
-#+BEGIN_SRC asm
-API_HAoS_IRQ        equ 1 << 0  ; Использует прерывания
-API_STATIC_DEVICE  equ 1 << 1  ; Не исчезнет (встроенное устройство)
-API_USES_DMA       equ 1 << 2  ; Требует DMA
-API_BANKED         equ 1 << 3  ; Работает с банковой памятью
-API_POWER_SAVE     equ 1 << 4  ; Поддерживает энергосбережение
-#+END_SRC
-
-*Зачем это нужно:* Система видит флаг `API_STATIC_DEVICE` и понимает — этот видеоконтроллер встроенный, не нужно опрашивать его каждые 100 мс на предмет "не исчез ли он".
-
-** Горячее обнаружение устройств
-*** Два типа устройств
-
-1. *Статические* (встроенные): Видеоконтроллер, системный таймер
-   - `detect` вызывается один раз при загрузке
-   - Флаг `API_STATIC_DEVICE` установлен
-
-2. *Динамические* (сменные): Картриджи, внешние устройства
-   - `detect` может вызываться периодически
-   - Система отслеживает их наличие
-
-*** Протокол обнаружения исчезновения
-
-#+BEGIN_SRC asm
-; Псевдокод ядра
-check_hotplug:
-    ; Для каждого динамического устройства
-    call driver_detect
-    jr z, .device_present
-    
-    ; Устройство исчезло!
-    call driver_uninstall
-    mark_slot_free
-    
-.device_present:
-    ; Всё на месте
+; Выбрать регистр AY
+; Вход: A = номер регистра
+ay_select_register:
+    push bc
+    ld (_ay_selected_reg), a
+    ld c, AY_REGISTER_PORT
+    out (c), a
+    pop bc
     ret
-#+END_SRC
 
-*Важный момент:* `uninstall` должен быть идемпотентным. Если вызвать его дважды — ничего страшного не случится.
+; Записать в выбранный регистр
+; Вход: A = значение
+ay_write_register:
+    push bc
+    push hl
 
-** Прерывания: Быстро или безопасно
+    ; Обновляем тень
+    ld hl, _ay_shadow_regs
+    ld c, a                    ; Сохраняем значение
+    ld a, (_ay_selected_reg)
+    ld b, 0
+    add hl, bc
+    ld (hl), a                 ; Записываем в тень
 
-*** Проблема стандартных обработчиков
+    ; Пишем в чип
+    ld a, c                    ; Восстанавливаем значение
+    ld c, AY_DATA_PORT
+    out (c), a
 
-Типичный обработчик сохраняет ВСЕ регистры:
+    pop hl
+    pop bc
+    ret
 
-#+BEGIN_SRC asm
-irq_handler:
+; Прочитать из выбранного регистра (из тени)
+; Выход: A = значение
+ay_read_shadow:
+    push hl
+    push bc
+    ld hl, _ay_shadow_regs
+    ld a, (_ay_selected_reg)
+    ld c, a
+    ld b, 0
+    add hl, bc
+    ld a, (hl)
+    pop bc
+    pop hl
+    ret
+
+; Получить частоту ноты
+; Вход: A = номер ноты (0-95)
+; Выход: DE = частота (младший, старший)
+_get_note_frequency:
+    push hl
+    push bc
+
+    ; Проверяем NOTE_SILENCE
+    cp 255
+    jr z, @silence
+
+    ; Получаем адрес в таблице частот
+    ld hl, _notes_freq_table
+    add a, a          ; Умножаем на 2
+    ld c, a
+    ld b, 0
+    add hl, bc
+
+    ; Загружаем частоту
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    jr @exit
+
+@silence:
+    ; Для тишины возвращаем 0
+    ld de, 0
+
+@exit:
+    pop bc
+    pop hl
+    ret
+
+; Получить регистр громкости для канала
+; Вход: A = канал (0-2)
+; Выход: A = номер регистра громкости (8-10)
+_get_volume_register:
+    add a, AY_REG_VOLUME_A
+    ret
+
+; Получить бит маски для канала в регистре 7
+; Вход: A = канал (0-2)
+; Выход: C = бит для тона, B = бит для шума
+_get_channel_bits:
+    ld c, 1           ; Бит 0 для канала A
+    ld b, 8           ; Бит 3 для шума канала A
+
+    cp 0
+    ret z
+
+    ld c, 2           ; Бит 1 для канала B
+    ld b, 16          ; Бит 4 для шума канала B
+
+    cp 1
+    ret z
+
+    ld c, 4           ; Бит 2 для канала C
+    ld b, 32          ; Бит 5 для шума канала C
+    ret
+
+; -----------------------------------------------------------------------------
+; ПУБЛИЧНЫЕ МЕТОДЫ (с двойным подчеркиванием)
+; -----------------------------------------------------------------------------
+
+PUBLIC _audio_ay8910_detect
+_audio_ay8910_detect:
+    push bc
+    push de
+    push hl
+
+    ; Тест записи/чтения регистра
+    ld a, AY_REG_VOLUME_A
+    call ay_select_register
+    ld a, 0x0A
+    call ay_write_register
+
+    ; Небольшая задержка
+    ld bc, 100
+@delay:
+    dec bc
+    ld a, b
+    or c
+    jr nz, @delay
+
+    ; Проверяем
+    call ay_read_shadow
+    cp 0x0A
+    jr nz, @not_found
+
+    ; Успех
+    xor a
+    jr @exit
+
+@not_found:
+    ld a, 2  ; AUDIO_ERR_HARDWARE_ERROR
+    scf
+
+@exit:
+    pop hl
+    pop de
+    pop bc
+    ret
+
+PUBLIC _audio_ay8910_install
+_audio_ay8910_install:
+    push af
+    push bc
+    push hl
+
+    ld a, (_ay_initialized)
+    or a
+    jr nz, @already_init
+
+    ; Сбрасываем тень регистров
+    ld hl, _ay_shadow_regs
+    ld de, _ay_shadow_regs + 1
+    ld bc, 15
+    ld (hl), 0
+    ldir
+
+    ; Сбрасываем все регистры чипа
+    ld b, 16
+    ld c, 0
+@reset_loop:
+    ld a, c
+    call ay_select_register
+    xor a
+    call ay_write_register
+    inc c
+    djnz @reset_loop
+
+    ; Базовая настройка
+    ld a, 0x07        ; Включить все тоны
+    ld c, AY_REG_ENABLE
+    call ay_select_register
+    call ay_write_register
+
+    ; Установить громкость по умолчанию
+    ld a, VOLUME_NORMAL
+    ld c, AY_REG_VOLUME_A
+    call ay_select_register
+    call ay_write_register
+    ld c, AY_REG_VOLUME_B
+    call ay_select_register
+    call ay_write_register
+    ld c, AY_REG_VOLUME_C
+    call ay_select_register
+    call ay_write_register
+
+    ; Флаг инициализации
+    ld a, 1
+    ld (_ay_initialized), a
+
+@already_init:
+    xor a  ; Успех
+
+    pop hl
+    pop bc
+    pop af
+    ret
+
+PUBLIC _audio_ay8910_command
+_audio_ay8910_command:
+    ; TODO: реализовать команды
+    ld a, 1  ; ERR_NOT_SUPPORTED
+    scf
+    ret
+
+PUBLIC _audio_ay8910_uninstall
+_audio_ay8910_uninstall:
+    call _audio_ay8910_stop
+    xor a
+    ld (_ay_initialized), a
+    ret
+
+PUBLIC _audio_ay8910_play_note
+_audio_ay8910_play_note:
+    ; A = нота, B = канал, C = громкость
     push af
     push bc
     push de
-    ...
-    ; 100+ тактов только на push/pop!
+    push hl
+
+    ; Проверяем канал
+    ld a, b
+    cp 3
+    jr nc, @invalid_channel
+
+    ; Получаем частоту ноты
+    pop af           ; Восстанавливаем A (ноту)
+    push af
+    call _get_note_frequency
+    ; DE содержит частоту
+
+    ; Определяем регистры для канала
+    pop af           ; Восстанавливаем регистры
+    pop bc
+    push bc
+    push af
+
+    ld a, b          ; Канал
+    cp 0
+    jr z, @ch_a
+    cp 1
+    jr z, @ch_b
+    ; Канал C
+
+@ch_c:
+    ; Частота (регистры 4-5)
+    ld a, e
+    ld c, AY_REG_TONE_C_FINE
+    call ay_select_register
+    call ay_write_register
+    ld a, d
+    ld c, AY_REG_TONE_C_COARSE
+    call ay_select_register
+    call ay_write_register
+
+    ; Громкость (регистр 10)
+    ld a, 10
+    jr @set_volume
+
+@ch_b:
+    ; Частота (регистры 2-3)
+    ld a, e
+    ld c, AY_REG_TONE_B_FINE
+    call ay_select_register
+    call ay_write_register
+    ld a, d
+    ld c, AY_REG_TONE_B_COARSE
+    call ay_select_register
+    call ay_write_register
+
+    ; Громкость (регистр 9)
+    ld a, 9
+    jr @set_volume
+
+@ch_a:
+    ; Частота (регистры 0-1)
+    ld a, e
+    ld c, AY_REG_TONE_A_FINE
+    call ay_select_register
+    call ay_write_register
+    ld a, d
+    ld c, AY_REG_TONE_A_COARSE
+    call ay_select_register
+    call ay_write_register
+
+    ; Громкость (регистр 8)
+    ld a, 8
+
+@set_volume:
+    ; Устанавливаем громкость
+    call ay_select_register
+    pop bc           ; Восстанавливаем C (громкость)
+    push bc
+    ld a, c
+    and 0x0F         ; 4 бита громкости
+    call ay_write_register
+
+    xor a  ; Успех
+    jr @exit
+
+@invalid_channel:
+    ld a, 3  ; AUDIO_ERR_INVALID_CHANNEL
+    scf
+
+@exit:
     pop hl
     pop de
     pop bc
     pop af
     ret
-#+END_SRC
 
-Для аудиодрайвера, который должен обновлять буфер каждые 20 мс, это неприемлемо.
-
-*** Гибкость
-
-Драйвер регистрирует обработчик как есть. Если он написан на ассемблере и знает, какие регистры использует:
-
-#+BEGIN_SRC asm
-; Быстрый обработчик для YM2149
-ym_irq_handler:
-    push af
-    push hl
-    
-    ; Обновляем только регистры YM
-    ld hl, ym_buffer
-    ld a, (hl)
-    out (YM_PORT), a
-    
-    pop hl
-    pop af
-    ei
-    ret
-#+END_SRC
-
-*Но предупреждение:* Если обработчик написан на C или использует библиотечные функции — он ДОЛЖЕН сохранять все регистры. Система доверяет разработчику.
-
-*** Регистрация обработчика
-
-#+BEGIN_SRC asm
-; В install драйвера:
-ld a, CMD_SYS_IRQ_ATTACH
-ld hl, ym_irq_handler
-ld bc, IRQ_VECTOR
-call SYS_CALL  ; зарегистрировать
-#+END_SRC
-
-** Зависимости между драйверами
-*** Декларация зависимостей
-
-В начале файла драйвера:
-
-#+BEGIN_SRC asm
-; drivers/console/text.asm
-DEPENDS_ON:
-    db "VIDEO", 0    ; Нужно для вывода
-    db "KEYBOARD", 0 ; Нужно для ввода
-    db 0             ; Конец списка
-#+END_SRC
-
-*** Что происходит при загрузке
-
-1. Система читает `DEPENDS_ON` каждого драйвера
-2. Проверяет, все ли зависимости доступны
-3. Если нет — выводит понятную ошибку:
-
-   #+BEGIN_SRC
-   CONSOLE: Missing dependency: KEYBOARD
-   #+END_SRC
-
-*Преимущество:* Не нужно в runtime проверять "а подключена ли клавиатура?". Система знает это заранее.
-
-** Контекст памяти: Lazy switching
-
-*** Проблема банковой памяти
-
-На Z80 с MMU переключение банков — дорого:
-
-#+BEGIN_SRC asm
-; Сохранить текущую конфигурацию
-ld a, (current_bank)
-push af
-
-; Переключить на банк драйвера
-ld a, DRIVER_BANK
-out (MMU_PORT), a
-
-; Выполнить операцию
-call driver_function
-
-; Восстановить
-pop af
-out (MMU_PORT), a
-#+END_SRC
-
-~50 такстов на переключение туда-обратно!
-
-*** Кэширование
-
-Каждый драйвер хранит свой "отпечаток пальца":
-
-#+BEGIN_SRC asm
-; Memory Map драйвера
-crtc_mem_map:
-    db 0xA3        ; Хэш конфигурации
-    db 5, 6, 7, 8  ; Банки для окон
-#+END_SRC
-
-Перед вызовом драйвера:
-
-#+BEGIN_SRC asm
-require_memory:
-    ; Сравнить хэш текущей конфигурации с хэшем драйвера
-    ld a, (current_hash)
-    cp (hl)  ; HL указывает на crtc_mem_map
-    ret z    ; Уже правильная конфигурация!
-    
-    ; Переключить банки
-    inc hl
-    ld bc, MMU_PORT
-    outi outi outi outi
-    
-    ; Обновить хэш
-    ld (current_hash), a
-    ret
-#+END_SRC
-
-*Результат:* Если два вызова идут к одному драйверу подряд — переключение произойдет только при первом вызове.
-
-** Соглашения о регистрах
-
-*** Передача параметров
-
-#+BEGIN_SRC asm
-; HL, DE, BC — в порядке приоритета
-ld hl, buffer    ; Основной параметр
-ld bc, 256       ; Дополнительный
-call video_fill
-
-; Иногда только A
-ld a, COLOR_RED
-call video_set_color
-#+END_SRC
-
-*** Возврат результата и ошибок
-
-*Гениальность в простоте:*
-
-#+BEGIN_SRC asm
-; Успех: A=0, Carry сброшен
-xor a  ; A=0, Carry=0
-ret
-
-; Ошибка: A=код, Carry установлен
-ld a, ERR_TIMEOUT
-scf    ; Set Carry Flag
-ret
-#+END_SRC
-
-*Почему это удобно:*
-
-#+BEGIN_SRC asm
-call disk_read
-ret c           ; Выход при ошибке
-; Продолжаем если OK
-
-; Или цепочка вызовов:
-call init_video
-call c, .error
-call init_audio  
-call c, .error
-call init_input
-call c, .error
-#+END_SRC
-
-*Стандартные коды ошибок:*
-
-#+BEGIN_SRC asm
-ERR_SUCCESS      equ 0
-ERR_NOT_SUPPORTED equ 1
-ERR_TIMEOUT      equ 4
-ERR_NO_DEVICE    equ 11   ; Устройство отсутствует
-#+END_SRC
-
-** Правила именования констант
-#+END_SRC
-
-*** Уровни иерархии (слева направо):
-
-#+BEGIN_SRC text
-[УСТРОЙСТВО]_[ТИП]_[ИМЯ]_[КВАЛИФИКАТОР]_[СУФФИКС]
-#+END_SRC
-
-Пример: MMU_PORT_CTRL_SUPER_BIT
-
-*** Устройство (Device) - всегда первый компонент:
-
-#+BEGIN_SRC text
-MMU_      - Memory Management Unit
-VIDEO_    - Видеоконтроллер
-AUDIO_    - Звуковой чип
-CRTC_     - Видеоконтроллер 6845
-PALETTE_  - Палитра цветов
-PSG_      - Программируемый генератор звука
-FDC_      - Контроллер дисковода
-DMA_      - DMA контроллер
-RTC_      - Часы реального времени
-SYS_      - Системные (общие)
-#+END_SRC
-
-*** Тип (Type) - что это за сущность:
-
-#+BEGIN_SRC text
-PORT_     - Порты ввода-вывода (I/O address)
-REG_      - Регистры в памяти (MMIO address)
-CMD_      - Команды (для command-метода)
-FLAG_     - Флаги возможностей
-ERR_      - Коды ошибок
-BUF_      - Буферы/области памяти
-IRQ_      - Прерывания/векторы
-#+END_SRC
-
-*** Имя (Name) - конкретный элемент:
-
-#+BEGIN_SRC text
-CTRL      - Управление/контроль
-STATUS    - Статус
-DATA      - Данные
-ADDR      - Адрес
-INDEX     - Индекс
-CLOCK     - Тактовая частота
-BANK      - Банк памяти
-MODE      - Режим работы
-CONFIG    - Конфигурация
-#+END_SRC
-
-*** Квалификатор (Qualifier) - уточнение:
-
-#+BEGIN_SRC text
-SUPER     - Супервизор/привилегированный
-USER      - Пользовательский
-NATIVE    - Нативный режим
-LEGACY    - Совместимость с CPC
-ENABLE    - Включение
-DISABLE   - Выключение
-RESET     - Сброс
-INIT      - Инициализация
-#+END_SRC
-
-*** Суффикс (Suffix) - тип значения:
-
-#+BEGIN_SRC text
-_BIT      - Одиночный бит (0x01, 0x02, 0x04...)
-_MASK     - Битовая маска (0x0F, 0xF0...)
-_SIZE     - Размер в байтах
-_COUNT    - Количество элементов
-_BASE     - Базовый адрес/значение
-_OFFSET   - Смещение
-_MIN      - Минимальное значение
-_MAX      - Максимальное значение
-_DEFAULT  - Значение по умолчанию
-#+END_SRC
-
-Примеры правильного именования:
-Порты ввода-вывода:
-
-#+BEGIN_SRC asm
-MMU_PORT_CTRL       equ 0xF0    ; Порт управления MMU
-MMU_PORT_CLOCK      equ 0xF3    ; Порт управления частотой
-MMU_PORT_BANK0      equ 0xFC    ; Порт банка окна 0
-MMU_PORT_BANK1      equ 0xFD    ; Порт банка окна 1
-
-VIDEO_PORT_PALETTE  equ 0x??    ; Порт палитры
-AUDIO_PORT_PSG      equ 0x??    ; Порт PSG
-#+END_SRC
-
-Значения для портов (биты/маски):
-
-#+BEGIN_SRC asm
-; Для MMU_PORT_CTRL
-MMU_CTRL_SUPER_BIT  equ 0x01    ; Бит супервизора
-MMU_CTRL_NATIVE_BIT equ 0x02    ; Бит нативного режима
-MMU_CTRL_TRAP_BIT   equ 0x04    ; Бит захвата прерываний
-MMU_CTRL_USERLOCK_BIT equ 0x10  ; Бит блокировки User MMIO
-
-MMU_CTRL_MODE_MASK  equ 0x03    ; Маска режимов (биты 0-1)
-MMU_CTRL_DEFAULT    equ MMU_CTRL_SUPER_BIT | MMU_CTRL_NATIVE_BIT
-
-; Для MMU_PORT_CLOCK
-MMU_CLOCK_DIV2      equ 0x02    ; Делитель 2
-MMU_CLOCK_DIV4      equ 0x04    ; Делитель 4
-MMU_CLOCK_CPC_BIT   equ 0x10    ; Бит режима CPC
-
-MMU_CLOCK_DIV_MASK  equ 0x0F    ; Маска делителя (биты 0-3)
-#+END_SRC
-
-*** MMIO регистры (через MMIO_WINDOW):
-
-#+BEGIN_SRC asm
-; При MMIO_PAGE = 0x02
-PALETTE_REG_INDEX   equ 0x00    ; Регистр индекса цвета
-PALETTE_REG_DATA_LO equ 0x01    ; Регистр данных (мл. байт)
-PALETTE_REG_DATA_HI equ 0x02    ; Регистр данных (ст. байт)
-PALETTE_REG_CTRL    equ 0x05    ; Регистр управления
-
-CRTC_REG_ADDR       equ 0x10    ; Регистр адреса CRTC
-CRTC_REG_DATA       equ 0x11    ; Регистр данных CRTC
-#+END_SRC
-
-Команды для драйверов:
-
-#+BEGIN_SRC asm
-; Базовые команды (все драйверы)
-DRIVER_CMD_RESET    equ 0x00
-DRIVER_CMD_STATUS   equ 0x01
-
-; Специфичные команды
-MMU_CMD_GET_TOTAL   equ 0x60    ; В диапазоне MMU
-MMU_CMD_GET_FREE    equ 0x61
-
-VIDEO_CMD_SET_MODE  equ 0x10    ; В диапазоне VIDEO
-VIDEO_CMD_SET_PALETTE equ 0x11
-
-AUDIO_CMD_PLAY      equ 0x20    ; В диапазоне AUDIO
-AUDIO_CMD_STOP      equ 0x21
-#+END_SRC
-
-Флаги возможностей драйверов:
-
-#+BEGIN_SRC asm
-DRIVER_FLAG_IRQ_BIT     equ 1 << 0  ; Использует прерывания
-DRIVER_FLAG_STATIC_BIT  equ 1 << 1  ; Статическое устройство
-DRIVER_FLAG_DMA_BIT     equ 1 << 2  ; Использует DMA
-DRIVER_FLAG_BANKED_BIT  equ 1 << 3  ; Работает с банками
-
-; Пример использования
-MMU_INFO_FLAGS      equ DRIVER_FLAG_STATIC_BIT | DRIVER_FLAG_BANKED_BIT
-#+END_SRC
-
-Области памяти:
-
-#+BEGIN_SRC asm
-MEMORY_WINDOW0_BASE equ 0x0000  ; Базовый адрес окна 0
-MEMORY_WINDOW0_SIZE equ 0x4000  ; Размер окна 0 (16К)
-
-MMIO_LO_BASE        equ 0xFF0000 ; Базовый адрес MMIO_LO
-MMIO_LO_SIZE        equ 0x4000   ; Размер MMIO_LO (16К)
-
-ROM_BIOS_BASE       equ 0xFF0000 ; Базовый адрес BIOS
-ROM_BIOS_SIZE       equ 0x8000   ; Размер BIOS (32К)
-#+END_SRC
-
-Специальные случаи:
-
-**** Для очень длинных имён можно опустить некоторые уровни:
-
-#+BEGIN_SRC asm
-; Вместо: MMU_PORT_MAPPER_SLOT0_WINDOW0
-MMU_PORT_SLOT0_WIN0 equ 0xE0    ; Достаточно ясно
-
-; Вместо: VIDEO_CRTC_REG_HORIZONTAL_TOTAL
-CRTC_REG_HTOTAL     equ 0x00    ; CRTC уже подразумевает VIDEO
-#+END_SRC
-
-**** Legacy/совместимые порты (CPC):
-
-#+BEGIN_SRC asm
-CPC_PORT_RMR        equ 0x7F00  ; CPC RMR регистр
-CPC_PORT_UPPER_ROM  equ 0xDF00  ; CPC выбор верхнего ROM
-CPC_PORT_SYSCALL    equ 0xF200  ; Legacy системный вызов
-#+END_SRC
-
-*** Системные/общие константы (без префикса устройства):
-
-#+BEGIN_SRC asm
-; Ошибки (уже есть ERR_ префикс в errors.inc)
-ERR_SUCCESS         equ 0x00
-ERR_NOT_SUPPORTED   equ 0x01
-
-; Системные вызовы
-SYS_CALL_BASE       equ 0xF2    ; Базовый порт syscall
-SYS_CALL_MAX        equ 255     ; Максимальный номер вызова
-#+END_SRC
-
-*** Правила в одном предложении:
-
-Начинай с устройства (MMU_), затем тип (PORT_/REG_/CMD_), затем имя, уточняй квалификатором, заканчивай суффиксом типа значения.
-
-** Правило канона Aleste BIOS для констант и импорта:
-*** Правило: Разделение определений и объявлений
-
-1. ВСЕ определения констант через defc делаются ТОЛЬКО ВНУТРИ самого драйвера (.asm файл)
-2. Заголовочный файл (.inc) содержит ТОЛЬКО:
-   - extern объявления для публичных символов драйвера
-   - Макросы для удобства использования (но не нарушая KISS)
-3. Заголовочный файл (.inc) не должее содержать:
-   - equ или = константы (директивы ассемблера) так как они приводять к ошибкам редекларации
-
-*Важное различие:*
-   - equ  директива АССЕМБЛЕРА, заменяется на этапе ассемблирования
-   - defc  директива ЛИНКЕРА, создает уникальный символ в объектном файле
-   - В .inc файлах используйте extern и макросы, но никогда equ, =, defc
-   
-*** Правило: Структура заголовочного файла (.inc)
-
-#+BEGIN_SRC asm
-; example.inc
-module example
-
-; 1. ТОЛЬКО extern объявления
-extern _driver_init, _driver_process
-
-; 2. ТОЛЬКО КОНСТАНТЫ ДЛЯ АССЕМБЛЕРА (не defc!)
-;    Используйте 'equ' или '=' для чисто числовых значений
-;    которые не требуют уникальных символов в линковке
-DRIVER_SLOT        equ 0xFD00
-CMD_INIT           equ 0x00
-CMD_PROCESS        equ 0x01
-
-; 3. ТОЛЬКО макросы
-macro DRIVER_CALL addr
-    call addr
-endm
-#+END_SRC
-
-*** Правило: Структура файла драйвера (.asm)
-
-defc используется ТОЛЬКО в .asm файлах для:
-- Создания символов линкера (адреса функций, переменных)
-- Когда значение должно быть уникальным в итоговом бинарнике
-- Когда символ будет использоваться через extern в других модулях
-
-#+BEGIN_SRC asm
-; example.asm
-module example_driver
-
-; Включаем ТОЛЬКО equ-константы
-include "palette_const.inc"  ; если нужны общие числовые константы
-
-; 1. Включаем константы (если нужны)
-; 2. Определяем ВСЕ константы defc
-defc _driver_const_a = 0xFD00
-defc _driver_const_b = 0xFD03
-
-; 3. Экспортируем публичные символы
-public _driver_init, _driver_process
-public _driver_vtable, DRIVER_VTABLE_ADDR
-
-; 4. Определяем данные и код
-section driver_data
-_driver_vtable:
-_driver_init:     jp driver_init
-_driver_process:  jp driver_process
-
-; 5. Внешние зависимости (если есть)
-extern _some_external_func
-
-; 6. Объявления PUBLIC
-public _foo
-_foo:
-    ret
-public _bar
-_bar:
-    ret
-#+END_#+END_SRC
-
-*** Краткая формулировка для канона:
-
-В .inc файлах — только extern, equ и макросы. Все defc определения — строго в .asm файлах драйверов. Equ для числовых констант, defc для символов линкера.
-
-Такой подход исключает переопределения и делает архитектуру предсказуемой и надежной.
-
-*** Соглашения о вызовах: C vs Assembly
-**** Правило 1: Разделение интерфейсов
-
-- C программы используют .h файлы и вызывают C функции
-- Ассемблерные программы используют .inc файлы и вызывают ассемблерные функции напрямую
-
-**** Правило 2: Два слоя реализации
-
-Для каждого драйвера должно быть:
-
-1. C-слой (.c файл) - преобразует вызовы из стека в регистры
-2. ASM-слой (.asm файл) - работает только с регистрами
-
-**** Правило 3: Чёткая документация
-
-В .h файле должно быть ясно указано:
-- Какие функции для C программ
-- Какие inline-функции для ассемблера
-- Где какие параметры ожидаются
-
-**** Пример вызова:
-
-#+BEGIN_SRC c
-// C код:
-palette_set_color(10, 0xFFF);
-
-// Преобразуется в:
-// 1. Кладёт 10 и 0xFFF в стек
-// 2. Вызывает C-функцию из palette.c
-// 3. Та извлекает из стека в A и BC
-// 4. Вызывает _palette_set_color (ассемблер)
-
-; Ассемблерный код:
-ld a, 10
-ld bc, 0xFFF
-call _palette_set_color  ; Или через макрос
-#+END_SRC
-
-* Пример из реальной жизни: Аудиодрайвер для YM2149
-#+BEGIN_SRC asm
-; ===================================================================
-; Драйвер звукового чипа YM2149
-; ===================================================================
-
-SECTION DRV_VTABLE
-ym2149_vtable:
-    jp ym_detect      ; +0
-    jp ym_install     ; +3
-    jp ym_get_info    ; +6
-    jp ym_command     ; +9
-    jp ym_uninstall   ; +12
-    jp ym_play_note   ; +15 (специфичный метод
-ym2149_vtable_end:
-
-; -------------------------------------------------------------------
-; Зависимости: нет, самостоятельное устройство
-; -------------------------------------------------------------------
-DEPENDS_ON:
-    db 0
-
-; -------------------------------------------------------------------
-; Данные
-; -------------------------------------------------------------------
-SECTION DRV_DATA
-
-ym_mem_map:
-    db 0xC1        ; Хэш конфигурации
-    db 2, 3, 4, 5  ; Банки памяти
-
-ym_info:
-    dw .name
-    db 1, 2        ; Версия 1.2
-    dw API_HAS_IRQ | API_STATIC_DEVICE
-    db 0x38        ; Вектор прерывания
-.name:
-    db "YM2149 PSG v1.2", 0
-
-; -------------------------------------------------------------------
-; Код драйвера
-; -------------------------------------------------------------------
-SECTION DRV_CODE
-
-ym_detect:
-    ; Проверяем наличие YM2149
-    call require_memory
-
-    ; Пробуем записать/считать тестовое значение
-    ld a, 0xFF
-    out (YM_REG), a
-    in a, (YM_REG)
-    cp 0xFF
-    jr nz, .not_found
-
-    ; Устройство найдено
-    ld a, 1
-    ret
-
-.not_found:
+PUBLIC _audio_ay8910_stop
+_audio_ay8910_stop:
+    ; A = канал
+    cp 255  ; AUDIO_CHANNEL_ALL
+    jr z, @stop_all
+
+    ; Остановить конкретный канал
+    call _get_channel_bits
+
+    ; Получить текущее значение регистра 7
+    ld a, AY_REG_ENABLE
+    call ay_select_register
+    call ay_read_shadow
+
+    ; Выключить тон (установить бит)
+    or c
+    call ay_write_register
+
+    ; Установить громкость в 0
+    call _get_volume_register
+    call ay_select_register
     xor a
-    ret
+    call ay_write_register
 
-ym_command:
-    ; Обработка команд IOCTL
-    cp CMD_RESET
-    jr z, .reset
-    cp CMD_AUD_PLAY
-    jr z, .play_cmd
-    cp CMD_AUD_STOP
-    jr z, .stop_cmd
+    jr @exit
 
-    ; Неизвестная команда
-    ld a, ERR_NOT_SUPPORTED
-    scf
-    ret
+@stop_all:
+    ; Выключить все тоны
+    ld a, AY_REG_ENABLE
+    call ay_select_register
+    ld a, 0x38
+    call ay_write_register
 
-.reset:
-    ; Сброс звукового чипа
+    ; Сбросить громкость на всех каналах
+    ld b, 3
+    ld c, AY_REG_VOLUME_A
+@stop_loop:
+    ld a, c
+    call ay_select_register
     xor a
-    ld bc, 13
-    ld hl, ym_registers
-.reset_loop:
-    out (c), a
+    call ay_write_register
     inc c
-    djnz .reset_loop
+    djnz @stop_loop
+
+@exit:
     xor a
     ret
 
-.play_cmd:
-    ; HL = данные ноты
-    ld a, (hl)
-    out (YM_FREQ_A), a
-    inc hl
-    ld a, (hl)
-    out (YM_FREQ_A_HI), a
-    xor a
+; Остальные методы реализованы аналогично...
+; [Здесь будут реализации остальных методов по аналогии с play_note]
+
+; Для краткости привожу только шаблоны остальных методов:
+
+PUBLIC _audio_ay8910_set_volume
+_audio_ay8910_set_volume:
+    ; A = канал, B = громкость
     ret
 
-; Быстрый обработчик прерываний
-; Сохраняет только то, что использует
-ym_irq_handler:
-    push af
+PUBLIC _audio_ay8910_set_noise_type
+_audio_ay8910_set_noise_type:
+    ; A = тип шума
+    ret
+
+PUBLIC _audio_ay8910_set_noise_custom
+_audio_ay8910_set_noise_custom:
+    ; A = период шума
+    ret
+
+PUBLIC _audio_ay8910_enable_noise
+_audio_ay8910_enable_noise:
+    ; A = канал, B = enable
+    ret
+
+PUBLIC _audio_ay8910_set_envelope
+_audio_ay8910_set_envelope:
+    ; A = форма, B = скорость
+    ret
+
+PUBLIC _audio_ay8910_enable_envelope
+_audio_ay8910_enable_envelope:
+    ; A = канал, B = enable
+    ret
+
+PUBLIC _audio_ay8910_enable_tone
+_audio_ay8910_enable_tone:
+    ; A = канал, B = enable
+    ret
+
+PUBLIC _audio_ay8910_read_register
+_audio_ay8910_read_register:
+    ; A = регистр
+    ret
+
+PUBLIC _audio_ay8910_write_register
+_audio_ay8910_write_register:
+    ; A = значение, C = регистр
+    ret
+
+PUBLIC _audio_ay8910_play_chord
+_audio_ay8910_play_chord:
+    ; A = note1, B = note2, C = note3, D = volume
+    ret
+
+PUBLIC _audio_ay8910_beep
+_audio_ay8910_beep:
+    ; A = нота, HL = длительность
+    ret
+#+end_src
+
+* APPENDIX B: POLYMORPHIC DRIVER EXAMPLE
+:PROPERTIES:
+:CUSTOM_ID: appendix-b-polymorphic-driver-example
+:END:
+#+begin_src asm
+;; Example: Two video driver implementations
+
+;; 1. Monochrome driver VTable
+__video_mono_vtable:
+    jp mono_detect
+    jp mono_init
+    jp mono_deinit
+    jp mono_get_info
+    jp mono_command
+    jp mono_draw_pixel
+    jp mono_draw_line
+    ; ... additional methods
+
+;; 2. Color driver VTable
+__video_color_vtable:
+    jp color_detect
+    jp color_init
+    jp color_deinit
+    jp color_get_info
+    jp color_command
+    jp color_draw_pixel
+    jp color_draw_line
+    ; ... same method layout
+
+;; 3. Switching between implementations
+switch_video_mode:
+    ; Check which mode to use
+    ld a, (current_mode)
+    cp MODE_COLOR
+    jr z, .switch_to_color
+
+    ; Switch to monochrome
+    ld a, CMD_SWITCH_DRIVER
+    ld hl, __video_mono_vtable
+    call __video_command
+    ret
+
+.switch_to_color:
+    ; Switch to color
+    ld a, CMD_SWITCH_DRIVER
+    ld hl, __video_color_vtable
+    call __video_command
+    ret
+#+end_src
+
+* APPENDIX C: MEMORY CONTEXT EXAMPLE
+:PROPERTIES:
+:CUSTOM_ID: appendix-c-memory-context-example
+:END:
+#+begin_src asm
+;; Complete memory context usage example
+
+;; 1. Define driver context
+video_context:
+    db 0xA5        ; Hash: slot ^ bank0 ^ bank1 ^ bank2 ^ bank3
+    db 1           ; Slot register: slot 1
+    db 0x10        ; Window 0: video code bank
+    db 0x20        ; Window 1: video buffer bank
+    db 0x30        ; Window 2: palette bank
+    db 0x01        ; Window 3: system bank
+    db 0           ; Flags
+    db 0           ; Reserved
+
+;; 2. Context-aware driver wrapper
+video_draw_pixel_safe:
+    ; Save current context, apply video context
     push hl
-
-    ; Обновляем частоты
-    ld hl, (ym_freq_ptr)
-    ld a, (hl)
-    out (YM_FREQ_A), a
-
-    ; Следующий байт
-    inc hl
-    ld (ym_freq_ptr), hl
-
+    ld hl, video_context
+    call ensure_memory_context
     pop hl
-    pop af
-    ei
+
+    ; Call actual implementation
+    call video_draw_pixel_impl
+
+    ; Restore previous context
+    call restore_previous_context
     ret
-#+END_SRC
 
-Тогда виртуальный драйвер
-
-#+BEGIN_SRC asm
-
-SECTION DRV_VTABLE
-psg_vtable:
-    jp ym_detect      ; +0
-    jp ym_install     ; +3
-    jp ym_get_info    ; +6
-    jp ym_command     ; +9
-    jp ym_uninstall   ; +12
-    jp ym_play_note   ; +15 (специфичный метод
-psg_vtable_end:
-#+END_SRC
-
-
-
-
-
-
-
-* Структура проекта: Как это всё собирается
-
-
-#+BEGIN_SRC bash
-# Правильная структура для проекта
-XiAlesteBIOS/
-├── include/                    ← для C программ
-│   ├── aleste.h               ← главный для C
-│   ├── bios/                  ← подсистемы BIOS (C)
-│   │   ├── drivers.h          ← DriverInfo, флаги (C)
-│   │   ├── errors.h           ← ERR_SUCCESS (C)
-│   │   └── system.h           ← системные вызовы (C)
-│   └── drivers/               ← публичные API драйверов (C)
-│       ├── mmu.h
-│       └── video.h
-│
-├── inc/                       ← для ассемблера (те же константы)
-│   ├── aleste.inc             ← главный для ASM
-│   ├── bios/                  ← подсистемы BIOS (ASM)
-│   │   ├── drivers.inc        ← DRV_FLAG_* (ASM эквивалент)
-│   │   ├── errors.inc         ← ERR_SUCCESS equ (ASM)
-│   │   └── system.inc         ← системные вызовы (ASM)
-│   ├── drivers/               ← интерфейсы драйверов (ASM)
-│   │   ├── mmu.inc            ← метки методов
-│   │   └── video.inc
-│   └── hardware/
-│       ├── ports.inc
-│       └── memory.inc
-│
-└── drivers/                   ← РЕАЛИЗАЦИЯ драйверов
-    ├── mmu/
-    │   ├── mmu.asm            ← include "../../inc/bios/drivers.inc"
-    │   └── mmu_private.inc    ← приватные константы
-    └── video/
-        ├── video.asm          ← include "../../inc/bios/drivers.inc"
-        └── video_private.inc
-#+END_SRC
-
-
-**Ключевое правило:**
-
-- include/ - что видят ВНЕШНИЕ программы (твой main.c и другие приложения)
-- drivers/ - внутренняя реализация (собирается в библиотеку BIOS)
-
-* Дополнения
-
-** ports_aleste.asm
-
-#+BEGIN_SRC asm
-; ==============================================================================
-; MEMORY_ALESTE@INC - Карта памяти Aleste LX с режимами Supervisor/User
-; Соответствует спецификации MMU Architecture v2@0
-; ==============================================================================
-
-; ==============================================================================
-; БАЗОВЫЕ КОНСТАНТЫ ПАМЯТИ
-; ==============================================================================
-
-; Адресное пространство (24 бита)
-MEMORY_SIZE        equ 0x01000000  ; 16 МБ общее адресное пространство
-PHYSICAL_RAM_SIZE  equ 0x00100000  ; 1 МБ физической оперативной памяти
-
-; Базовые адреса
-RAM_BASE           equ 0x00000000  ; Начало оперативной памяти
-MMIO_BASE          equ 0x00FF0000  ; Начало MMIO пространства (последние 64К)
-
-; ==============================================================================
-; ОКОННАЯ БАНКОВАЯ ПАМЯТЬ (WINDOWED BANK MEMORY)
-; ==============================================================================
-
-; Общее оконное пространство (до MMIO)
-WB_MEMORY_BEGIN    equ 0x000000    ; Начало оконной памяти
-WB_MEMORY_END      equ 0xFEFFFF    ; Конец оконной памяти (перед MMIO)
-WB_MEMORY_SIZE     equ 0xFF0000    ; Размер: 16МБ - 64К
-
-; Логические окна (по 16К каждое)
-WB_WINDOW_SIZE     equ 0x00004000  ; 16 КБ на окно
-
-; Окно 0: 0000-3FFF
-WB_WINDOW0_BEGIN   equ 0x000000
-WB_WINDOW0_END     equ 0x003FFF
-WB_WINDOW0_DEFAULT equ 0           ; Банк по умолчанию
-
-; Окно 1: 4000-7FFF
-WB_WINDOW1_BEGIN   equ 0x004000
-WB_WINDOW1_END     equ 0x007FFF
-WB_WINDOW1_DEFAULT equ 1
-
-; Окно 2: 8000-BFFF
-WB_WINDOW2_BEGIN   equ 0x008000
-WB_WINDOW2_END     equ 0x00BFFF
-WB_WINDOW2_DEFAULT equ 2
-
-; Окно 3: C000-FFFF
-WB_WINDOW3_BEGIN   equ 0x00C000
-WB_WINDOW3_END     equ 0x00FFFF
-WB_WINDOW3_DEFAULT equ 3
-
-; Размер банка (64К)
-BANK_SIZE          equ 0x00010000  ; 64 КБ
-
-; ==============================================================================
-; MMIO ПРОСТРАНСТВО (Memory Mapped I/O)
-; ==============================================================================
-
-MMIO_BEGIN         equ 0xFF0000    ; Начало MMIO (адрес 16МБ - 64К)
-MMIO_END           equ 0xFFFFFF    ; Конец MMIO (адрес 16МБ - 1)
-MMIO_SIZE          equ 0x00010000  ; 64 КБ
-
-; MMIO_LO (новые устройства Aleste)
-MMIO_LO_BEGIN      equ 0xFF0000    ; Начало MMIO_LO
-MMIO_LO_END        equ 0xFF3FFF    ; Конец MMIO_LO
-MMIO_LO_SIZE       equ 0x00004000  ; 16 КБ
-
-; MMIO_HI (эмуляция Legacy устройств)
-MMIO_HI_BEGIN      equ 0xFF4000    ; Начало MMIO_HI
-MMIO_HI_END        equ 0xFFFFFF    ; Конец MMIO_HI
-MMIO_HI_SIZE       equ 0x0000C000  ; 48 КБ
-
-; ==============================================================================
-; УСТРОЙСТВА В MMIO_LO (новые устройства Aleste)
-; ==============================================================================
-
-; Страница 0 MMIO_LO (FF0000-FF007F)
-MMIO_PAGE0_BEGIN   equ 0xFF0000
-
-; PIC Controller (Прерывания)
-MMIO_PIC_BASE      equ 0xFF0000
-MMIO_PIC_SIZE      equ 32
-
-; IPC Mailbox (Системный почтовый ящик)
-MMIO_IPC_BASE      equ 0xFF0020
-MMIO_IPC_SIZE      equ 32
-
-; System Timer
-MMIO_TIMER_BASE    equ 0xFF0040
-MMIO_TIMER_SIZE    equ 32
-
-; RTC Controller
-MMIO_RTC_BASE      equ 0xFF0060
-MMIO_RTC_SIZE      equ 32
-
-; Расширенный доступ к MMU
-MMIO_MMU_EXT_BEGIN equ 0xFF0080
-MMIO_MMU_EXT_END   equ 0xFF00BF
-MMIO_MMU_EXT_SIZE  equ 64          ; 16 регистров × 4 байта
-
-; Legacy Emulation (страница 2: FF0100-FF017F)
-MMIO_LEGACY_BEGIN  equ 0xFF0100
-MMIO_LEGACY_END    equ 0xFF017F
-MMIO_LEGACY_SIZE   equ 128
-
-; Палитра цветов (в Legacy области)
-MMIO_PALETTE_BASE  equ 0xFF0100    ; Первые 32 байта Legacy области
-MMIO_PALETTE_SIZE  equ 32
-
-; 6845 CRTC (в Legacy области)
-MMIO_6845_BASE     equ 0xFF0120    ; Следующие 32 байта
-MMIO_6845_SIZE     equ 32
-
-; ==============================================================================
-; MMIO_HI (эмуляция Legacy устройств CPC)
-; ==============================================================================
-
-; Gate Array (7FXXh порты)
-MMIO_GA_BASE       equ 0xFF7F00
-MMIO_GA_SIZE       equ 256         ; Полное отображение портов 00-FF
-
-; CRTC 6845 (BCXXh/BDXXh порты)
-MMIO_CRTC_INDEX    equ 0xFFBC00    ; BCXXh
-MMIO_CRTC_DATA     equ 0xFFBD00    ; BDXXh
-
-; Верхний ROM (DFXXh)
-MMIO_UPPER_ROM     equ 0xFFDF00
-
-; PPI 8255 (F4XXh-F7XXh)
-MMIO_PPI_PORTA     equ 0xFFF400    ; F4XXh
-MMIO_PPI_PORTB     equ 0xFFF500    ; F5XXh
-MMIO_PPI_PORTC     equ 0xFFF600    ; F6XXh
-MMIO_PPI_CTRL      equ 0xFFF700    ; F7XXh
-
-; ==============================================================================
-; СИСТЕМНЫЕ РЕГИСТРЫ MMU (порты ввода-вывода)
-; ==============================================================================
-
-; Регистры Native Mode (порты F0-FF)
-PORT_GLOBAL_CTRL   equ 0xF0        ; Главный регистр управления
-PORT_MMIO_PAGE     equ 0xF1        ; Выбор страницы MMIO
-PORT_SYSCALL       equ 0xF2        ; Системный вызов
-PORT_CLOCK_CTRL    equ 0xF3        ; Управление частотой CPU
-PORT_SUPER_SLOT    equ 0xF9        ; Активный слот для Supervisor
-PORT_USER_SLOT     equ 0xFB        ; Активный слот для User
-PORT_BANK_0        equ 0xFC        ; Банк для окна 0
-PORT_BANK_1        equ 0xFD        ; Банк для окна 1
-PORT_BANK_2        equ 0xFE        ; Банк для окна 2
-PORT_BANK_3        equ 0xFF        ; Банк для окна 3
-
-; Регистры Legacy Mode
-PORT_LEGACY_RMR    equ 0x7F00      ; RMR регистр CPC
-PORT_LEGACY_MMR    equ 0x7F00      ; MMR регистр CPC
-PORT_LEGACY_UPPER_ROM equ 0xDF00   ; Выбор верхнего ROM
-PORT_LEGACY_SYSCALL equ 0xF200     ; Системный вызов в Legacy
-
-; ==============================================================================
-; БИТЫ РЕГИСТРА GLOBAL_CTRL
-; ==============================================================================
-
-; Позиции битов в регистре GLOBAL_CTRL (порт F0h)
-GLOBAL_SUPERVISOR  equ 0           ; Бит 0: supervisor_mode
-GLOBAL_NATIVE      equ 1           ; Бит 1: native_mode
-GLOBAL_TRAP_ENABLE equ 2           ; Бит 2: supervisor_hook (включение trap)
-GLOBAL_RESERVED1   equ 3           ; Бит 3: зарезервировано
-GLOBAL_MMIO_UNLOCK equ 4           ; Бит 4: mmio_user_unlock
-GLOBAL_RESERVED2   equ 5           ; Бит 5: зарезервировано
-GLOBAL_RESERVED3   equ 6           ; Бит 6: зарезервировано
-GLOBAL_RESERVED4   equ 7           ; Бит 7: зарезервировано
-
-; Значения по умолчанию после сброса
-GLOBAL_DEFAULT     equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
-                                   ; supervisor=1, native=1, mmio_userlock=0
-
-; ==============================================================================
-; СЛОТЫ ПАМЯТИ (для SUPER_SLOT/USER_SLOT)
-; ==============================================================================
-
-; Доступные слоты (0-3)
-SLOT_0             equ 0           ; Слот 0
-SLOT_1             equ 1           ; Слот 1
-SLOT_2             equ 2           ; Слот 2
-SLOT_3             equ 3           ; Слот 3
-
-; ==============================================================================
-; МАКРОСЫ ДЛЯ РАБОТЫ С MMU
-; ==============================================================================
-
-; Получить текущий активный слот (в зависимости от режима)
-; Выход: A = текущий слот (0-3)
-MACRO GET_CURRENT_SLOT
-    in a, (PORT_GLOBAL_CTRL)
-    bit GLOBAL_SUPERVISOR, a
-    jr z, @user_mode
-    ; Supervisor mode
-    in a, (PORT_SUPER_SLOT)
-    jr @end
-@user_mode:
-    ; User mode
-    in a, (PORT_USER_SLOT)
-@end:
-ENDM
-
-; Переключить банк в текущем активном слоте
-; Вход: window (0-3), bank (0-255)
-MACRO SWITCH_BANK window, bank
-    ld a, bank
-    if window = 0
-        out (PORT_BANK_0), a
-    else if window = 1
-        out (PORT_BANK_1), a
-    else if window = 2
-        out (PORT_BANK_2), a
-    else if window = 3
-        out (PORT_BANK_3), a
-    endif
-ENDM
-
-; Быстрое переключение банка кода (окно 1)
-MACRO SWITCH_CODE_BANK bank
-    ld a, bank
-    out (PORT_BANK_1), a
-ENDM
-
-; Быстрое переключение банка данных (окно 2)
-MACRO SWITCH_DATA_BANK bank
-    ld a, bank
-    out (PORT_BANK_2), a
-ENDM
-
-; Системный вызов
-; Вход: A = код функции
-MACRO SYSCALL code
-    ld a, code
-    out (PORT_SYSCALL), a
-ENDM
-
-; Legacy системный вызов
-MACRO SYSCALL_LEGACY code
-    ld a, code
-    out (PORT_LEGACY_SYSCALL), a
-ENDM
-
-; Вход в Supervisor Mode через trap
-; Установить обработчики прерываний и включить trap
-MACRO ENABLE_TRAP
-    ld a, GLOBAL_DEFAULT | (1 << GLOBAL_TRAP_ENABLE)
-    out (PORT_GLOBAL_CTRL), a
-ENDM
-
-; Выход из Supervisor Mode
-MACRO EXIT_SUPERVISOR native_mode
-    if native_mode = 1
-        ld a, (1 << GLOBAL_NATIVE)  ; supervisor=0, native=1
-    else
-        xor a                       ; supervisor=0, native=0
-    endif
-    out (PORT_GLOBAL_CTRL), a
-ENDM
-
-; ==============================================================================
-; MMIO РАБОТА (доступ через окно)
-; ==============================================================================
-
-; Выбрать страницу MMIO
-; Вход: A = номер страницы (0-127)
-MACRO SET_MMIO_PAGE page
-    ld a, page
-    out (PORT_MMIO_PAGE), a
-ENDM
-
-; Запись в регистр MMIO
-; Вход: page = страница, offset = смещение (0-127), value = значение
-MACRO WRITE_MMIO page, offset, value
-    ld a, page
-    out (PORT_MMIO_PAGE), a
-    ld a, value
-    out (offset), a
-ENDM
-
-; Чтение из регистра MMIO
-; Вход: page = страница, offset = смещение (0-127)
-; Выход: A = значение
-MACRO READ_MMIO page, offset
-    ld a, page
-    out (PORT_MMIO_PAGE), a
-    in a, (offset)
-ENDM
-
-; ==============================================================================
-; РАБОТА С РАСШИРЕННЫМ MMU (MMU_EXT область)
-; ==============================================================================
-
-; Сохранить состояние маппера
-; Вход: HL = указатель на буфер (64 байта)
-MACRO SAVE_MMU_STATE buffer
-    ld hl, buffer
-    ld bc, 0040h           ; 64 байта
-    ld a, 0                ; Страница 0
-    out (PORT_MMIO_PAGE), a
-    ld a, 80h              ; Начало MMU_EXT области
-    ld d, 16               ; 16 регистров
-@save_loop:
-    ; Здесь должен быть код чтения через MMIO_WINDOW
-    ; (зависит от конкретной реализации доступа)
-    inc a
-    dec d
-    jr nz, @save_loop
-ENDM
-
-; ==============================================================================
-; КОНСТАНТЫ ДЛЯ СИСТЕМНЫХ ВЫЗОВОВ
-; ==============================================================================
-
-; Коды системных вызовов
-SYS_MMIO_ACCESS_REQUEST equ 0xFE  ; Запрос доступа к MMIO
-
-; ==============================================================================
-; СИСТЕМНЫЕ ОБЛАСТИ ПАМЯТИ
-; ==============================================================================
-
-; Таблица векторов прерываний (в начале памяти)
-IVT_BEGIN          equ 0x000000
-IVT_END            equ 0x0000FF
-IVT_SIZE          equ 0x00000100  ; 256 байт
-
-; Системный стек (в Supervisor слоте)
-SYS_STACK_BEGIN    equ 0x00FF00    ; В конце окна 3
-SYS_STACK_END      equ 0x00FFFF
-SYS_STACK_SIZE     equ 0x00000100  ; 256 байт
-
-; Область системных переменных
-SYS_VARS_BEGIN     equ 0x000100
-SYS_VARS_END       equ 0x0003FF
-SYS_VARS_SIZE      equ 0x00000300  ; 768 байт
-
-; ==============================================================================
-; РАЗМЕЩЕНИЕ ПРОГРАММ
-; ==============================================================================
-
-; Базовый адрес загрузки программ (окно 1)
-PROGRAM_LOAD_BASE  equ 0x004000
-PROGRAM_LOAD_END   equ 0x007FFF
-PROGRAM_LOAD_SIZE  equ 0x00004000  ; 16К
-
-; Область данных программы (окно 2)
-PROGRAM_DATA_BASE  equ 0x008000
-PROGRAM_DATA_END   equ 0x00BFFF
-PROGRAM_DATA_SIZE  equ 0x00004000  ; 16К
-
-; Стек программы (окно 3)
-PROGRAM_STACK_BASE equ 0x00C000
-PROGRAM_STACK_TOP  equ 0x00FFFF    ; Растёт вниз
-PROGRAM_STACK_SIZE equ 0x00004000  ; 16К
-
-; ==============================================================================
-; РЕЖИМЫ ДОСТУПА
-; ==============================================================================
-
-; Режимы пользователя (сочетания supervisor/native)
-MODE_SUPERVISOR_NATIVE equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
-MODE_USER_NATIVE      equ (1 << GLOBAL_NATIVE)
-MODE_USER_LEGACY      equ 0
-
-; Проверка режима доступа
-; Вход: mode = режим для проверки
-; Выход: Z=1 если текущий режим совпадает
-MACRO CHECK_MODE mode
-    in a, (PORT_GLOBAL_CTRL)
-    and (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
-    cp mode
-ENDM
-
-; ==============================================================================
-; ФЛАГИ БЕЗОПАСНОСТИ
-; ==============================================================================
-
-; Проверка блокировки MMIO в User Mode
-; Выход: Z=0 если доступ заблокирован (и мы в User Mode)
-MACRO CHECK_MMIO_LOCK
-    in a, (PORT_GLOBAL_CTRL)
-    bit GLOBAL_SUPERVISOR, a
-    jr nz, @supervisor    ; В Supervisor - всегда разрешено
-    bit GLOBAL_MMIO_UNLOCK, a
-    jr z, @locked         ; В User и mmio_userlock=0
-@supervisor:
-    xor a                 ; Z=1 (разрешено)
-    ret
-@locked:
-    or 1                  ; Z=0 (запрещено)
-ENDM
-#+END_SRC
-
-** memory_aleste.asm
-
-#+BEGIN_SRC asm
-; ==============================================================================
-; MEMORY_ALESTE@INC - Карта памяти Aleste LX с режимами Supervisor/User
-; Соответствует спецификации MMU Architecture v2@0
-; ==============================================================================
-
-; ==============================================================================
-; БАЗОВЫЕ КОНСТАНТЫ ПАМЯТИ
-; ==============================================================================
-
-; Адресное пространство (24 бита)
-MEMORY_SIZE        equ 0x01000000  ; 16 МБ общее адресное пространство
-PHYSICAL_RAM_SIZE  equ 0x00100000  ; 1 МБ физической оперативной памяти
-
-; Базовые адреса
-RAM_BASE           equ 0x00000000  ; Начало оперативной памяти
-MMIO_BASE          equ 0x00FF0000  ; Начало MMIO пространства (последние 64К)
-
-; ==============================================================================
-; ОКОННАЯ БАНКОВАЯ ПАМЯТЬ (WINDOWED BANK MEMORY)
-; ==============================================================================
-
-; Общее оконное пространство (до MMIO)
-WB_MEMORY_BEGIN    equ 0x000000    ; Начало оконной памяти
-WB_MEMORY_END      equ 0xFEFFFF    ; Конец оконной памяти (перед MMIO)
-WB_MEMORY_SIZE     equ 0xFF0000    ; Размер: 16МБ - 64К
-
-; Логические окна (по 16К каждое)
-WB_WINDOW_SIZE     equ 0x00004000  ; 16 КБ на окно
-
-; Окно 0: 0000-3FFF
-WB_WINDOW0_BEGIN   equ 0x000000
-WB_WINDOW0_END     equ 0x003FFF
-WB_WINDOW0_DEFAULT equ 0           ; Банк по умолчанию
-
-; Окно 1: 4000-7FFF
-WB_WINDOW1_BEGIN   equ 0x004000
-WB_WINDOW1_END     equ 0x007FFF
-WB_WINDOW1_DEFAULT equ 1
-
-; Окно 2: 8000-BFFF
-WB_WINDOW2_BEGIN   equ 0x008000
-WB_WINDOW2_END     equ 0x00BFFF
-WB_WINDOW2_DEFAULT equ 2
-
-; Окно 3: C000-FFFF
-WB_WINDOW3_BEGIN   equ 0x00C000
-WB_WINDOW3_END     equ 0x00FFFF
-WB_WINDOW3_DEFAULT equ 3
-
-; Размер банка (64К)
-BANK_SIZE          equ 0x00010000  ; 64 КБ
-
-; ==============================================================================
-; MMIO ПРОСТРАНСТВО (Memory Mapped I/O)
-; ==============================================================================
-
-MMIO_BEGIN         equ 0xFF0000    ; Начало MMIO (адрес 16МБ - 64К)
-MMIO_END           equ 0xFFFFFF    ; Конец MMIO (адрес 16МБ - 1)
-MMIO_SIZE          equ 0x00010000  ; 64 КБ
-
-; MMIO_LO (новые устройства Aleste)
-MMIO_LO_BEGIN      equ 0xFF0000    ; Начало MMIO_LO
-MMIO_LO_END        equ 0xFF3FFF    ; Конец MMIO_LO
-MMIO_LO_SIZE       equ 0x00004000  ; 16 КБ
-
-; MMIO_HI (эмуляция Legacy устройств)
-MMIO_HI_BEGIN      equ 0xFF4000    ; Начало MMIO_HI
-MMIO_HI_END        equ 0xFFFFFF    ; Конец MMIO_HI
-MMIO_HI_SIZE       equ 0x0000C000  ; 48 КБ
-
-; ==============================================================================
-; УСТРОЙСТВА В MMIO_LO (новые устройства Aleste)
-; ==============================================================================
-
-; Страница 0 MMIO_LO (FF0000-FF007F)
-MMIO_PAGE0_BEGIN   equ 0xFF0000
-
-; PIC Controller (Прерывания)
-MMIO_PIC_BASE      equ 0xFF0000
-MMIO_PIC_SIZE      equ 32
-
-; IPC Mailbox (Системный почтовый ящик)
-MMIO_IPC_BASE      equ 0xFF0020
-MMIO_IPC_SIZE      equ 32
-
-; System Timer
-MMIO_TIMER_BASE    equ 0xFF0040
-MMIO_TIMER_SIZE    equ 32
-
-; RTC Controller
-MMIO_RTC_BASE      equ 0xFF0060
-MMIO_RTC_SIZE      equ 32
-
-; Расширенный доступ к MMU
-MMIO_MMU_EXT_BEGIN equ 0xFF0080
-MMIO_MMU_EXT_END   equ 0xFF00BF
-MMIO_MMU_EXT_SIZE  equ 64          ; 16 регистров × 4 байта
-
-; Legacy Emulation (страница 2: FF0100-FF017F)
-MMIO_LEGACY_BEGIN  equ 0xFF0100
-MMIO_LEGACY_END    equ 0xFF017F
-MMIO_LEGACY_SIZE   equ 128
-
-; Палитра цветов (в Legacy области)
-MMIO_PALETTE_BASE  equ 0xFF0100    ; Первые 32 байта Legacy области
-MMIO_PALETTE_SIZE  equ 32
-
-; 6845 CRTC (в Legacy области)
-MMIO_6845_BASE     equ 0xFF0120    ; Следующие 32 байта
-MMIO_6845_SIZE     equ 32
-
-; ==============================================================================
-; MMIO_HI (эмуляция Legacy устройств CPC)
-; ==============================================================================
-
-; Gate Array (7FXXh порты)
-MMIO_GA_BASE       equ 0xFF7F00
-MMIO_GA_SIZE       equ 256         ; Полное отображение портов 00-FF
-
-; CRTC 6845 (BCXXh/BDXXh порты)
-MMIO_CRTC_INDEX    equ 0xFFBC00    ; BCXXh
-MMIO_CRTC_DATA     equ 0xFFBD00    ; BDXXh
-
-; Верхний ROM (DFXXh)
-MMIO_UPPER_ROM     equ 0xFFDF00
-
-; PPI 8255 (F4XXh-F7XXh)
-MMIO_PPI_PORTA     equ 0xFFF400    ; F4XXh
-MMIO_PPI_PORTB     equ 0xFFF500    ; F5XXh
-MMIO_PPI_PORTC     equ 0xFFF600    ; F6XXh
-MMIO_PPI_CTRL      equ 0xFFF700    ; F7XXh
-
-; ==============================================================================
-; СИСТЕМНЫЕ РЕГИСТРЫ MMU (порты ввода-вывода)
-; ==============================================================================
-
-; Регистры Native Mode (порты F0-FF)
-PORT_GLOBAL_CTRL   equ 0xF0        ; Главный регистр управления
-PORT_MMIO_PAGE     equ 0xF1        ; Выбор страницы MMIO
-PORT_SYSCALL       equ 0xF2        ; Системный вызов
-PORT_CLOCK_CTRL    equ 0xF3        ; Управление частотой CPU
-PORT_SUPER_SLOT    equ 0xF9        ; Активный слот для Supervisor
-PORT_USER_SLOT     equ 0xFB        ; Активный слот для User
-PORT_BANK_0        equ 0xFC        ; Банк для окна 0
-PORT_BANK_1        equ 0xFD        ; Банк для окна 1
-PORT_BANK_2        equ 0xFE        ; Банк для окна 2
-PORT_BANK_3        equ 0xFF        ; Банк для окна 3
-
-; Регистры Legacy Mode
-PORT_LEGACY_RMR    equ 0x7F00      ; RMR регистр CPC
-PORT_LEGACY_MMR    equ 0x7F00      ; MMR регистр CPC
-PORT_LEGACY_UPPER_ROM equ 0xDF00   ; Выбор верхнего ROM
-PORT_LEGACY_SYSCALL equ 0xF200     ; Системный вызов в Legacy
-
-; ==============================================================================
-; БИТЫ РЕГИСТРА GLOBAL_CTRL
-; ==============================================================================
-
-; Позиции битов в регистре GLOBAL_CTRL (порт F0h)
-GLOBAL_SUPERVISOR  equ 0           ; Бит 0: supervisor_mode
-GLOBAL_NATIVE      equ 1           ; Бит 1: native_mode
-GLOBAL_TRAP_ENABLE equ 2           ; Бит 2: supervisor_hook (включение trap)
-GLOBAL_RESERVED1   equ 3           ; Бит 3: зарезервировано
-GLOBAL_MMIO_UNLOCK equ 4           ; Бит 4: mmio_user_unlock
-GLOBAL_RESERVED2   equ 5           ; Бит 5: зарезервировано
-GLOBAL_RESERVED3   equ 6           ; Бит 6: зарезервировано
-GLOBAL_RESERVED4   equ 7           ; Бит 7: зарезервировано
-
-; Значения по умолчанию после сброса
-GLOBAL_DEFAULT     equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
-                                   ; supervisor=1, native=1, mmio_userlock=0
-
-; ==============================================================================
-; СЛОТЫ ПАМЯТИ (для SUPER_SLOT/USER_SLOT)
-; ==============================================================================
-
-; Доступные слоты (0-3)
-SLOT_0             equ 0           ; Слот 0
-SLOT_1             equ 1           ; Слот 1
-SLOT_2             equ 2           ; Слот 2
-SLOT_3             equ 3           ; Слот 3
-
-; ==============================================================================
-; МАКРОСЫ ДЛЯ РАБОТЫ С MMU
-; ==============================================================================
-
-; Получить текущий активный слот (в зависимости от режима)
-; Выход: A = текущий слот (0-3)
-MACRO GET_CURRENT_SLOT
-    in a, (PORT_GLOBAL_CTRL)
-    bit GLOBAL_SUPERVISOR, a
-    jr z, @user_mode
-    ; Supervisor mode
-    in a, (PORT_SUPER_SLOT)
-    jr @end
-@user_mode:
-    ; User mode
-    in a, (PORT_USER_SLOT)
-@end:
-ENDM
-
-; Переключить банк в текущем активном слоте
-; Вход: window (0-3), bank (0-255)
-MACRO SWITCH_BANK window, bank
-    ld a, bank
-    if window = 0
-        out (PORT_BANK_0), a
-    else if window = 1
-        out (PORT_BANK_1), a
-    else if window = 2
-        out (PORT_BANK_2), a
-    else if window = 3
-        out (PORT_BANK_3), a
-    endif
-ENDM
-
-; Быстрое переключение банка кода (окно 1)
-MACRO SWITCH_CODE_BANK bank
-    ld a, bank
-    out (PORT_BANK_1), a
-ENDM
-
-; Быстрое переключение банка данных (окно 2)
-MACRO SWITCH_DATA_BANK bank
-    ld a, bank
-    out (PORT_BANK_2), a
-ENDM
-
-; Системный вызов
-; Вход: A = код функции
-MACRO SYSCALL code
-    ld a, code
-    out (PORT_SYSCALL), a
-ENDM
-
-; Legacy системный вызов
-MACRO SYSCALL_LEGACY code
-    ld a, code
-    out (PORT_LEGACY_SYSCALL), a
-ENDM
-
-; Вход в Supervisor Mode через trap
-; Установить обработчики прерываний и включить trap
-MACRO ENABLE_TRAP
-    ld a, GLOBAL_DEFAULT | (1 << GLOBAL_TRAP_ENABLE)
-    out (PORT_GLOBAL_CTRL), a
-ENDM
-
-; Выход из Supervisor Mode
-MACRO EXIT_SUPERVISOR native_mode
-    if native_mode = 1
-        ld a, (1 << GLOBAL_NATIVE)  ; supervisor=0, native=1
-    else
-        xor a                       ; supervisor=0, native=0
-    endif
-    out (PORT_GLOBAL_CTRL), a
-ENDM
-
-; ==============================================================================
-; MMIO РАБОТА (доступ через окно)
-; ==============================================================================
-
-; Выбрать страницу MMIO
-; Вход: A = номер страницы (0-127)
-MACRO SET_MMIO_PAGE page
-    ld a, page
-    out (PORT_MMIO_PAGE), a
-ENDM
-
-; Запись в регистр MMIO
-; Вход: page = страница, offset = смещение (0-127), value = значение
-MACRO WRITE_MMIO page, offset, value
-    ld a, page
-    out (PORT_MMIO_PAGE), a
-    ld a, value
-    out (offset), a
-ENDM
-
-; Чтение из регистра MMIO
-; Вход: page = страница, offset = смещение (0-127)
-; Выход: A = значение
-MACRO READ_MMIO page, offset
-    ld a, page
-    out (PORT_MMIO_PAGE), a
-    in a, (offset)
-ENDM
-
-; ==============================================================================
-; РАБОТА С РАСШИРЕННЫМ MMU (MMU_EXT область)
-; ==============================================================================
-
-; Сохранить состояние маппера
-; Вход: HL = указатель на буфер (64 байта)
-MACRO SAVE_MMU_STATE buffer
-    ld hl, buffer
-    ld bc, 0040h           ; 64 байта
-    ld a, 0                ; Страница 0
-    out (PORT_MMIO_PAGE), a
-    ld a, 80h              ; Начало MMU_EXT области
-    ld d, 16               ; 16 регистров
-@save_loop:
-    ; Здесь должен быть код чтения через MMIO_WINDOW
-    ; (зависит от конкретной реализации доступа)
-    inc a
-    dec d
-    jr nz, @save_loop
-ENDM
-
-; ==============================================================================
-; КОНСТАНТЫ ДЛЯ СИСТЕМНЫХ ВЫЗОВОВ
-; ==============================================================================
-
-; Коды системных вызовов
-SYS_MMIO_ACCESS_REQUEST equ 0xFE  ; Запрос доступа к MMIO
-
-; ==============================================================================
-; СИСТЕМНЫЕ ОБЛАСТИ ПАМЯТИ
-; ==============================================================================
-
-; Таблица векторов прерываний (в начале памяти)
-IVT_BEGIN          equ 0x000000
-IVT_END            equ 0x0000FF
-IVT_SIZE          equ 0x00000100  ; 256 байт
-
-; Системный стек (в Supervisor слоте)
-SYS_STACK_BEGIN    equ 0x00FF00    ; В конце окна 3
-SYS_STACK_END      equ 0x00FFFF
-SYS_STACK_SIZE     equ 0x00000100  ; 256 байт
-
-; Область системных переменных
-SYS_VARS_BEGIN     equ 0x000100
-SYS_VARS_END       equ 0x0003FF
-SYS_VARS_SIZE      equ 0x00000300  ; 768 байт
-
-; ==============================================================================
-; РАЗМЕЩЕНИЕ ПРОГРАММ
-; ==============================================================================
-
-; Базовый адрес загрузки программ (окно 1)
-PROGRAM_LOAD_BASE  equ 0x004000
-PROGRAM_LOAD_END   equ 0x007FFF
-PROGRAM_LOAD_SIZE  equ 0x00004000  ; 16К
-
-; Область данных программы (окно 2)
-PROGRAM_DATA_BASE  equ 0x008000
-PROGRAM_DATA_END   equ 0x00BFFF
-PROGRAM_DATA_SIZE  equ 0x00004000  ; 16К
-
-; Стек программы (окно 3)
-PROGRAM_STACK_BASE equ 0x00C000
-PROGRAM_STACK_TOP  equ 0x00FFFF    ; Растёт вниз
-PROGRAM_STACK_SIZE equ 0x00004000  ; 16К
-
-; ==============================================================================
-; РЕЖИМЫ ДОСТУПА
-; ==============================================================================
-
-; Режимы пользователя (сочетания supervisor/native)
-MODE_SUPERVISOR_NATIVE equ (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
-MODE_USER_NATIVE      equ (1 << GLOBAL_NATIVE)
-MODE_USER_LEGACY      equ 0
-
-; Проверка режима доступа
-; Вход: mode = режим для проверки
-; Выход: Z=1 если текущий режим совпадает
-MACRO CHECK_MODE mode
-    in a, (PORT_GLOBAL_CTRL)
-    and (1 << GLOBAL_SUPERVISOR) | (1 << GLOBAL_NATIVE)
-    cp mode
-ENDM
-
-; ==============================================================================
-; ФЛАГИ БЕЗОПАСНОСТИ
-; ==============================================================================
-
-; Проверка блокировки MMIO в User Mode
-; Выход: Z=0 если доступ заблокирован (и мы в User Mode)
-MACRO CHECK_MMIO_LOCK
-    in a, (PORT_GLOBAL_CTRL)
-    bit GLOBAL_SUPERVISOR, a
-    jr nz, @supervisor    ; В Supervisor - всегда разрешено
-    bit GLOBAL_MMIO_UNLOCK, a
-    jr z, @locked         ; В User и mmio_userlock=0
-@supervisor:
-    xor a                 ; Z=1 (разрешено)
-    ret
-@locked:
-    or 1                  ; Z=0 (запрещено)
-ENDM
-#+END_SRC
+;; 3. System ensures context before VTable calls
+__video_draw_pixel:
+    jp video_draw_pixel_safe
+#+end_src
