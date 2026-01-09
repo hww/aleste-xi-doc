@@ -221,12 +221,12 @@ DriverInfo:
     .reserved:      db 0        ; Alignment padding
 #+end_src
 
-*Capability flags include:* - =DRIVER_FLAG_HOTPLUG= (1 << 0): Supports
-hot-plug detection - =DRIVER_FLAG_POWER_CTRL= (1 << 1): Supports power
-management commands - =DRIVER_FLAG_HAS_IRQ= (1 << 2): Uses interrupt
-service routines - =DRIVER_FLAG_POLYMORPHIC= (1 << 3): Multiple
-implementations available - =DRIVER_FLAG_BANKED_MEM= (1 << 4): Requires
-banked memory context
+*Capability flags include:*
+- =DRIVER_FLAG_HOTPLUG= (1 << 0): Supports hot-plug detection
+- =DRIVER_FLAG_POWER_CTRL= (1 << 1): Supports power management commands
+- =DRIVER_FLAG_HAS_IRQ= (1 << 2): Uses interrupt service routines
+- =DRIVER_FLAG_POLYMORPHIC= (1 << 3): Multiple implementations available
+- =DRIVER_FLAG_BANKED_MEM= (1 << 4): Requires banked memory context
 
 * DRIVER STATE MANAGEMENT
 :PROPERTIES:
@@ -496,7 +496,7 @@ Command codes are allocated in ranges to prevent conflicts:
     call __sd_deinit
     ld a, CMD_POWER_OFF
     call __sd_command
-*#+end_src
+#+end_src
 
 * ERROR HANDLING
 :PROPERTIES:
