@@ -457,11 +457,6 @@ Command codes are allocated in ranges to prevent conflicts:
 
 - *0x00-0x0F*: System commands (common to all drivers)
 - *0x10-0x1F*: Driver management commands
-- *0x20-0x3F*: Audio device commands
-- *0x40-0x5F*: Video device commands\\
-- *0x60-0x7F*: Storage device commands
-- *0x80-0x9F*: Network device commands
-- *0xA0-0xFF*: Device-specific extensions
 
 ** Power Management Example
 :PROPERTIES:
