@@ -108,6 +108,28 @@ __draw_pixel:
 
 ### **2.2 Annotation Types**
 
+The anotation expression starts with XIFF then folowig the function name. After there are positioned arguments and key value pairs named *tags*.
+
+```text
+; XIFF:function argument1 ... argumentN :key value :key value
+```
+
+If there is a following comment line without XIFF there can be other *tags*.
+
+```text
+; XIFF:function argument1 ... argumentN :key value :key value
+;     :key value :key value
+```
+
+There is a special policy, the key without value equals *true*
+
+```text
+; XIFF:sum 1 2 :print
+```
+
+The key :print returns true as it does not have arguments
+
+
 #### **2.2.1 Module and File Declaration**
 
 ```asm
