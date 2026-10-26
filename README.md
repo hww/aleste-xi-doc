@@ -16,7 +16,7 @@ There are two primary documents.
 
 ### Aleste LX Platform Architecture
 
-**[Read the platform documentation](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.pdf)**
+**[Read the platform documentation](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.en.md)**
 
 Describes the architecture of the Aleste LX platform and the design concepts behind the system.
 
