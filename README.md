@@ -16,11 +16,11 @@ There are two primary documents.
 
 ### Aleste LX Platform Architecture
 
-**[Read the platform documentation](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.en.md)**
+**[Read the platform documentation (EN)](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.en.md)**
 
 Describes the architecture of the Aleste LX platform and the design concepts behind the system.
 
-- [PDF version](https://github.com/hww/aleste-xi-doc/blob/main/bios/aleste-bios.pdf)
+- [PDF version (RUS)](https://github.com/hww/aleste-xi-doc/blob/main/bios/aleste-bios.pdf)
 
 ### BIOS and Driver Architecture
 
