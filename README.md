@@ -20,7 +20,7 @@ There are two primary documents.
 
 Describes the architecture of the Aleste LX platform and the design concepts behind the system.
 
-- [PDF version (RUS)](https://github.com/hww/aleste-xi-doc/blob/main/bios/aleste-bios.pdf)
+- [PDF version (RUS)](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.pdf)
 
 ### BIOS and Driver Architecture
 
