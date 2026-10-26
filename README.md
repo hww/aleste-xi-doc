@@ -16,11 +16,11 @@ There are two primary documents.
 
 ### Aleste LX Platform Architecture
 
-**[Read the platform documentation](./aleste-lx%20%D0%94%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D0%BE%20%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D0%B5%20LX/aleste-xi.org)**
+**[Read the platform documentation](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.pdf)**
 
 Describes the architecture of the Aleste LX platform and the design concepts behind the system.
 
-- [PDF version](./aleste-lx%20%D0%94%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D0%BE%20%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D0%B5%20LX/aleste-xi.pdf)
+- [PDF version](https://github.com/hww/aleste-xi-doc/blob/main/bios/aleste-bios.pdf)
 
 ### BIOS and Driver Architecture
 
@@ -86,7 +86,7 @@ The repository is organized into three groups of material.
 
 ### 1. Platform Documentation
 
-Directory: [`aleste-lx Documentation`](./aleste-lx%20%D0%94%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D0%BE%20%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D0%B5%20LX/)
+Directory: [`aleste-lx Documentation`](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.pdf)
 
 Contains the main architectural document for Aleste LX in Org format and PDF.
 
