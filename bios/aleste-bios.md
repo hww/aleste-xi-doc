@@ -1,12 +1,12 @@
 # Aleste XI BIOS: Driver Architecture Specification
 
-**Status:** Draft  **Version:** 1.2  **Author:** h2w
+**Status:** Draft  **Version:** 1.2  **Author:** hww
 
 | Version | Date       | Changes                                                                                                                                                                                                           | Author |
 |---------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
-| 1.2     | 2026-11-05 | Converted to Markdown; merged duplicated sections; corrected the call-cost model, the state diagram and the hash example; fixed the `activate_driver` and AY shadow-register bugs; moved the audio example to MSX PSG ports; fixed command ranges, register preservation and nested context saving | h2w    |
-| 1.1     | 2026-01-01 | Simplified API, added memory context, fixed states                                                                                                                                                                | h2w    |
-| 1.0     | 2024-01-15 | Initial specification                                                                                                                                                                                             | h2w    |
+| 1.2     | 2026-11-05 | Converted to Markdown; merged duplicated sections; corrected the call-cost model, the state diagram and the hash example; fixed the `activate_driver` and AY shadow-register bugs; moved the audio example to MSX PSG ports; fixed command ranges, register preservation and nested context saving | hww    |
+| 1.1     | 2026-01-01 | Simplified API, added memory context, fixed states                                                                                                                                                                | hww    |
+| 1.0     | 2024-01-15 | Initial specification                                                                                                                                                                                             | hww    |
 
 > **Units.** Timings are in Z80 **T-states** (clock periods) and are nominal minimums: wait states inserted by the hardware add to them. Port addresses in examples are illustrative; the audio example uses the MSX PSG ports.
 
