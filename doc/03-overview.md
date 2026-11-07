@@ -46,7 +46,7 @@ This architecture provides:
 The distinction between logical and physical addresses is important both for software development and debugging. Development tools should be able to inspect the underlying memory independently of the currently mapped processor address space.
 
 
-![XI_Aleste_LX_Lean_eXtreme_FPGA_Architecture](./images/XI_Aleste_LX_Lean_eXtreme_FPGA_Architecture.webp)
+![XI_Aleste_LX_Lean_eXtreme_FPGA_Architecture](../images/XI_Aleste_LX_Lean_eXtreme_FPGA_Architecture.webp)
 
 ## 3. System Bus and Hardware Interconnect
 
@@ -137,7 +137,7 @@ The architecture also considers the use of pixel-level logical and arithmetic op
 
 A graphics accelerator is considered an optional extension rather than a prerequisite for the basic platform.
 
-![XI_Aleste_LX_Lean_eXtreme_FPGA_Video_System_Architecture](./images/XI_Aleste_LX_Lean_eXtreme_FPGA_Video_System_Architecture.webp)
+![XI_Aleste_LX_Lean_eXtreme_FPGA_Video_System_Architecture](../images/XI_Aleste_LX_Lean_eXtreme_FPGA_Video_System_Architecture.webp)
 
 ## 8. Audio Architecture
 

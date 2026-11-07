@@ -58,7 +58,7 @@ What was **outside** the CPC case — third‑party expansions, cartridges,
 external peripherals, Amstrad‑branded "standard" add‑ons — is **not**
 part of the LX compatibility target. LX may ignore it.
 
-![Amstrad CPC](./images/i-love-amstrad.png)
+![Amstrad CPC](../images/i-love-amstrad.png)
 
 **Aleste 520EX** is an *extended* platform (1990s, discrete components).
 It is **not canon**. It contains many cost‑cutting compromises of the
