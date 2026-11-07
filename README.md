@@ -1,193 +1,75 @@
-# Aleste LX — Architecture and BIOS Documentation
+# XiAleste and Aleste LX — Architecture Documentation
 
-**Technical documentation for the Aleste LX 8-bit computer platform, its BIOS architecture, and its driver interface.**
+This repository contains the architectural documentation of the XiAleste and Aleste LX computer platforms.
 
-Aleste LX explores a design-first approach to retrocomputer development: define the platform architecture, establish the software interfaces, and develop the firmware before the physical hardware is ready.
+It describes the evolution of the Aleste architecture, the design principles behind the platform, and the hardware and software interfaces that define its operation.
 
-This repository documents the architectural decisions behind that approach, with a particular focus on the BIOS, the driver model, and the contracts that connect applications to hardware services.
+The documentation covers the processor environment, memory management, system buses, hardware controllers, BIOS, system calls, and inter-process communication.
 
-The goal is not simply to document a collection of registers. It is to explain how the platform is structured, how its components interact, and how software can be developed against a stable interface.
+The goal is to provide a coherent description of the platform as a whole: its architecture, the relationships between its components, and the interfaces available to system software and applications.
 
----
+## Architecture Overview
 
-## Start Here
+Aleste LX explores a design-first approach to retrocomputer development, combining the familiar programming model of an 8-bit processor with a more advanced FPGA-based hardware architecture.
 
-There are two primary documents.
+The platform is built around several fundamental principles:
 
-### Aleste LX Platform Architecture
+- **CPU-centric design.** The main processor remains responsible for application logic and general-purpose computation. Hardware accelerators assist the CPU with specific operations that are inefficient to perform in software rather than replacing it with autonomous specialised processors.
+- **Hardware-assisted software.** Specialised hardware provides efficient low-level operations, allowing software to remain flexible while overcoming the performance limitations of an 8-bit processor.
+- **Structured hardware architecture.** Internal components communicate through defined interfaces and system buses, allowing the architecture to evolve without tightly coupling individual subsystems.
+- **Extended memory architecture.** Memory management and address translation extend the capabilities of the processor beyond its native logical address space.
+- **Protected execution.** Supervisor and user execution modes provide a foundation for controlled access to system resources.
+- **Software-defined hardware access.** The BIOS and driver architecture provide stable interfaces between applications and hardware implementations.
+- **Virtual and physical platforms.** The architecture is intended to be supported consistently by the emulator and the FPGA implementation.
 
-**[Read the platform documentation (EN)](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.en.md)**
+The platform combines the flexibility of software with specialised hardware assistance. The processor determines what needs to be done, while dedicated hardware helps it perform selected operations efficiently.
 
-Describes the architecture of the Aleste LX platform and the design concepts behind the system.
+## Documentation Structure
 
-- [PDF version (RUS)](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.pdf)
+The documentation is organised into the following chapters.
 
-### BIOS and Driver Architecture
+### 01. History
 
-**[Read the BIOS architecture document](./bios/aleste-bios.org)**
+[The Aleste Story](01-history.md)
 
-Explains the architectural foundation of the BIOS and the model used to expose hardware functionality through software interfaces.
+Describes the historical development of the Aleste architecture, from the original Aleste 520EX through XiAleste to the Aleste LX design.
 
-- [PDF version](./bios/aleste-bios.pdf)
-- [BIOS architecture diagram](./bios/states_simplified.png)
+Explains the background, motivations, and architectural decisions that influenced the evolution of the platform.
 
-The BIOS document is the recommended starting point for understanding the relationship between the BIOS, driver implementations, and application-facing interfaces.
+### 02. Terminology
 
----
+[Xi/LX Terminology](02-terminology.md)
 
-## The Architecture Behind the Documentation
+Defines the terminology, concepts, and naming conventions used throughout the documentation.
 
-### A Contract Between Software and Hardware
+Provides a common vocabulary for understanding the architecture and its components.
 
-An important design principle in Aleste LX is the separation between an application's view of the system and the implementation of its hardware.
+### 03. Architecture Overview
 
-Applications should not need to know the internal details of every peripheral. Instead, they should access system functionality through interfaces defined by the BIOS and its drivers.
+[](03-overview.md)
 
-This creates a clear architectural boundary:
+Introduces the overall Aleste LX architecture and its fundamental design principles.
 
-1. **Applications** request services through public interfaces.
-2. **The BIOS** provides the common entry points and dispatches requests.
-3. **Drivers** implement the functionality associated with individual hardware components.
-4. **The hardware platform** provides the underlying resources used by those implementations.
+Describes the relationships between the processor, memory system, hardware subsystems, firmware, and applications.
 
-The purpose of this separation is to reduce coupling between applications and hardware details.
+This is the recommended starting point for understanding the platform.
 
-### Drivers as Explicit Interfaces
+### 04. Legacy Architecture
 
-A driver is more than a collection of routines that manipulate hardware registers. It is a component with a defined interface.
+[](04-legacy.md)
 
-The driver model uses a structured call-table approach: driver methods are described through declared interfaces, and the BIOS dispatches requests through those interfaces.
+Describes the legacy architecture and compatibility mechanisms inherited from earlier Aleste and CPC systems.
 
-This approach is intended to provide several benefits:
+Explains how the original programming environment and hardware capabilities relate to the extended LX architecture.
 
-- **A stable application interface.** Applications can depend on declared methods rather than scattered hardware addresses.
-- **Explicit contracts.** Driver methods and error codes define how software components communicate.
-- **Replaceable implementations.** A driver can be modified without necessarily changing the applications that use it.
-- **Testability.** Implementations can be exercised in an emulator before the physical hardware is available.
-- **A path to hardware independence.** Application code can be reused across compatible implementations of the platform.
+### 05. Input/Output Architecture
 
-These benefits depend on maintaining compatibility between the declared interfaces, the BIOS implementation, and the underlying hardware.
+[](05-io.md)
 
-### Why the Emulator Matters
+Describes the I/O architecture and the mechanisms used to access hardware resources and peripheral devices.
 
-A virtual platform provides an environment in which firmware and drivers can be developed before the target hardware is available.
+### 06. RTL Reference
 
-The emulator is therefore more than a convenience for running Z80 programs. It can serve as an executable reference for the platform's memory mapping, peripheral behavior, and software-visible interfaces.
+[](06-rtl-reference.md)
 
-This makes it possible to investigate architectural decisions and test software while the hardware implementation is still evolving.
-
-The long-term objective is to keep the software contract consistent between the virtual platform and the physical implementation.
-
----
-
-## Documentation Map
-
-The repository is organized into three groups of material.
-
-### 1. Platform Documentation
-
-Directory: [`aleste-lx Documentation`](https://github.com/hww/aleste-xi-doc/blob/main/aleste-lx/aleste-xi.pdf)
-
-Contains the main architectural document for Aleste LX in Org format and PDF.
-
-Use this document to explore the platform as a whole and understand the broader architectural context.
-
-### 2. BIOS Documentation
-
-Directory: [`bios/`](./bios/)
-
-Contains the BIOS architecture document in Org format and PDF, together with a simplified state diagram.
-
-This is the primary reference for readers interested in firmware structure, driver interfaces, and the organization of the BIOS.
-
-### 3. Working Notes and Research
-
-Directory: [`import/`](./import/)
-
-Contains research notes, exploratory designs, and preliminary technical material.
-
-Topics include:
-
-- Memory management and MMU design.
-- System buses and DMA.
-- GPU and video architecture.
-- I/O interfaces.
-- Inter-process communication.
-- System calls.
-- Interrupt controllers.
-- Audio architecture and retro sound effects.
-- Memory libraries and firmware design considerations.
-
-These files preserve design exploration and technical reasoning that may not yet be reflected in the main documentation.
-
-**Important:** Working notes are not necessarily normative specifications. Their contents may be incomplete, experimental, or superseded by later design decisions.
-
-See the [working-notes README](./import/README.md) for additional context.
-
-### 4. Legacy XIFF Specifications
-
-Directory: [`xiff/`](./xiff/)
-
-Contains historical versions of XIFF, a metalinguage originally intended to describe driver programs.
-
-The directory includes several versions of the specification, including English-language documents for XIFF 5.0 and XIFF 6.0.
-
-**XIFF is deprecated.** These documents are retained for historical reference and to preserve the evolution of the original design. They should not be treated as the current definition of the Aleste LX driver architecture.
-
----
-
-## How to Read This Repository
-
-The recommended reading order depends on your interests.
-
-| If you want to... | Start with... |
-|---|---|
-| Understand the overall platform | Aleste LX platform documentation |
-| Understand the BIOS design | BIOS and Driver Architecture |
-| Explore the design of the driver interfaces | BIOS architecture documentation and the corresponding source code |
-| Investigate memory, video, sound, or I/O | Relevant notes in `import/` |
-| Study the history of the driver-description language | Legacy XIFF specifications |
-
-For firmware development, read the BIOS documentation alongside the [Aleste LX BIOS source repository](https://github.com/hww/aleste-xi-bios).
-
-For the hardware implementation, see the [Aleste LX FPGA project](https://github.com/hww/aleste-lx-fpga-sv).
-
----
-
-## Documentation Status
-
-This repository contains material at different stages of maturity.
-
-- **Main documents** describe the platform and BIOS architecture.
-- **Working notes** capture ongoing or exploratory design work.
-- **Legacy specifications** document historical approaches that have since been deprecated.
-
-The presence of a document in this repository does not necessarily mean that every described feature has been implemented or that every proposal has been adopted.
-
-Where implementation status matters, consult the relevant source code and project documentation.
-
----
-
-## Contributing and Using the Documentation
-
-When updating the documentation, keep the distinction between architectural decisions, implementation details, and exploratory ideas explicit.
-
-In particular:
-
-- Update the main documents when an architectural decision becomes established.
-- Keep experimental proposals identifiable as working notes.
-- Mark superseded specifications as deprecated rather than silently treating them as current.
-- Keep diagrams and PDF exports consistent with their corresponding source documents.
-
-The aim is to maintain a useful record of both the platform's architecture and the reasoning behind its design.
-
----
-
-## Related Projects
-
-- [Aleste LX BIOS](https://github.com/hww/aleste-xi-bios) — BIOS, drivers, and the virtual development platform.
-- [Aleste LX FPGA](https://github.com/hww/aleste-lx-fpga-sv) — hardware implementation of the Aleste platform.
-
----
-
-*Aleste LX is an evolving architectural project. This repository documents its design, implementation concepts, and development history.*
+Provides a reference to the hardware description and

@@ -5,6 +5,8 @@ author: "h2w"
 language: en
 ---
 
+**Status:** Draft  **Version:** 1.0  **Author:** hww
+
 # Aleste LX
 
 ## Memory Management and Expansion System
