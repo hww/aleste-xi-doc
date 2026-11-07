@@ -1,12 +1,5 @@
 # LX IPC Mailbox — Legacy RTL Reference
 
-**Author:** hww (LX platform)  
-**Status:** Legacy / Not part of the OS architecture  
-**Address:** `lx_rtl_reference.md`  
-**Scope:** Historical reference for the currently implemented RTL mailbox block.
-
----
-
 ## 0. Purpose and status
 
 This document describes the legacy hardware IPC Mailbox implemented in `ipc_mailbox.sv`.

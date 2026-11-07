@@ -1,7 +1,5 @@
 # LX BIOS: Driver Architecture Specification
 
-**Status:** Draft  **Version:** 1.2  **Author:** hww
-
 | Version | Date       | Changes                                                                                                                                                                                                           | Author |
 |---------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
 | 1.2     | 2026-11-05 | Converted to Markdown; merged duplicated sections; corrected the call-cost model, the state diagram and the hash example; fixed the `activate_driver` and AY shadow-register bugs; moved the audio example to MSX PSG ports; fixed command ranges, register preservation and nested context saving | hww    |

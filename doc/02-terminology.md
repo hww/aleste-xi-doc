@@ -1,7 +1,5 @@
 # LX Terminology
 
-**Status:** Draft  **Version:** 1.0  **Author:** hww
-
 **Status:** reference. Definitions of terms used across the LX documentation.
 **See also:** `lx_story.md` (historical background), `lx_rtl_reference.md`
 (addresses), `lx_mmu.md` (memory model), `lx_io.md` (I/O map).

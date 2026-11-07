@@ -1,11 +1,5 @@
 # LX Mode Switching Mechanisms
 
-**Author:** hww (LX platform)
-**Status:** reference. **Corrected against RTL (`mmu_native.sv`, `gen_rtl`).**
-**Scope:** software switching, trap, syscall, exit from Supervisor.
-
----
-
 ## 0. How to read this document
 
 This document describes the four mode-switching mechanisms of LX:

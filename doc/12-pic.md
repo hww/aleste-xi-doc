@@ -1,11 +1,5 @@
 # LX PIC Controller
 
-**Author:** hww (LX platform)
-**Status:** reference. **Address is in `lx_rtl_reference.md`.**
-**Scope:** PIC registers, bits, priority, INT generation.
-
----
-
 ## 0. How to read this document
 
 This document describes the **PIC** (interrupt controller): its

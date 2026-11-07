@@ -2,15 +2,6 @@
 
 ## Preliminary Hardware Architecture Specification
 
-**Version 0.2 — Architectural Revision**
-
-**Status:** Preliminary design specification  
-**Physical interface:** 40-pin connector per expansion slot  
-**Target system:** Aleste LX  
-**Maximum number of expansion slots:** 4
-
----
-
 ## 1. Design Philosophy
 
 AMEB is a modular expansion interface for the Aleste computer.

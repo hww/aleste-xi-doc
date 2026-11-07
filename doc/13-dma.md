@@ -1,11 +1,5 @@
 # LX DMA / Blitter
 
-**Author:** hww (LX platform)
-**Status:** reference. **Addresses are in `lx_rtl_reference.md`.**
-**Scope:** DMA controllers and blitter registers, bits, modes.
-
----
-
 ## 0. How to read this document
 
 LX has **two** DMA-related devices:

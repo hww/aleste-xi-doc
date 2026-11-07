@@ -1,12 +1,4 @@
 # LX MMU: Native and Legacy Memory Management
-
-**Author:** hww (LX platform)
-**RTL:** Carlos (`gen_rtl`, latest)
-**Status:** reference + RTL state
-**Scope:** slots, banks, privileges, syscall, trap, MMIO, reset state.
-
----
-
 ## 0. How to read this document
 
 This document describes the memory management unit of Aleste LX: the

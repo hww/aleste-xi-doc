@@ -1,7 +1,5 @@
 # The Aleste Story
 
-**Status:** Draft  **Version:** 1.0  **Author:** hww
-
 ### From the Aleste 520 EX to Xi and LX
 
 ## The Beginning: Aleste 520 EX

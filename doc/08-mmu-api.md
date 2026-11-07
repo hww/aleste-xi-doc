@@ -1,11 +1,5 @@
 # LX MMU API (planned)
 
-**Status:** planned library API. **NOT implemented in `gen_rtl`.**
-**See also:** `lx_mmu.md` (current registers and RTL state),
-`lx-bios.md` §3.1 (singleton drivers).
-
----
-
 ## 1. Purpose
 
 `mmu_api.asm` is a planned library that provides a unified interface to

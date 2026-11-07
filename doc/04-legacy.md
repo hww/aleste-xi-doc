@@ -1,14 +1,5 @@
 # LX Legacy: CPC 6128 and Aleste 520EX
 
-**Author:** hww (LX platform)
-**RTL:** Carlos (`gen_rtl`, latest)
-**Status:** reference + author annotation + RTL state
-**Scope:** legacy I/O and registers; what LX must / may / must not support.
-
-**Version 0.2 — Architectural Revision**
-
----
-
 ## 0. How to read this document
 
 This document has three layers:
@@ -360,6 +351,8 @@ The mapper port decode uses bit 15 of the I/O address, as the Aleste
 Gate Array does. Address bits 9 and 8 select the page. To avoid writing
 to the Aleste Gate Array, data bits 7 and 6 must be `1`. The remaining
 bits define the RAM block/configuration.
+
+![CPC Legacy Memory Management](../images/cpc-legacy-memory-management.webp)
 
 **Unknowns:**
 
