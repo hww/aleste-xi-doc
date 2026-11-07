@@ -1,4 +1,4 @@
-# Aleste XI BIOS: Driver Architecture Specification
+# LX BIOS: Driver Architecture Specification
 
 **Status:** Draft  **Version:** 1.2  **Author:** hww
 

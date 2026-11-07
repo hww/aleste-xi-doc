@@ -5,6 +5,8 @@
 **Status:** reference + author annotation + RTL state
 **Scope:** legacy I/O and registers; what LX must / may / must not support.
 
+**Version 0.2 — Architectural Revision**
+
 ---
 
 ## 0. How to read this document
