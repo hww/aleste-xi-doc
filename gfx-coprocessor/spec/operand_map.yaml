@@ -1,0 +1,19 @@
+name: Microcode operand address map
+width: 6
+entries:
+  - {address: "0-31", name: "R0-R31",  read: "24-bit register file",                write: "24-bit register file"}
+  - {address: 32, name: ZERO,    read: "Constant zero",                              write: "Ignored"}
+  - {address: 33, name: ACC,     read: "Previous ALU result",                        write: "Not writable"}
+  - {address: 34, name: P,       read: "Multiplier result",                          write: "Not writable"}
+  - {address: 35, name: FIFO8,   read: "Pop one byte; wait while empty",             write: "Not writable"}
+  - {address: 36, name: FIFO16,  read: "Pop two bytes, low byte first",              write: "Not writable"}
+  - {address: 37, name: FIFO16S, read: "Pop two bytes, sign-extended",               write: "Not writable"}
+  - {address: 38, name: SPIX,    read: "Source pixel from SW",                       write: "Not writable"}
+  - {address: 39, name: DPIX,    read: "Destination pixel from DW",                  write: "Write pixel to DW, mark dirty"}
+  - {address: 40, name: SIDX,    read: "Not readable",                               write: "Set source linear pixel index"}
+  - {address: 41, name: DIDX,    read: "Not readable",                               write: "Set destination linear pixel index"}
+  - {address: 42, name: FLUSH,   read: "Not readable",                               write: "Flush dirty destination word"}
+  - {address: 43, name: PALI,    read: "Not readable",                               write: "Palette index"}
+  - {address: 44, name: PALD,    read: "Not readable",                               write: "Palette colour"}
+  - {address: 45, name: IMM,     read: "9-bit immediate from X field",               write: "Not writable"}
+  - {address: 46, name: STAT,    read: "Status flags",                               write: "Request interrupt"}

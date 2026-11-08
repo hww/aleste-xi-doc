@@ -1,11 +1,11 @@
 # Retro Graphics Effects: Technical Reference
 
-**Status:** Draft  **Version:** 2.0  **Author:** hww
+**Status:** Draft **Version:** 2.0 **Author:** hww
 
 ## A Practical Guide for Artists, Programmers, and Hardware Implementers
 
 **Scope:** 2D retro graphics, sprite engines, tile-based displays,
-framebuffer effects, and 16-bit-inspired rendering\
+framebuffer effects, and 16-bit-inspired rendering  
 **Platform note:** The original notes refer to a platform called *Kiss*
 and use illustrative accelerator fields such as `accel->operation` and
 `OP_BLEND`. No authoritative Kiss hardware/API specification was
@@ -110,12 +110,12 @@ rendering operations.
 The effects are grouped by the part of the rendering pipeline they
 affect:
 
--   **Sprite effects** modify an individual graphic or its pixels.
--   **Composition effects** combine multiple images or layers.
--   **Pattern effects** alter the spatial appearance of an image.
--   **Lighting and temporal effects** change color or visibility over
-    time.
--   **Screen-space effects** operate on a viewport or the final image.
+- **Sprite effects** modify an individual graphic or its pixels.
+- **Composition effects** combine multiple images or layers.
+- **Pattern effects** alter the spatial appearance of an image.
+- **Lighting and temporal effects** change color or visibility over
+  time.
+- **Screen-space effects** operate on a viewport or the final image.
 
 These categories are conceptual, not mutually exclusive. A damage flash,
 for example, may combine a sprite tint, a screen overlay, and a short
@@ -126,13 +126,13 @@ camera shake.
 A retro-style platform does not necessarily provide modern GPU features.
 Depending on the hardware, it may use:
 
--   a tile map and hardware sprites rather than a full framebuffer;
--   indexed color and a palette rather than direct RGB pixels;
--   a fixed set of raster operations;
--   hardware scrolling but no arbitrary affine transforms;
--   a limited number of blend modes, or no alpha blending at all;
--   CPU-generated effects, lookup tables, or pre-rendered animation
-    frames.
+- a tile map and hardware sprites rather than a full framebuffer;
+- indexed color and a palette rather than direct RGB pixels;
+- a fixed set of raster operations;
+- hardware scrolling but no arbitrary affine transforms;
+- a limited number of blend modes, or no alpha blending at all;
+- CPU-generated effects, lookup tables, or pre-rendered animation
+  frames.
 
 An effect described here may therefore be implemented in hardware,
 software, by palette manipulation, or by a precomputed asset. Choose the
@@ -142,14 +142,14 @@ implementation that the target system actually supports.
 
 The terms **source** and **destination** are used consistently:
 
--   **Source (`src`)**: the image, pixel, color, or mask being read.
--   **Destination (`dst`)**: the pixel or buffer being modified.
--   **Background**: the already-rendered content behind the current
-    object.
--   **Overlay**: content drawn over an existing image.
--   **Framebuffer**: memory containing a rendered image.
--   **Viewport**: the rectangular portion of the world currently visible
-    on screen.
+- **Source (`src`)**: the image, pixel, color, or mask being read.
+- **Destination (`dst`)**: the pixel or buffer being modified.
+- **Background**: the already-rendered content behind the current
+  object.
+- **Overlay**: content drawn over an existing image.
+- **Framebuffer**: memory containing a rendered image.
+- **Viewport**: the rectangular portion of the world currently visible
+  on screen.
 
 The word *transparency* must be used carefully. Color-key transparency,
 binary mask transparency, and alpha transparency are different
@@ -164,26 +164,13 @@ techniques.
 A pixel is a stored color value, but its interpretation depends on the
 selected format. Common formats include:
 
-  -----------------------------------------------------------------------
-  Format                  Meaning                 Typical considerations
-  ----------------------- ----------------------- -----------------------
-  RGB565                  5 red, 6 green, 5 blue  Common in 16-bit
-                          bits                    displays; no alpha
-                                                  channel
-
-  RGB555                  5 bits per RGB channel, Exact layout varies
-                          often one unused bit    
-
-  RGBA8888                8 bits per red, green,  Flexible, but more
-                          blue, and alpha         memory bandwidth
-
-  Indexed color           Pixel stores a palette  Palette changes can
-                          index                   produce efficient
-                                                  global effects
-
-  Packed bitplanes        Color bits are stored   Common in older
-                          in separate planes      graphics architectures
-  -----------------------------------------------------------------------
+| Format           | Meaning                                      | Typical considerations                               |
+|:-----------------|:---------------------------------------------|:-----------------------------------------------------|
+| RGB565           | 5 red, 6 green, 5 blue bits                  | Common in 16-bit displays; no alpha channel          |
+| RGB555           | 5 bits per RGB channel, often one unused bit | Exact layout varies                                  |
+| RGBA8888         | 8 bits per red, green, blue, and alpha       | Flexible, but more memory bandwidth                  |
+| Indexed color    | Pixel stores a palette index                 | Palette changes can produce efficient global effects |
+| Packed bitplanes | Color bits are stored in separate planes     | Common in older graphics architectures               |
 
 Do not assume that `0xFFFF` means white or that `0x0000` means black
 without confirming the pixel format and color interpretation. In RGB565,
@@ -208,15 +195,15 @@ memory.
 
 There are three common transparency models.
 
-**Color-key transparency**\
-A specific source color means "do not draw this pixel." It is usually
+**Color-key transparency**  
+A specific source color means “do not draw this pixel.” It is usually
 binary: a pixel is either copied or skipped.
 
-**Binary mask transparency**\
+**Binary mask transparency**  
 A separate mask determines whether a source pixel is visible. This is
 useful when every possible source color must remain available.
 
-**Alpha transparency**\
+**Alpha transparency**  
 Each pixel or draw operation has an opacity value. A value of 0 is fully
 transparent and a value of 1 (or the maximum integer value) is fully
 opaque.
@@ -264,13 +251,13 @@ a dedicated blending unit.
 Logical raster operations work on individual bits. They do not perform
 color-aware interpolation.
 
-  Operation   Bitwise meaning   Typical use
-  ----------- ----------------- ------------------------------------------------
-  COPY        `D = S`           Ordinary opaque copy
-  AND         `D = D & S`       Bit masking
-  OR          `D = D \| S`      Combining bit fields or setting bits
-  XOR         `D = D ^ S`       Reversible toggling, simple inversion patterns
-  NOT         `D = ~D`          Bitwise complement, where supported
+| Operation | Bitwise meaning | Typical use                                    |
+|:----------|:----------------|:-----------------------------------------------|
+| COPY      | `D = S`         | Ordinary opaque copy                           |
+| AND       | `D = D & S`     | Bit masking                                    |
+| OR        | `D = D \| S`    | Combining bit fields or setting bits           |
+| XOR       | `D = D ^ S`     | Reversible toggling, simple inversion patterns |
+| NOT       | `D = ~D`        | Bitwise complement, where supported            |
 
 The visual result of a logical operation depends on the pixel encoding.
 An AND mask that works on a monochrome bitmap may produce unexpected
@@ -285,14 +272,14 @@ operation.
 
 Before implementing an effect, establish:
 
--   whether coordinates are screen-relative or world-relative;
--   whether the origin is at the top-left or bottom-left;
--   whether rectangle endpoints are inclusive or exclusive;
--   whether negative coordinates are allowed;
--   whether drawing clips automatically at screen edges;
--   whether the framebuffer uses a row stride larger than its visible
-    width;
--   whether source and destination rectangles may overlap.
+- whether coordinates are screen-relative or world-relative;
+- whether the origin is at the top-left or bottom-left;
+- whether rectangle endpoints are inclusive or exclusive;
+- whether negative coordinates are allowed;
+- whether drawing clips automatically at screen edges;
+- whether the framebuffer uses a row stride larger than its visible
+  width;
+- whether source and destination rectangles may overlap.
 
 A common framebuffer address calculation is:
 
@@ -360,17 +347,17 @@ separate mask.
 
 **Important details:**
 
--   The key must match the stored pixel value exactly unless the
-    hardware supports a tolerance.
--   The key color must not also be needed as a visible color in the
-    sprite.
--   Filtering or scaling can create edge colors that do not equal the
-    key, producing halos. Nearest-neighbor scaling or pre-cleaned edge
-    pixels are often preferable for pixel art.
--   If the source is palette-indexed, the key may be an index rather
-    than an RGB color.
--   A transparent source pixel must normally leave the destination
-    unchanged, not write the key color into it.
+- The key must match the stored pixel value exactly unless the hardware
+  supports a tolerance.
+- The key color must not also be needed as a visible color in the
+  sprite.
+- Filtering or scaling can create edge colors that do not equal the key,
+  producing halos. Nearest-neighbor scaling or pre-cleaned edge pixels
+  are often preferable for pixel art.
+- If the source is palette-indexed, the key may be an index rather than
+  an RGB color.
+- A transparent source pixel must normally leave the destination
+  unchanged, not write the key color into it.
 
 **Common failure:** Setting black as the key without checking the asset.
 This makes every legitimate black pixel disappear.
@@ -380,7 +367,7 @@ This makes every legitimate black pixel disappear.
 **Purpose:** Create a negative, damage, shield, or temporary
 invulnerability appearance.
 
-There are multiple meanings of "invert":
+There are multiple meanings of “invert”:
 
 1.  **Bitwise inversion:** complement every bit.
 2.  **Channel inversion:** replace each channel value `C` with
@@ -421,11 +408,11 @@ on the destination and is not simply a negative of the source.
 
 **Preferred retro implementations:**
 
--   For indexed color: use a remapped palette or alternate palette bank.
--   For RGB565: unpack channels, invert them, and repack; or use a
-    verified format-specific lookup table.
--   For a quick reversible highlight: XOR can be appropriate, but only
-    when the mask and destination behavior are intentional.
+- For indexed color: use a remapped palette or alternate palette bank.
+- For RGB565: unpack channels, invert them, and repack; or use a
+  verified format-specific lookup table.
+- For a quick reversible highlight: XOR can be appropriate, but only
+  when the mask and destination behavior are intentional.
 
 ### 3.3 Flipping, Rotation, and Scaling
 
@@ -543,11 +530,11 @@ different modes. Select the mode that matches the intended equation.
 
 **Retro alternatives when alpha blending is unavailable:**
 
--   use a checkerboard or ordered-dither pattern to simulate partial
-    coverage;
--   use a palette variant with darker or lighter colors;
--   precompute several opacity frames;
--   use a hardware-supported shadow/highlight mode if one exists.
+- use a checkerboard or ordered-dither pattern to simulate partial
+  coverage;
+- use a palette variant with darker or lighter colors;
+- precompute several opacity frames;
+- use a hardware-supported shadow/highlight mode if one exists.
 
 ### 4.3 Additive and Subtractive Blending
 
@@ -591,8 +578,8 @@ else:
     output = destination_pixel
 ```
 
-This is conceptually clearer than saying "the destination equals source
-AND mask," which is only correct for certain bit-level mask
+This is conceptually clearer than saying “the destination equals source
+AND mask,” which is only correct for certain bit-level mask
 representations.
 
 For a bitwise mask:
@@ -607,8 +594,8 @@ visual stencil for arbitrary RGB pixels.
 
 **Two common mask conventions:**
 
--   **1 = visible, 0 = hidden**
--   **1 = hidden, 0 = visible**
+- **1 = visible, 0 = hidden**
+- **1 = hidden, 0 = visible**
 
 Document which convention is used. Invert the mask if the hardware
 expects the opposite convention.
@@ -623,11 +610,11 @@ renderer must also know which object is in front.
 
 Typical priority approaches include:
 
--   draw-order sorting;
--   a fixed layer priority;
--   per-sprite priority bits;
--   a depth or priority buffer;
--   tile priority combined with sprite priority.
+- draw-order sorting;
+- a fixed layer priority;
+- per-sprite priority bits;
+- a depth or priority buffer;
+- tile priority combined with sprite priority.
 
 Define how ties are resolved. Also define whether transparent pixels
 write priority/depth information. In most simple 2D pipelines, a
@@ -662,11 +649,11 @@ pixelated.
 
 **Implementation options:**
 
--   render the scene to a smaller off-screen buffer and scale it up
-    using nearest-neighbor sampling;
--   sample one pixel per block from the existing framebuffer;
--   draw large colored rectangles based on representative block colors;
--   use a precomputed low-resolution version of the image.
+- render the scene to a smaller off-screen buffer and scale it up using
+  nearest-neighbor sampling;
+- sample one pixel per block from the existing framebuffer;
+- draw large colored rectangles based on representative block colors;
+- use a precomputed low-resolution version of the image.
 
 A checkerboard or bit pattern can create a dither or dissolve effect,
 but it does not by itself create a mosaic.
@@ -729,7 +716,7 @@ ratio = clamp((float)health / max_health, 0.0f, 1.0f);
 filled_width = (int)(bar_width * ratio);
 ```
 
-Handle `max_health == 0` explicitly. Avoid drawing outside the bar's
+Handle `max_health == 0` explicitly. Avoid drawing outside the bar’s
 clipping rectangle.
 
 ### 5.4 Raster Bars and Scanline Effects
@@ -742,10 +729,10 @@ distortion, and horizontal palette bands.
 
 A scanline effect may be implemented by:
 
--   changing palette registers during vertical scan;
--   changing a horizontal scroll register at a scanline boundary;
--   drawing thin colored rectangles;
--   applying a per-row color transform in software.
+- changing palette registers during vertical scan;
+- changing a horizontal scroll register at a scanline boundary;
+- drawing thin colored rectangles;
+- applying a per-row color transform in software.
 
 Hardware timing is critical. If a register update misses the intended
 scanline, the effect may appear one line late or flicker. The exact
@@ -799,8 +786,8 @@ Out = min(MAX, D + Glow * Intensity)
 
 A convincing glow often has two parts:
 
--   a bright core with crisp edges;
--   a larger, lower-intensity halo.
+- a bright core with crisp edges;
+- a larger, lower-intensity halo.
 
 On hardware without blending, approximate the halo with a few palette
 levels, dither patterns, or pre-rendered frames. Avoid assuming that a
@@ -831,12 +818,12 @@ visible = ((elapsed_ms / half_period_ms) % 2) == 0;
 
 The effect may alternate between:
 
--   visible and invisible;
--   normal and tinted;
--   normal and inverted palette;
--   opaque and dithered.
+- visible and invisible;
+- normal and tinted;
+- normal and inverted palette;
+- opaque and dithered.
 
-Do not implement invisibility by drawing nothing if the previous frame's
+Do not implement invisibility by drawing nothing if the previous frame’s
 sprite pixels remain in a persistent framebuffer. The scene must be
 redrawn or the old sprite area restored, otherwise the sprite may leave
 trails.
@@ -848,11 +835,11 @@ impacts, or magic.
 
 A flash can be implemented as:
 
--   a white or colored alpha overlay;
--   a sprite tint;
--   a palette swap;
--   a brief additive highlight;
--   a full-screen overlay limited to the gameplay viewport.
+- a white or colored alpha overlay;
+- a sprite tint;
+- a palette swap;
+- a brief additive highlight;
+- a full-screen overlay limited to the gameplay viewport.
 
 For a white flash:
 
@@ -886,8 +873,8 @@ For a fade to a target color `F`:
 Out = D * (1 - a) + F * a
 ```
 
--   Fade out to black: `F = black`, with `a` increasing from 0 to 1.
--   Fade in from black: `F = black`, with `a` decreasing from 1 to 0.
+- Fade out to black: `F = black`, with `a` increasing from 0 to 1.
+- Fade in from black: `F = black`, with `a` decreasing from 1 to 0.
 
 Use elapsed time rather than a blocking loop:
 
@@ -925,7 +912,7 @@ source_y = destination_y + offset_y
 ```
 
 This is a sampling/copy operation. It is not enough to set `src_x` and
-`src_y` unless the accelerator's source rectangle, destination
+`src_y` unless the accelerator’s source rectangle, destination
 rectangle, and address semantics are known.
 
 **Recommended architecture:** Apply shake to the camera or world render
@@ -1018,20 +1005,20 @@ rectangle with the viewport in software before issuing the draw.
 
 Common retro transitions include:
 
--   fade to/from black or a palette color;
--   vertical or horizontal curtain/wipe;
--   checkerboard or ordered-dither dissolve;
--   expanding or contracting iris;
--   tile-by-tile reveal;
--   mosaic/pixelation;
--   palette cycling or palette fade.
+- fade to/from black or a palette color;
+- vertical or horizontal curtain/wipe;
+- checkerboard or ordered-dither dissolve;
+- expanding or contracting iris;
+- tile-by-tile reveal;
+- mosaic/pixelation;
+- palette cycling or palette fade.
 
 A transition should have a deterministic progress value from 0 to 1 and
 a clearly defined direction. It should not depend on how many times a
 rendering loop happens to execute.
 
 For a wipe, compare each pixel coordinate with a moving boundary. For an
-iris, compare the pixel's distance from a center point with a changing
+iris, compare the pixel’s distance from a center point with a changing
 radius. For a tile reveal, use a deterministic ordering of tile indices.
 
 ------------------------------------------------------------------------
@@ -1168,15 +1155,15 @@ verified alpha blend, palette effect, or dithered approximation.
 
 ### 8.6 Important corrections
 
--   Do not run a blocking `for` loop to animate the shake or fade. The
-    effect must evolve over successive frames.
--   Do not repeatedly copy a shifted framebuffer onto itself unless
-    overlapping-copy behavior is explicitly supported.
--   Do not use bitwise OR as a substitute for a controllable color tint.
--   Decide whether the flash affects the player only, the gameplay
-    viewport, or the entire screen.
--   Decide whether the HUD should shake or flash; render it in the
-    appropriate pass.
+- Do not run a blocking `for` loop to animate the shake or fade. The
+  effect must evolve over successive frames.
+- Do not repeatedly copy a shifted framebuffer onto itself unless
+  overlapping-copy behavior is explicitly supported.
+- Do not use bitwise OR as a substitute for a controllable color tint.
+- Decide whether the flash affects the player only, the gameplay
+  viewport, or the entire screen.
+- Decide whether the HUD should shake or flash; render it in the
+  appropriate pass.
 
 ------------------------------------------------------------------------
 
@@ -1204,19 +1191,19 @@ drawing commands.
 
 World-space effects follow objects or the camera:
 
--   sprite tint;
--   object shadow;
--   particles;
--   local glow;
--   object-specific flicker.
+- sprite tint;
+- object shadow;
+- particles;
+- local glow;
+- object-specific flicker.
 
 Screen-space effects operate on the viewport or final image:
 
--   screen shake;
--   full-screen fade;
--   global color tint;
--   scanlines;
--   screen transition.
+- screen shake;
+- full-screen fade;
+- global color tint;
+- scanlines;
+- screen transition.
 
 A useful render order is:
 
@@ -1239,15 +1226,15 @@ intentional deviation.
 Before starting an accelerator operation, explicitly set every state
 field that affects the operation:
 
--   source and destination addresses;
--   source and destination coordinates;
--   width, height, and pitch;
--   pixel format;
--   transparency key and enable flag;
--   blend mode and alpha;
--   raster operation;
--   clipping rectangle;
--   completion/interrupt behavior.
+- source and destination addresses;
+- source and destination coordinates;
+- width, height, and pitch;
+- pixel format;
+- transparency key and enable flag;
+- blend mode and alpha;
+- raster operation;
+- clipping rectangle;
+- completion/interrupt behavior.
 
 Do not assume that a previous command left the accelerator in a known
 state. Persistent register state is a common source of intermittent
@@ -1259,14 +1246,14 @@ A hardware accelerator may be synchronous, asynchronous, or queue-based.
 
 If commands are asynchronous:
 
--   do not overwrite source data before the accelerator has finished
-    reading it;
--   do not read destination data before completion;
--   use the documented busy flag, interrupt, fence, or queue
-    synchronization;
--   avoid submitting dependent operations out of order;
--   confirm whether the display scans the buffer while it is being
-    modified.
+- do not overwrite source data before the accelerator has finished
+  reading it;
+- do not read destination data before completion;
+- use the documented busy flag, interrupt, fence, or queue
+  synchronization;
+- avoid submitting dependent operations out of order;
+- confirm whether the display scans the buffer while it is being
+  modified.
 
 Double buffering or a documented page-flip mechanism can prevent
 tearing. Never assume a `START_BIT` write means the operation has
@@ -1278,17 +1265,17 @@ completed.
 
 ### 10.1 Cost model
 
-An effect's cost depends on more than its mathematical complexity.
+An effect’s cost depends on more than its mathematical complexity.
 Consider:
 
--   number of pixels touched;
--   source and destination memory bandwidth;
--   bytes per pixel;
--   cache behavior;
--   overdraw;
--   whether the operation is accelerated;
--   synchronization overhead;
--   whether the effect requires an extra framebuffer pass.
+- number of pixels touched;
+- source and destination memory bandwidth;
+- bytes per pixel;
+- cache behavior;
+- overdraw;
+- whether the operation is accelerated;
+- synchronization overhead;
+- whether the effect requires an extra framebuffer pass.
 
 A full-screen blend every frame can be much more expensive than tinting
 one small sprite.
@@ -1311,7 +1298,7 @@ must remain unchanged.
 ### 10.3 Frame-rate independence
 
 Use elapsed time (`delta_ms` or fixed simulation ticks) for effect
-duration. Avoid defining an effect as "exactly 10 rendered frames"
+duration. Avoid defining an effect as “exactly 10 rendered frames”
 unless a fixed frame rate is guaranteed.
 
 For deterministic gameplay, update effects on a fixed simulation
@@ -1321,13 +1308,13 @@ timestep and render their interpolated state separately.
 
 Validate:
 
--   source and destination bounds;
--   row pitch and pixel size;
--   alignment requirements;
--   buffer ownership;
--   overlap rules;
--   integer overflow in address and size calculations;
--   behavior at negative coordinates and screen edges.
+- source and destination bounds;
+- row pitch and pixel size;
+- alignment requirements;
+- buffer ownership;
+- overlap rules;
+- integer overflow in address and size calculations;
+- behavior at negative coordinates and screen edges.
 
 For a rectangle copy, clip both source and destination consistently. A
 clipped destination may require adjusting the source origin by the same
@@ -1336,15 +1323,15 @@ amount.
 ### 10.5 Retro authenticity
 
 Authenticity is not achieved by applying every effect available in a
-modern renderer. Respect the target system's visual constraints:
+modern renderer. Respect the target system’s visual constraints:
 
--   limited palette;
--   intentional pixel clusters;
--   nearest-neighbor scaling;
--   restrained transparency;
--   deliberate dithering;
--   tile and sprite limits;
--   characteristic scanline or raster behavior, if appropriate.
+- limited palette;
+- intentional pixel clusters;
+- nearest-neighbor scaling;
+- restrained transparency;
+- deliberate dithering;
+- tile and sprite limits;
+- characteristic scanline or raster behavior, if appropriate.
 
 An effect should support readability and game feedback rather than
 obscure the artwork.
@@ -1355,50 +1342,21 @@ obscure the artwork.
 
 Test every effect in isolation before combining effects.
 
-  -----------------------------------------------------------------------
-  Test                                What to verify
-  ----------------------------------- -----------------------------------
-  Color-key sprite                    Intended key pixels disappear;
-                                      legitimate same-colored pixels are
-                                      preserved
-
-  Inversion                           Correct channel or bit-level result
-                                      for the actual pixel format
-
-  Alpha blend                         0% shows destination; 100% shows
-                                      source; intermediate values are
-                                      monotonic
-
-  Additive blend                      No channel overflow or
-                                      cross-channel corruption
-
-  Mask                                Both visible and hidden regions
-                                      behave as documented
-
-  Mosaic                              Blocks have the expected size and
-                                      stable sampling origin
-
-  Fill                                Correct dimensions, color, and
-                                      clipping
-
-  Flicker                             Stable timing at different frame
-                                      rates; no stale sprite trails
-
-  Flash                               Correct scope, intensity, and
-                                      duration
-
-  Fade                                Smooth or intentionally stepped
-                                      progression; no blocking loop
-
-  Screen shake                        No smear, unintended wrap, or
-                                      exposed uninitialized edges
-
-  Clipping                            Correct behavior at all four
-                                      boundaries
-
-  Combined effects                    Correct render order and no
-                                      accidental HUD tint/shake
-  -----------------------------------------------------------------------
+| Test             | What to verify                                                              |
+|:-----------------|:----------------------------------------------------------------------------|
+| Color-key sprite | Intended key pixels disappear; legitimate same-colored pixels are preserved |
+| Inversion        | Correct channel or bit-level result for the actual pixel format             |
+| Alpha blend      | 0% shows destination; 100% shows source; intermediate values are monotonic  |
+| Additive blend   | No channel overflow or cross-channel corruption                             |
+| Mask             | Both visible and hidden regions behave as documented                        |
+| Mosaic           | Blocks have the expected size and stable sampling origin                    |
+| Fill             | Correct dimensions, color, and clipping                                     |
+| Flicker          | Stable timing at different frame rates; no stale sprite trails              |
+| Flash            | Correct scope, intensity, and duration                                      |
+| Fade             | Smooth or intentionally stepped progression; no blocking loop               |
+| Screen shake     | No smear, unintended wrap, or exposed uninitialized edges                   |
+| Clipping         | Correct behavior at all four boundaries                                     |
+| Combined effects | Correct render order and no accidental HUD tint/shake                       |
 
 Also test the smallest and largest supported resolutions, different
 pixel formats if applicable, and boundary coordinates.
@@ -1407,61 +1365,20 @@ pixel formats if applicable, and boundary coordinates.
 
 ## 12. Common Mistakes and Corrections
 
-  -------------------------------------------------------------------------
-  Incorrect assumption or  Why it is wrong          Correct approach
-  implementation                                    
-  ------------------------ ------------------------ -----------------------
-  "Black is always         Black may be a           Define and document an
-  transparent."            legitimate sprite color; explicit key or mask.
-                           transparency is          
-                           format/asset-specific.   
-
-  "Alpha blending is an    Alpha interpolation and  Select the blend mode
-  ADD operation."          additive light           that matches the
-                           accumulation use         desired equation.
-                           different equations.     
-
-  "Mosaic is               AND changes bits; it     Sample or average one
-  `source AND pattern`."   does not group pixels    value per block and
-                           into blocks.             replicate it.
-
-  "OR with white creates a OR sets bits; it does    Blend toward white or
-  controllable flash."     not interpolate          use palette steps.
-                           intensity.               
-
-  "Adding black creates a  Adding zero leaves the   Blend toward black,
-  shadow."                 destination unchanged.   subtract, or use a dark
-                                                    palette/mask.
-
-  "XOR with the            The result depends on    Invert source channels
-  destination inverts a    the old destination and  or use a
-  sprite."                 may not be a source      format-specific
-                           negative.                mask/remap.
-
-  "A loop over alpha       A tight loop may finish  Advance alpha over
-  values creates a fade."  before a display         multiple frames using
-                           refresh.                 elapsed time.
-
-  "Copying a framebuffer   Overlap may overwrite    Use a separate buffer
-  with an offset is always pixels that have not yet or documented
-  safe in place."          been read.               overlap-safe copy.
-
-  "Setting clip            Some engines apply       Verify clipping per
-  coordinates guarantees   clipping only to         command type or clip in
-  all commands clip."      selected operations.     software.
-
-  "A transparent pixel     That destroys the        Skip the destination
-  writes its key color."   background under the     write for transparent
-                           sprite.                  pixels.
-
-  "The accelerator state   Registers may retain     Set all relevant state
-  is already correct."     values from a previous   explicitly before each
-                           command.                 operation.
-
-  "A start command means   Hardware may execute     Wait or synchronize
-  completion."             asynchronously.          using the documented
-                                                    mechanism.
-  -------------------------------------------------------------------------
+| Incorrect assumption or implementation                          | Why it is wrong                                                                | Correct approach                                            |
+|:----------------------------------------------------------------|:-------------------------------------------------------------------------------|:------------------------------------------------------------|
+| “Black is always transparent.”                                  | Black may be a legitimate sprite color; transparency is format/asset-specific. | Define and document an explicit key or mask.                |
+| “Alpha blending is an ADD operation.”                           | Alpha interpolation and additive light accumulation use different equations.   | Select the blend mode that matches the desired equation.    |
+| “Mosaic is `source AND pattern`.”                               | AND changes bits; it does not group pixels into blocks.                        | Sample or average one value per block and replicate it.     |
+| “OR with white creates a controllable flash.”                   | OR sets bits; it does not interpolate intensity.                               | Blend toward white or use palette steps.                    |
+| “Adding black creates a shadow.”                                | Adding zero leaves the destination unchanged.                                  | Blend toward black, subtract, or use a dark palette/mask.   |
+| “XOR with the destination inverts a sprite.”                    | The result depends on the old destination and may not be a source negative.    | Invert source channels or use a format-specific mask/remap. |
+| “A loop over alpha values creates a fade.”                      | A tight loop may finish before a display refresh.                              | Advance alpha over multiple frames using elapsed time.      |
+| “Copying a framebuffer with an offset is always safe in place.” | Overlap may overwrite pixels that have not yet been read.                      | Use a separate buffer or documented overlap-safe copy.      |
+| “Setting clip coordinates guarantees all commands clip.”        | Some engines apply clipping only to selected operations.                       | Verify clipping per command type or clip in software.       |
+| “A transparent pixel writes its key color.”                     | That destroys the background under the sprite.                                 | Skip the destination write for transparent pixels.          |
+| “The accelerator state is already correct.”                     | Registers may retain values from a previous command.                           | Set all relevant state explicitly before each operation.    |
+| “A start command means completion.”                             | Hardware may execute asynchronously.                                           | Wait or synchronize using the documented mechanism.         |
 
 ------------------------------------------------------------------------
 
@@ -1474,53 +1391,52 @@ platform documentation.
 
 ### 13.1 Device and pixel format
 
--   [ ] Supported display resolutions and refresh rates
--   [ ] Supported pixel formats and channel bit layouts
--   [ ] Palette size, palette organization, and palette update timing
--   [ ] Framebuffer base address, pitch, and alignment
--   [ ] Byte order and memory access restrictions
+- [ ] Supported display resolutions and refresh rates
+- [ ] Supported pixel formats and channel bit layouts
+- [ ] Palette size, palette organization, and palette update timing
+- [ ] Framebuffer base address, pitch, and alignment
+- [ ] Byte order and memory access restrictions
 
 ### 13.2 Drawing operations
 
--   [ ] Whether copy, fill, blend, AND, OR, XOR, and NOT are supported
--   [ ] Exact operation/opcode names and numeric values
--   [ ] Whether color-key transparency is supported
--   [ ] Whether transparency applies before or after the raster
-    operation
--   [ ] Whether alpha is per-pixel, per-command, or unavailable
--   [ ] Supported blend equations and alpha range
--   [ ] Whether masks are supported and what bit convention they use
--   [ ] Whether clipping is hardware-managed and which commands honor it
+- [ ] Whether copy, fill, blend, AND, OR, XOR, and NOT are supported
+- [ ] Exact operation/opcode names and numeric values
+- [ ] Whether color-key transparency is supported
+- [ ] Whether transparency applies before or after the raster operation
+- [ ] Whether alpha is per-pixel, per-command, or unavailable
+- [ ] Supported blend equations and alpha range
+- [ ] Whether masks are supported and what bit convention they use
+- [ ] Whether clipping is hardware-managed and which commands honor it
 
 ### 13.3 Geometry and memory
 
--   [ ] Source/destination coordinate semantics
--   [ ] Inclusive or exclusive rectangle endpoints
--   [ ] Width/height limits and alignment requirements
--   [ ] Behavior for negative or out-of-range coordinates
--   [ ] Overlapping source/destination copy behavior
--   [ ] Scaling, flipping, rotation, and scroll support
+- [ ] Source/destination coordinate semantics
+- [ ] Inclusive or exclusive rectangle endpoints
+- [ ] Width/height limits and alignment requirements
+- [ ] Behavior for negative or out-of-range coordinates
+- [ ] Overlapping source/destination copy behavior
+- [ ] Scaling, flipping, rotation, and scroll support
 
 ### 13.4 Execution model
 
--   [ ] Synchronous or asynchronous command execution
--   [ ] Busy/status register or completion interrupt
--   [ ] Command queue capacity and ordering guarantees
--   [ ] Required memory barriers or cache maintenance
--   [ ] Safe buffer-swap/page-flip procedure
--   [ ] Whether display scanout can overlap writes
+- [ ] Synchronous or asynchronous command execution
+- [ ] Busy/status register or completion interrupt
+- [ ] Command queue capacity and ordering guarantees
+- [ ] Required memory barriers or cache maintenance
+- [ ] Safe buffer-swap/page-flip procedure
+- [ ] Whether display scanout can overlap writes
 
 ### 13.5 Code integration
 
--   [ ] Replace all illustrative `OP_*`, `LOGIC_OP_*`, and
-    `BLEND_MODE_*` values with verified definitions.
--   [ ] Replace illustrative `accel` fields with the real SDK interface.
--   [ ] Confirm the actual start/completion protocol; do not assume
-    `START_BIT`.
--   [ ] Confirm that every example's source and destination addresses
-    are valid.
--   [ ] Test every operation with known pixel patterns before using it
-    in gameplay.
+- [ ] Replace all illustrative `OP_*`, `LOGIC_OP_*`, and `BLEND_MODE_*`
+  values with verified definitions.
+- [ ] Replace illustrative `accel` fields with the real SDK interface.
+- [ ] Confirm the actual start/completion protocol; do not assume
+  `START_BIT`.
+- [ ] Confirm that every example’s source and destination addresses are
+  valid.
+- [ ] Test every operation with known pixel patterns before using it in
+  gameplay.
 
 **Until this checklist is completed, the code snippets in this document
 must be treated as conceptual pseudocode, not drop-in Kiss code.**
@@ -1529,53 +1445,22 @@ must be treated as conceptual pseudocode, not drop-in Kiss code.**
 
 ## 14. Glossary
 
-  -----------------------------------------------------------------------
-  Term                                Definition
-  ----------------------------------- -----------------------------------
-  Alpha                               Opacity or coverage value
-                                      associated with a pixel or draw
-                                      operation
-
-  Alpha blending                      Arithmetic combination of source
-                                      and destination colors using alpha
-
-  Bitwise operation                   Operation applied independently to
-                                      the bits of stored values
-
-  Color key                           A designated source color treated
-                                      as transparent
-
-  Compositing                         Combining multiple visual elements
-                                      into one image
-
-  Destination                         Buffer or pixel being modified by a
-                                      rendering operation
-
-  Dithering                           Spatial pattern used to approximate
-                                      unavailable colors or opacity
-                                      levels
-
-  Framebuffer                         Memory containing pixel data for an
-                                      image
-
-  Palette                             Table mapping color indices to
-                                      actual display colors
-
-  Parallax                            Motion of layers at different rates
-                                      to imply depth
-
-  Pitch/stride                        Number of bytes between the starts
-                                      of adjacent framebuffer rows
-
-  Raster operation                    Logical or arithmetic operation
-                                      applied while transferring pixels
-
-  Source                              Image or pixel data read by a
-                                      rendering operation
-
-  Viewport                            Screen region showing a portion of
-                                      the game world
-  -----------------------------------------------------------------------
+| Term              | Definition                                                               |
+|:------------------|:-------------------------------------------------------------------------|
+| Alpha             | Opacity or coverage value associated with a pixel or draw operation      |
+| Alpha blending    | Arithmetic combination of source and destination colors using alpha      |
+| Bitwise operation | Operation applied independently to the bits of stored values             |
+| Color key         | A designated source color treated as transparent                         |
+| Compositing       | Combining multiple visual elements into one image                        |
+| Destination       | Buffer or pixel being modified by a rendering operation                  |
+| Dithering         | Spatial pattern used to approximate unavailable colors or opacity levels |
+| Framebuffer       | Memory containing pixel data for an image                                |
+| Palette           | Table mapping color indices to actual display colors                     |
+| Parallax          | Motion of layers at different rates to imply depth                       |
+| Pitch/stride      | Number of bytes between the starts of adjacent framebuffer rows          |
+| Raster operation  | Logical or arithmetic operation applied while transferring pixels        |
+| Source            | Image or pixel data read by a rendering operation                        |
+| Viewport          | Screen region showing a portion of the game world                        |
 
 ------------------------------------------------------------------------
 
@@ -1703,7 +1588,7 @@ intentionally distinguishes visual behavior from implementation details.
 The most important implementation rule is simple: **choose the
 mathematical operation that matches the visual effect, then map that
 operation to a hardware feature only after verifying the target
-platform's specification.**
+platform’s specification.**
 
 The exact Kiss-specific register map, command values, supported blend
 modes, memory layout, and synchronization protocol remain unverified

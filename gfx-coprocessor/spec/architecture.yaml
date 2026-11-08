@@ -1,0 +1,25 @@
+name: GFX Coprocessor
+host: Z80
+command_input:
+  interface: 8-bit I/O port
+  fifo_capacity_bytes: 256
+microcore:
+  microcode_words: 512
+  microcode_width_bits: 36
+  datapath_width_bits: 24
+  register_count: 32
+  register_width_bits: 24
+  read_ports: 2
+  pipeline_stages: 2
+pixel_memory:
+  bus: Wishbone
+  bus_width_bits: 16
+  source_buffer: SW
+  destination_buffer: DW
+  pixel_formats: [1, 4, 8]
+status:
+  signals: [FIFO_NOT_FULL, CORE_IDLE, CORE_ERROR]
+clock_target_mhz: 108
+notes:
+  - "Clock target is an estimate, not a verified timing result."
+  - "Microcode is initialized from the FPGA configuration image; replacement uses a dedicated host programming port while the core is stopped."
