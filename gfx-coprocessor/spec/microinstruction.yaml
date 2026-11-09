@@ -1,9 +1,12 @@
-name: MICROINSTRUCTION
+kind: bitfield
+name: microinstruction
+title: "MICROINSTRUCTION · 36 BIT"
 width: 36
 fields:
-  - {name: OP, msb: 35, lsb: 31, description: "Операция АЛУ"}
-  - {name: DST, msb: 30, lsb: 25, description: "Адрес приёмника"}
-  - {name: SA, msb: 24, lsb: 19, description: "Адрес операнда A"}
-  - {name: SB, msb: 18, lsb: 13, description: "Адрес операнда B (или IMM)"}
-  - {name: COND, msb: 12, lsb: 9, description: "Условие перехода"}
-  - {name: X, msb: 8, lsb: 0, description: "Константа или адрес перехода"}
+  - {name: REG_OP,  msb: 35, lsb: 31, description: "Операция передачи данных"}
+  - {name: ALU_OP,  msb: 30, lsb: 26, description: "Арифметическая или логическая операция"}
+  - {name: CTRL_OP, msb: 25, lsb: 23, description: "Управление последовательностью"}
+  - {name: REG_ADDR, msb: 22, lsb: 17, description: "Адрес регистра Rn"}
+  - {name: MASK, msb: 16, lsb: 14, description: "Условие перехода"}
+  - {name: COND, msb: 13, lsb: 12, description: "Условие перехода"}
+  - {name: IMM, msb: 11, lsb: 0, description: "12-битная непосредственная константа"}

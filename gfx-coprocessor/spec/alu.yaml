@@ -1,18 +1,22 @@
-name: ALU operations
-width: 24
-operations:
-  - {code: 0,  name: MOV,  description: "A"}
-  - {code: 1,  name: ADD,  description: "24-bit addition; updates Z and N"}
-  - {code: 2,  name: SUB,  description: "24-bit subtraction; updates Z and N"}
-  - {code: 3,  name: AND,  description: "Bitwise AND"}
-  - {code: 4,  name: OR,   description: "Bitwise OR"}
-  - {code: 5,  name: XOR,  description: "Bitwise XOR"}
-  - {code: 6,  name: SHL,  description: "Shift left by B[4:0]"}
-  - {code: 7,  name: SHR,  description: "Logical shift right by B[4:0]"}
-  - {code: 8,  name: SAR,  description: "Arithmetic shift right by B[4:0]"}
-  - {code: 9,  name: MIN,  description: "Signed minimum"}
-  - {code: 10, name: MAX,  description: "Signed maximum"}
-  - {code: 11, name: MUL,  description: "A[11:0] × B[11:0] → P"}
-  - {code: 12, name: ADDS, description: "Saturating addition"}
-  - {code: 13, name: SUBS, description: "Saturating subtraction"}
-  - {code: 14, name: COMB, description: "Pixel combine controlled by MODE"}
+kind: table
+name: alu
+title: "Операции АЛУ"
+columns:
+  - {key: code, label: "Код"}
+  - {key: name, label: "Имя", bold: true}
+  - {key: description, label: "Действие"}
+rows:
+  - {code: 0,  name: "ADD",  description: "DST = SRC1 + SRC2; обновляет FLAGS (Z, N)"}
+  - {code: 1,  name: "SUB",  description: "DST = SRC1 − SRC2; обновляет FLAGS (Z, N)"}
+  - {code: 2,  name: "AND",  description: "DST = SRC1 & SRC2"}
+  - {code: 3,  name: "OR",   description: "DST = SRC1 | SRC2"}
+  - {code: 4,  name: "XOR",  description: "DST = SRC1 ^ SRC2"}
+  - {code: 5,  name: "SHL",  description: "DST = SRC1 << SRC2[4:0]"}
+  - {code: 6,  name: "SHR",  description: "DST = SRC1 >> SRC2[4:0] (логический)"}
+  - {code: 7,  name: "SAR",  description: "DST = SRC1 >> SRC2[4:0] (арифметический)"}
+  - {code: 8,  name: "MIN",  description: "DST = min(SRC1, SRC2) со знаком"}
+  - {code: 9,  name: "MAX",  description: "DST = max(SRC1, SRC2) со знаком"}
+  - {code: 10, name: "MUL",  description: "DST = SRC1[11:0] × SRC2[11:0]; задержка определяется FPGA"}
+  - {code: 11, name: "ADDS", description: "DST = saturate(SRC1 + SRC2)"}
+  - {code: 12, name: "SUBS", description: "DST = saturate(SRC1 − SRC2)"}
+  - {code: 13, name: "COMB", description: "DST = combine(SRC1, SRC2) по регистру MODE"}

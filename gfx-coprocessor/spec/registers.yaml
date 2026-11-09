@@ -1,38 +1,55 @@
-name: GFX coprocessor register file
-width: 24
-count: 32
-read_ports: 2
-write_ports: 1
-registers:
-  - {index: 0,  name: DX,      group: destination, description: "Destination X coordinate"}
-  - {index: 1,  name: DY,      group: destination, description: "Destination Y coordinate"}
-  - {index: 2,  name: W,       group: destination, description: "Rectangle width"}
-  - {index: 3,  name: H,       group: destination, description: "Rectangle height"}
-  - {index: 4,  name: SX,      group: source,      description: "Source X coordinate"}
-  - {index: 5,  name: SY,      group: source,      description: "Source Y coordinate"}
-  - {index: 6,  name: DSTRIDE, group: memory,      description: "Destination row stride"}
-  - {index: 7,  name: SSTRIDE, group: memory,      description: "Source row stride"}
-  - {index: 8,  name: DBASE,   group: memory,      description: "Destination base address"}
-  - {index: 9,  name: SBASE,   group: memory,      description: "Source base address"}
-  - {index: 10, name: FG,      group: pixel,       description: "Foreground colour"}
-  - {index: 11, name: BG,      group: pixel,       description: "Background colour"}
-  - {index: 12, name: MODE,    group: pixel,       description: "Pixel formats and combine operation"}
-  - {index: 13, name: CX0,     group: clipping,    description: "Clip window left"}
-  - {index: 14, name: CY0,     group: clipping,    description: "Clip window top"}
-  - {index: 15, name: CX1,     group: clipping,    description: "Clip window right"}
-  - {index: 16, name: CY1,     group: clipping,    description: "Clip window bottom"}
-  - {index: 17, name: STA,     group: affine,      description: "Affine horizontal U increment"}
-  - {index: 18, name: STB,     group: affine,      description: "Affine horizontal V increment"}
-  - {index: 19, name: STC,     group: affine,      description: "Affine vertical U increment"}
-  - {index: 20, name: STD,     group: affine,      description: "Affine vertical V increment"}
-  - {index: 21, name: T0,      group: temporary,   description: "Temporary 0; commonly destination linear index"}
-  - {index: 22, name: T1,      group: temporary,   description: "Temporary 1; commonly inner-loop counter"}
-  - {index: 23, name: T2,      group: temporary,   description: "Temporary 2; commonly outer-loop counter"}
-  - {index: 24, name: T3,      group: temporary,   description: "Temporary 3; commonly clipped X start"}
-  - {index: 25, name: T4,      group: temporary,   description: "Temporary 4; commonly clipped width or X end"}
-  - {index: 26, name: T5,      group: temporary,   description: "Temporary 5; commonly current Y"}
-  - {index: 27, name: T6,      group: temporary,   description: "Temporary 6; commonly source linear index"}
-  - {index: 28, name: T7,      group: temporary,   description: "General temporary register"}
-  - {index: 29, name: T8,      group: temporary,   description: "General temporary register"}
-  - {index: 30, name: T9,      group: temporary,   description: "General temporary register"}
-  - {index: 31, name: T10,     group: temporary,   description: "General temporary register"}
+kind: table
+name: registers
+title: "Регистровый файл · R0–R31"
+autoindex: "R{}"
+autoindex_label: "Регистр"
+columns:
+  - {key: name, label: "Имя", bold: true}
+  - {key: description, label: "Назначение"}
+  - {key: group, label: "Группа"}
+rows:
+  # Приёмник
+  - {name: DX,      description: "Destination X coordinate", group: destination}
+  - {name: DY,      description: "Destination Y coordinate", group: destination}
+  - {name: DW,      description: "Destination width", group: destination}
+  - {name: DH,      description: "Destination height", group: destination}
+
+  # Источник
+  - {name: SX,      description: "Source X coordinate", group: source}
+  - {name: SY,      description: "Source Y coordinate", group: source}
+  - {name: SW,      description: "Source width", group: source}
+  - {name: SH,      description: "Source height", group: source}
+
+  # Память
+  - {name: DSTRIDE, description: "Destination row stride (screen width)", group: memory}
+  - {name: SSTRIDE, description: "Source row stride (screen width)", group: memory}
+  - {name: DBASE,   description: "Destination base address", group: memory}
+  - {name: SBASE,   description: "Source base address", group: memory}
+
+  # Пиксели
+  - {name: FG,      description: "Foreground colour", group: pixel}
+  - {name: BG,      description: "Background colour", group: pixel}
+  - {name: MODE,    description: "Pixel formats and combine operation", group: pixel}
+
+  # Клиппинг
+  - {name: CX0,     description: "Clip window left", group: clipping}
+  - {name: CY0,     description: "Clip window top", group: clipping}
+  - {name: CX1,     description: "Clip window right", group: clipping}
+  - {name: CY1,     description: "Clip window bottom", group: clipping}
+
+  # Приращения для аффинного режима
+  - {name: SDX,     description: "Source delta X (12.12)", group: increment}
+  - {name: SDY,     description: "Source delta Y (12.12)", group: increment}
+  - {name: DDX,     description: "Destination delta X (12.12)", group: increment}
+  - {name: DDY,     description: "Destination delta Y (12.12)", group: increment}
+
+  # Временные
+  - {name: T0,      description: "Временный регистр", group: temporary}
+  - {name: T1,      description: "Временный регистр", group: temporary}
+  - {name: T2,      description: "Временный регистр", group: temporary}
+  - {name: T3,      description: "Временный регистр", group: temporary}
+  - {name: T4,      description: "Временный регистр", group: temporary}
+  - {name: T5,      description: "Временный регистр", group: temporary}
+  - {name: T6,      description: "Временный регистр", group: temporary}
+  - {name: T7,      description: "Временный регистр", group: temporary}
+  - {name: T8,      description: "Временный регистр", group: temporary}

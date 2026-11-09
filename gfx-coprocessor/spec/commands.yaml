@@ -1,18 +1,17 @@
-name: FIFO command opcodes
-dispatch:
-  - {range: "0x00-0x1F", name: "SET16", description: "Write FIFO16S into R0-R31"}
-  - {range: "0x20-0x3F", name: "SET8",  description: "Write FIFO8 into R0-R31"}
-commands:
-  - {opcode: "0x40", name: "NOP",     description: "No operation"}
-  - {opcode: "0x41", name: "FILL",    description: "Fill rectangle"}
-  - {opcode: "0x42", name: "COPY",    description: "Copy pixels"}
-  - {opcode: "0x43", name: "STENCIL", description: "Stencil operation"}
-  - {opcode: "0x44", name: "LINE",    description: "Draw line"}
-  - {opcode: "0x45", name: "AFFINE",  description: "Affine transform"}
-  - {opcode: "0x46", name: "PAL",     description: "Write palette entry"}
-  - {opcode: "0x47", name: "LOAD",    description: "Load bytes into video memory"}
-  - {opcode: "0x48", name: "IRQ",     description: "Request interrupt after prior work"}
-  - {opcode: "0x49", name: "GET",     description: "Copy register to host-readable latch"}
+kind: table
+name: commands
+title: "Входной протокол: команды от Z80"
 notes:
-  - "SET16/SET8 opcodes encode the destination register in the low five bits."
-  - "Per-command payload layouts and lengths must be specified before RTL implementation."
+  - "SET и EXECUTE — команды входного протокола. Их обрабатывает микрокоманда NEXT."
+  - "FILL, COPY, LINE, AFFINE — это ID микропрограмм. Команда EXECUTE ID запускает микропрограмму с этим ID."
+  - "Входной протокол не превращается в 36-битные микрокоманды. FSM собирает полную команду (SET — 3 байта, EXECUTE — 2 байта) и выдаёт её NEXT."
+  - "Пока выполняется микропрограмма (FILL, COPY, ...), FSM продолжает принимать байты в FIFO, но NEXT не исполняет их до возврата в MAIN."
+columns:
+  - {key: opcode, label: "Опкод"}
+  - {key: name, label: "Имя", bold: true}
+  - {key: length, label: "Длина (байт)"}
+  - {key: payload, label: "Payload"}
+  - {key: description, label: "Описание"}
+rows:
+  - {opcode: "0x00–0x1F", name: "SET Rn",   length: 3, payload: "16-бит значение", description: "Записать значение в регистр Rn"}
+  - {opcode: "0x40",      name: "EXECUTE",  length: 2, payload: "8-бит ID микропрограммы", description: "Запустить микропрограмму"}

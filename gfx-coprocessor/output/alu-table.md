@@ -1,17 +1,18 @@
+### Операции АЛУ
+
 | Код | Имя | Действие |
 | --- | --- | --- |
-| 0 | **MOV** | A |
-| 1 | **ADD** | 24-bit addition; updates Z and N |
-| 2 | **SUB** | 24-bit subtraction; updates Z and N |
-| 3 | **AND** | Bitwise AND |
-| 4 | **OR** | Bitwise OR |
-| 5 | **XOR** | Bitwise XOR |
-| 6 | **SHL** | Shift left by B[4:0] |
-| 7 | **SHR** | Logical shift right by B[4:0] |
-| 8 | **SAR** | Arithmetic shift right by B[4:0] |
-| 9 | **MIN** | Signed minimum |
-| 10 | **MAX** | Signed maximum |
-| 11 | **MUL** | A[11:0] × B[11:0] → P |
-| 12 | **ADDS** | Saturating addition |
-| 13 | **SUBS** | Saturating subtraction |
-| 14 | **COMB** | Pixel combine controlled by MODE |
+| 0 | **ADD** | DST = SRC1 + SRC2; обновляет FLAGS (Z, N) |
+| 1 | **SUB** | DST = SRC1 − SRC2; обновляет FLAGS (Z, N) |
+| 2 | **AND** | DST = SRC1 & SRC2 |
+| 3 | **OR** | DST = SRC1 | SRC2 |
+| 4 | **XOR** | DST = SRC1 ^ SRC2 |
+| 5 | **SHL** | DST = SRC1 << SRC2[4:0] |
+| 6 | **SHR** | DST = SRC1 >> SRC2[4:0] (логический) |
+| 7 | **SAR** | DST = SRC1 >> SRC2[4:0] (арифметический) |
+| 8 | **MIN** | DST = min(SRC1, SRC2) со знаком |
+| 9 | **MAX** | DST = max(SRC1, SRC2) со знаком |
+| 10 | **MUL** | DST = SRC1[11:0] × SRC2[11:0]; задержка определяется FPGA |
+| 11 | **ADDS** | DST = saturate(SRC1 + SRC2) |
+| 12 | **SUBS** | DST = saturate(SRC1 − SRC2) |
+| 13 | **COMB** | DST = combine(SRC1, SRC2) по регистру MODE |

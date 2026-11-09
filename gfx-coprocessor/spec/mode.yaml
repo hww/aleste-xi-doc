@@ -1,8 +1,10 @@
-name: MODE REGISTER
+kind: bitfield
+name: mode_register
+title: "MODE REGISTER · 24 BIT"
 width: 24
 fields:
-  - {name: DFMT, msb: 0, lsb: 0, description: "Формат приёмника (0=4bpp, 1=8bpp)"}
-  - {name: SFMT, msb: 2, lsb: 1, description: "Формат источника (0=4bpp, 1=8bpp, 2=1bpp)"}
-  - {name: COP, msb: 5, lsb: 3, description: "Операция комбайнера"}
-  - {name: TR, msb: 6, lsb: 6, description: "Прозрачность (1=вкл)"}
+  - {name: DFMT,     msb: 0,  lsb: 0, description: "Формат приёмника (0 = 4 bpp, 1 = 8 bpp)"}
+  - {name: SFMT,     msb: 2,  lsb: 1, description: "Формат источника (0 = 4 bpp, 1 = 8 bpp, 2 = 1 bpp)"}
+  - {name: COP,      msb: 5,  lsb: 3, description: "Операция комбайнера (0 копия, 1 AND, 2 OR, 3 XOR, 4 ADD с насыщением, 5 SUB с насыщением)"}
+  - {name: TR,       msb: 6,  lsb: 6, description: "Прозрачность (1 = источник 0 сохраняет приёмник)"}
   - {name: RESERVED, msb: 23, lsb: 7, description: "Зарезервировано"}

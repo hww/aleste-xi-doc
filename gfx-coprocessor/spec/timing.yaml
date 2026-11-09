@@ -1,3 +1,6 @@
+kind: timing
+name: timing
+title: "Конвейер: Fetch → Stall → Pixel"
 title: "Конвейер: Fetch → Stall → Pixel"
 subtitle: "Ожидание данных из FIFO замораживает конвейер"
 width: 800

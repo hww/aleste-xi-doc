@@ -43,5 +43,3 @@ For the video engine to fetch the right bytes:
 | 01 | 2 (sync1 + sync2) | ~13.5 MB/s |
 | 10 | continuous during DE | ~54 MB/s |
 | 11 | continuous during DE | ~108 MB/s |
-
----

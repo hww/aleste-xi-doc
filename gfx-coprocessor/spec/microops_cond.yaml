@@ -1,0 +1,17 @@
+kind: table
+name: microops_cond
+title: "CONDITION · 3 BIT"
+autoindex: "{}"
+autoindex_label: "Код"
+columns:
+  - {key: name, label: "Условие", bold: true}
+  - {key: description, label: "Описание"}
+rows:
+  - {name: ALWAYS, description: "Безусловное выполнение перехода"}
+  - {name: Z,      description: "Переход, если Zero = 1"}
+  - {name: NZ,     description: "Переход, если Zero = 0"}
+  - {name: C,      description: "Переход, если Carry = 1"}
+  - {name: NC,     description: "Переход, если Carry = 0"}
+  - {name: N,      description: "Переход, если Negative = 1"}
+  - {name: NN,     description: "Переход, если Negative = 0"}
+  - {name: NEVER,  description: "Переход никогда не выполняется"}

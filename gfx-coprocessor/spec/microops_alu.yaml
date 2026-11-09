@@ -1,0 +1,9 @@
+kind: table
+name: microops_alu
+title: "ALU · Арифметические и логические операции"
+columns:
+  - {key: op, label: "Микрокоманда"}
+  - {key: description, label: "Действие"}
+  - {key: cycles, label: "Тактов"}
+rows:
+  - {op: "ALU <op>", description: "DST ← op(SRC1, SRC2); обновляет FLAGS", cycles: "1 (MUL — зависит от FPGA)"}

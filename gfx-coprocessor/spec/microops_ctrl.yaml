@@ -1,0 +1,14 @@
+kind: table
+name: microops_ctrl
+title: "CTRL · Управление последовательностью"
+columns:
+  - {key: op, label: "Микрокоманда"}
+  - {key: description, label: "Действие"}
+  - {key: cycles, label: "Тактов"}
+rows:
+  - {op: "NOP", description: "Увеличить PC+1", cycles: "1"}
+  - {op: "JMP X", description: "Безусловный переход", cycles: "1"}
+  - {op: "CALL X", description: "Вызов подпрограммы", cycles: "1"}
+  - {op: "RET", description: "Возврат из подпрограммы", cycles: "1"}
+  - {op: "HALT", description: "Остановка исполнения", cycles: "1"}
+  - {op: "NEXT", description: "Обработать следующую команду FIFO или ждать", cycles: "1"}

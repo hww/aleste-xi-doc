@@ -2,4 +2,7 @@
     "cSpell.words": [
         "прочитыватьстатус"
     ]
+    ,
+    "files.autoReload": "afterDelay",
+    "files.autoReloadDelay": 1000
 }
