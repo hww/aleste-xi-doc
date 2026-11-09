@@ -1,10 +1,9 @@
-name: Microinstruction
+name: MICROINSTRUCTION
 width: 36
-depth: 512
 fields:
-  - {name: OP,   msb: 35, lsb: 31, description: "ALU operation"}
-  - {name: DST,  msb: 30, lsb: 25, description: "Destination operand address"}
-  - {name: SA,   msb: 24, lsb: 19, description: "Operand A address"}
-  - {name: SB,   msb: 18, lsb: 13, description: "Operand B address; address 45 (IMM) selects the immediate in X"}
-  - {name: COND, msb: 12, lsb: 9,  description: "Sequencer condition"}
-  - {name: X,    msb: 8,  lsb: 0,  description: "Immediate constant (when SB=IMM) or branch address"}
+  - {name: OP, msb: 35, lsb: 31, description: "Операция АЛУ"}
+  - {name: DST, msb: 30, lsb: 25, description: "Адрес приёмника"}
+  - {name: SA, msb: 24, lsb: 19, description: "Адрес операнда A"}
+  - {name: SB, msb: 18, lsb: 13, description: "Адрес операнда B (или IMM)"}
+  - {name: COND, msb: 12, lsb: 9, description: "Условие перехода"}
+  - {name: X, msb: 8, lsb: 0, description: "Константа или адрес перехода"}

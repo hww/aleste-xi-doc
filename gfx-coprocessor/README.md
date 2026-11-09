@@ -1,68 +1,123 @@
 # GFX Coprocessor — Visual Specification
 
-Structured YAML definitions + Python generators for the microcore architecture
-documentation. Generates clean, editable SVG diagrams from data, not from prose.
+Документация архитектуры графического сопроцессора для Z80. Проект использует
+подход **Single Source of Truth**: все данные (регистры, опкоды, битовые поля)
+хранятся в YAML, а скрипты генерируют из них диаграммы и Markdown-таблицы.
 
-## Quick start
+## Структура проекта
 
-```bash
-python -m pip install -r requirements.txt
-python generators/generate_all.py
+```
+gfx-coprocessor/
+├── spec/          # Источник правды (YAML-данные)
+│   ├── registers.yaml
+│   ├── alu.yaml
+│   ├── operand_map.yaml
+│   ├── microinstruction.yaml
+│   └── mode.yaml
+├── src/           # Шаблоны текста (Markdown с макросами)
+│   ├── microcore.md
+│   └── overview.md
+├── output/        # Сгенерированные файлы (SVG, таблицы)
+│   ├── microinstruction.svg
+│   ├── mode_register.svg
+│   ├── registers-table.md
+│   ├── alu-table.md
+│   └── operand-table.md
+├── doc/           # Финальная сборка документов
+│   └── microcore.md
+├── generators/    # Python-скрипты
+│   ├── common.py
+│   ├── bitfields.py
+│   ├── md_tables.py
+│   ├── preprocessor.py
+│   └── generate_all.py
+└── requirements.txt
 ```
 
-Output appears in `output/`:
-
-| File | Content |
-| --- | --- |
-| `register_map.svg` | R0–R31 register file map |
-| `microinstruction.svg` | 36-bit microinstruction layout |
-| `mode_register.svg` | 24-bit MODE register |
-| `operand_map.svg` | Microcode operand address map (0–46) |
-| `alu_map.svg` | ALU opcode table |
-
-## Individual generators
+## Быстрый старт
 
 ```bash
-python generators/register_map.py
-python generators/bitfields.py microinstruction
-python generators/bitfields.py mode
-python generators/operand_map.py
-python generators/alu_map.py
-```
+cd ~/projects/hww/aleste-xi-doc/gfx-coprocessor
 
-## Design rules
-
-- YAML in `spec/` is the source of truth. Never edit generated SVG by hand.
-- Generators validate their input: contiguous register indices, non-overlapping
-  bit fields, full bit coverage, unique opcodes.
-- Fixed geometry, not auto-layout. Predictable output every run.
-- SVG only. No raster.
-
-## Engineering assumptions to verify against RTL
-
-1. `registers.yaml`: T0–T6 descriptions are inferred from the microcode examples
-   in the architecture doc. T7–T10 are generic. Verify against actual microcode.
-2. `mode.yaml`: bits 7–23 are marked reserved. Confirm whether MODE is really
-   24 writable bits or a narrower hardware register.
-3. `microinstruction.yaml`: `SB = 45` (IMM) selects the 9-bit immediate carried
-   in the `X` field. Confirm this encoding.
-4. `commands.yaml`: only opcode dispatch is recorded. Per-command payload
-   layouts and lengths are not yet specified.
-5. `architecture.yaml`: 256-byte FIFO is a concrete choice from the stated
-   64–256 byte range.
-
-## Next additions
-
-- WaveDrom timing diagram (fetch / stall / pixel).
-- Manual `architecture.drawio` after bus directions are finalized.
-- Per-command payload schemas in `commands.yaml`.
-
-## Usage
-
-```bash
-cd ~/gfx-coprocessor
+# Создание виртуального окружения (рекомендуется)
 python3 -m venv .venv
 source .venv/bin/activate
+
+# Установка зависимостей
 python -m pip install -r requirements.txt
+
+# Полная сборка проекта
 python generators/generate_all.py
 ```
+
+Результаты появятся в папках `output/` (картинки и таблицы) и `doc/` (готовые
+документы со вставленными таблицами и ссылками).
+
+## Как писать исходные документы
+
+Ты пишешь текст в `src/*.md`. В нужных местах используешь макросы для вставки
+сгенерированного контента:
+
+```markdown
+## 3. Операнды
+
+[include](operand-table.md)
+
+## 5. Микрослово
+
+![Формат микрослова](../output/microinstruction.svg)
+```
+
+Препроцессор (`preprocessor.py`) находит макросы `[include](filename.md)`,
+сначала ищет файл в `output/`, потом в `src/`, и подставляет его содержимое.
+Итоговый документ сохраняется в `doc/`.
+
+## Что генерируется
+
+| Генератор | Что делает | Куда пишет |
+| --- | --- | --- |
+| `bitfields.py microinstruction` | SVG микрослова (36 бит) | `output/microinstruction.svg` |
+| `bitfields.py mode` | SVG регистра MODE (24 бита) | `output/mode_register.svg` |
+| `md_tables.py` | Markdown-таблицы из YAML | `output/*.md` |
+| `preprocessor.py` | Сборка шаблонов | `doc/*.md` |
+
+## Правила дизайна
+
+- **YAML в `spec/`** — единственный источник правды. Никогда не редактируй
+  сгенерированные файлы в `output/` или `doc/` вручную.
+- **Строгий Ч/Б стиль.** Никаких цветных палитр. Это снимает проблемы контраста
+  и фокусирует внимание на структуре.
+- **Крупные шрифты.** Минимум 14px для основного текста, 12px для номеров битов.
+- **Текст ищется и копируется.** Таблицы остаются таблицами (Markdown), SVG
+  используется только для визуализации битовых полей.
+- **Валидация.** Генераторы проверяют целостность данных: нет перекрывающихся
+  битов, все биты описаны, коды опкодов уникальны и непрерывны.
+
+## Архитектурная схема
+
+Блок-схема системы (Z80 → FIFO → микроядро → память) **не генерируется**.
+Она рисуется вручную в draw.io (файл `architecture.drawio` в корне проекта) и
+экспортируется в `output/architecture.svg`. Это правильный инженерный подход:
+код генерирует то, что можно описать данными (битовые поля, таблицы), а сложные
+схемы связей рисуются руками.
+
+## Проверка допущений
+
+Перед реализацией RTL стоит проверить следующие допущения:
+
+1. `registers.yaml`: описания T0–T6 выведены из примеров микрокода в документе
+   обзора. T7–T10 оставлены обобщёнными. Сверить с реальным микрокодом.
+2. `mode.yaml`: биты 7–23 помечены как зарезервированные. Подтвердить, что MODE
+   действительно 24-битный, а не более узкий регистр.
+3. `microinstruction.yaml`: `SB = 45` (IMM) выбирает 9-битную константу из поля
+   `X`. Подтвердить эту кодировку.
+4. `commands.yaml`: записан только диспетчер опкодов. Раскладка payload'ов и
+   длины команд пока не специфицированы.
+5. `architecture.yaml`: 256-байтовый FIFO — конкретный выбор из диапазона
+   64–256 байт.
+
+## Что добавить дальше
+
+- WaveDrom для временных диаграмм (fetch / stall / pixel).
+- Схемы алгоритмов (FILL, COPY) через `algorithms.py`.
+- Спецификацию payload'ов команд в `commands.yaml`.

@@ -1,0 +1,10 @@
+title: "Конвейер: Fetch → Stall → Pixel"
+subtitle: "Ожидание данных из FIFO замораживает конвейер"
+width: 800
+signals:
+  - {name: "CLK", type: "clock"}
+  - {name: "PC", states: ["0x10", "0x11", "0x11", "0x11", "0x11", "0x12", "0x13"]}
+  - {name: "FETCH", states: ["F0", "F1", "hold", "hold", "hold", "F2", "F3"]}
+  - {name: "FIFO_EMPTY", states: ["0", "1", "1", "1", "0", "0", "0"]}
+  - {name: "STALL", states: ["0", "0", "1", "1", "1", "0", "0"]}
+  - {name: "EXECUTE", states: ["E0", "E1", "hold", "hold", "hold", "E2", "E3"]}

@@ -2,51 +2,45 @@ algorithms:
   fill:
     title: "FILL: Rectangle Fill"
     nodes:
-      - {id: start,  type: start,    text: "START FILL", x: 400, y: 60}
-      - {id: init,   type: process,  text: "T2 = H, T5 = DY", x: 400, y: 140}
-      - {id: clip,   type: process,  text: "T3 = MAX(DX, CX0)\nT4 = MIN(DX+W, CX1)", x: 400, y: 240}
-      - {id: check1, type: decision, text: "T4 = T4 - T3\nT4 < 0 ?", x: 400, y: 340}
-      
-      - {id: row,    type: process,  text: "T0 = T5 * DSTRIDE + T3\nT1 = T4", x: 400, y: 460}
-      - {id: pix,    type: process,  text: "DIDX = T0\nDPIX = COMB(FG, DPIX)\nT0++, T1--", x: 400, y: 560}
-      - {id: check2, type: decision, text: "T1 != 0 ?", x: 400, y: 680}
-      
-      - {id: next,   type: process,  text: "T5++, T2--", x: 400, y: 800}
-      - {id: check3, type: decision, text: "T2 != 0 ?", x: 400, y: 900}
-      
-      - {id: done,   type: process,  text: "FLUSH\nJMP MAIN", x: 400, y: 1000}
-      - {id: end,    type: end,      text: "END FILL", x: 400, y: 1080}
+      - {id: start,  type: start,    text: "START FILL"}
+      - {id: init,   type: process,  text: "T2 = H\\nT5 = DY"}
+      - {id: clip,   type: process,  text: "T3 = MAX(DX, CX0)\\nT4 = MIN(DX+W, CX1)"}
+      - {id: check1, type: decision, text: "T4 = T4 - T3\\nT4 < 0 ?"}
+      - {id: row,    type: process,  text: "T0 = T5 * DSTRIDE + T3\\nT1 = T4"}
+      - {id: pix,    type: process,  text: "DIDX = T0\\nDPIX = COMB(FG, DPIX)\\nT0++, T1--"}
+      - {id: check2, type: decision, text: "T1 != 0 ?"}
+      - {id: next,   type: process,  text: "T5++\\nT2--"}
+      - {id: check3, type: decision, text: "T2 != 0 ?"}
+      - {id: done,   type: process,  text: "FLUSH\\nJMP MAIN"}
+      - {id: end,    type: end,      text: "END FILL"}
     edges:
       - {from: start,  to: init}
       - {from: init,   to: clip}
       - {from: clip,   to: check1}
       - {from: check1, to: row,    label: "no"}
-      - {from: check1, to: done,   label: "yes (W<=0)", side: "right"}
-      
+      - {from: check1, to: done,   label: "yes (W<=0)"}
       - {from: row,    to: pix}
       - {from: pix,    to: check2}
-      - {from: check2, to: pix,    label: "yes", side: "left"}
+      - {from: check2, to: pix,    label: "yes"}
       - {from: check2, to: next,   label: "no"}
-      
       - {from: next,   to: check3}
-      - {from: check3, to: row,    label: "yes", side: "left"}
+      - {from: check3, to: row,    label: "yes"}
       - {from: check3, to: done,   label: "no"}
-      
       - {from: done,   to: end}
 
   copy:
     title: "COPY: Transparent Copy"
     nodes:
-      - {id: start,  type: start,    text: "START COPY", x: 400, y: 60}
-      - {id: pix,    type: process,  text: "SIDX = T6, DIDX = T0\nDPIX = COMB(SPIX, DPIX)", x: 400, y: 160}
-      - {id: inc,    type: process,  text: "T6++, T0++, T1--", x: 400, y: 280}
-      - {id: check,  type: decision, text: "T1 != 0 ?", x: 400, y: 380}
-      - {id: done,   type: process,  text: "FLUSH, JMP MAIN", x: 400, y: 500}
-      - {id: end,    type: end,      text: "END COPY", x: 400, y: 580}
+      - {id: start,  type: start,    text: "START COPY"}
+      - {id: pix,    type: process,  text: "SIDX = T6, DIDX = T0\\nDPIX = COMB(SPIX, DPIX)"}
+      - {id: inc,    type: process,  text: "T6++, T0++, T1--"}
+      - {id: check,  type: decision, text: "T1 != 0 ?"}
+      - {id: done,   type: process,  text: "FLUSH, JMP MAIN"}
+      - {id: end,    type: end,      text: "END COPY"}
     edges:
       - {from: start, to: pix}
       - {from: pix,   to: inc}
       - {from: inc,   to: check}
-      - {from: check, to: pix,   label: "yes", side: "left"}
+      - {from: check, to: pix,   label: "yes"}
       - {from: check, to: done,  label: "no"}
       - {from: done,  to: end}

@@ -1,8 +1,8 @@
-name: MODE
+name: MODE REGISTER
 width: 24
 fields:
-  - {name: DFMT,     msb: 0,  lsb: 0, description: "Destination format; 0 = 4 bpp, 1 = 8 bpp"}
-  - {name: SFMT,     msb: 2,  lsb: 1, description: "Source format; 0 = 4 bpp, 1 = 8 bpp, 2 = 1 bpp"}
-  - {name: COP,      msb: 5,  lsb: 3, description: "Combine op; 0 copy, 1 AND, 2 OR, 3 XOR, 4 ADD sat, 5 SUB sat"}
-  - {name: TR,       msb: 6,  lsb: 6, description: "Transparency; if set and source pixel is zero, keep destination"}
-  - {name: RESERVED, msb: 23, lsb: 7, description: "Reserved; software should write zero"}
+  - {name: DFMT, msb: 0, lsb: 0, description: "Формат приёмника (0=4bpp, 1=8bpp)"}
+  - {name: SFMT, msb: 2, lsb: 1, description: "Формат источника (0=4bpp, 1=8bpp, 2=1bpp)"}
+  - {name: COP, msb: 5, lsb: 3, description: "Операция комбайнера"}
+  - {name: TR, msb: 6, lsb: 6, description: "Прозрачность (1=вкл)"}
+  - {name: RESERVED, msb: 23, lsb: 7, description: "Зарезервировано"}
