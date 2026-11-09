@@ -8,19 +8,7 @@ Everything is reached through a single byte-wide Wishbone bus. Legacy (CPC) I/O 
 
 ## Top-level composition (from `aleste_video.sv`, `video_ctrl.sv`)
 
-```
-                       ┌────────────────────────────────────────────────────┐
-   CPU / UART  ──WB──► │ wb_arbiter  ──► color_palette                      │
-                       │      │      ──► mc6845mod   ─┐                     │
-                       │      │      ──► memory_arbiter ──► SDRAM           │
-                       │      ▼                                             │
-                       │ video_buffer ──► pixel_pipeline ──► palette        │
-                       │                                      │             │
-                       │                             hdmi_scaler            │
-                       │                                      │             │
-                       │                                   llhdmi ──► TMDS  |
-                       └────────────────────────────────────────────────────┘
-```
+![LX Video System Architecture](./images/lx-video-architecture.webp)
 
 ## Major blocks (software-relevant summary)
 

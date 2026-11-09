@@ -1,4 +1,4 @@
-# 04 - Video Buffer Module
+# 04 — Video Buffer Module
 
 ## Overview
 Double-buffered video memory interface that converts 16-bit memory reads into a continuous byte stream for the pixel pipeline. Handles memory bandwidth optimization and timing synchronization between memory and video domains.

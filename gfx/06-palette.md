@@ -1,4 +1,4 @@
-# 05 - Video Palette Module
+# 05 — Video Palette Module
 
 ## Overview
 Advanced color palette controller with full CPC legacy compatibility and extended modern color modes. Implements a unified palette architecture with hardware-accelerated color manipulation.

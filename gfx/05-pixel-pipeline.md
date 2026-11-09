@@ -1,4 +1,4 @@
-# 05 - Video Mode Controller
+# 05 — Video Mode Controller
 
 ## Overview
 Separate Wishbone slave device that controls video pixel formats and modes. Provides extended video modes while maintaining full CPC legacy compatibility. Controls the pixel pipeline unit for format conversion.
