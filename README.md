@@ -30,7 +30,7 @@ The documentation is organised into the following chapters.
 
 ### 01. History
 
-[The Aleste Story](./doc/01-history.md)
+[The Aleste Story](./src/main/docs/01-history.md)
 
 Describes the historical development of the Aleste architecture, from the original Aleste 520EX through XiAleste to the Aleste LX design.
 
@@ -38,7 +38,7 @@ Explains the background, motivations, and architectural decisions that influence
 
 ### 02. Terminology
 
-[LX Terminology](./doc/02-terminology.md)
+[LX Terminology](./src/main/docs/02-terminology.md)
 
 Defines the terminology, concepts, and naming conventions used throughout the documentation.
 
@@ -46,7 +46,7 @@ Provides a common vocabulary for understanding the architecture and its componen
 
 ### 03. Architecture Overview
 
-[LX — Architecture Overview](./doc/03-overview.md)
+[LX — Architecture Overview](./src/main/docs/03-overview.md)
 
 Introduces the overall Aleste LX architecture and its fundamental design principles.
 
@@ -56,7 +56,7 @@ This is the recommended starting point for understanding the platform.
 
 ### 04. Legacy Architecture
 
-[LX Legacy: CPC 6128 and Aleste 520EX](./doc/04-legacy.md)
+[LX Legacy: CPC 6128 and Aleste 520EX](./src/main/docs/04-legacy.md)
 
 Describes the legacy architecture and compatibility mechanisms inherited from earlier Aleste and CPC systems.
 
@@ -64,13 +64,13 @@ Explains how the original programming environment and hardware capabilities rela
 
 ### 05. Input/Output Architecture
 
-[LX I/O: Native and Legacy I/O Map](./doc/05-io.md)
+[LX I/O: Native and Legacy I/O Map](./src/main/docs/05-io.md)
 
 Describes the I/O architecture and the mechanisms used to access hardware resources and peripheral devices.
 
 ### 06. RTL Reference
 
-[LX RTL Reference](./doc/06-rtl-reference.md)
+[LX RTL Reference](./src/main/docs/06-rtl-reference.md)
 
 Provides a reference to the hardware description and RTL-level architectural elements.
 
@@ -78,13 +78,13 @@ Documents the relevant hardware structures and their organisation.
 
 ### 07. Memory Management Unit
 
-[LX MMU: Native and Legacy Memory Management](./doc/07-mmu.md)
+[LX MMU: Native and Legacy Memory Management](./src/main/docs/07-mmu.md)
 
 Describes the Memory Management Unit (MMU), including address translation, memory mapping, and the organisation of the extended memory space.
 
 ### 08. MMU API
 
-[LX MMU API](./doc/08-mmu-api.md)
+[LX MMU API](./src/main/docs/08-mmu-api.md)
 
 Describes the software interface for memory management.
 
@@ -92,31 +92,31 @@ Defines the mechanisms available to system software for configuring and accessin
 
 ### 09. System Calls
 
-[LX Mode Switching Mechanisms](./doc/09-syscall.md)
+[LX Mode Switching Mechanisms](./src/main/docs/09-syscall.md)
 
 Describes the system call architecture and the interface through which applications request operating system and BIOS services.
 
 ### 10. System Call Details
 
-[Aleste LX: Interrupts, Syscalls, Drivers, and Takeover Mode](./doc/10-syscall-details.md)
+[Aleste LX: Interrupts, Syscalls, Drivers, and Takeover Mode](./src/main/docs/10-syscall-details.md)
 
 Provides a detailed reference for individual system calls, including their parameters, operation, and expected results.
 
 ### 11. Inter-Process Communication
 
-[LX IPC Mailbox — Legacy RTL Reference](./doc/11-ipc.md)
+[LX IPC Mailbox — Legacy RTL Reference](./src/main/docs/11-ipc.md)
 
 Describes the Inter-Process Communication (IPC) mechanisms used for communication between software components and independent execution contexts.
 
 ### 12. Programmable Interrupt Controller
 
-[LX PIC Controller](./doc/12-pic.md)
+[LX PIC Controller](./src/main/docs/12-pic.md)
 
 Describes the interrupt controller architecture and the mechanisms used to manage hardware interrupts.
 
 ### 13. Direct Memory Access
 
-[LX DMA / Blitter](./doc/13-dma.md)
+[LX DMA / Blitter](./src/main/docs/13-dma.md)
 
 Describes the DMA architecture and hardware-assisted data transfers.
 
@@ -124,13 +124,13 @@ Explains how data can be moved between system resources without requiring the pr
 
 ### 14. Expansion Bus
 
-[LX Modular Expansion Bus (AMEB)](./doc/14-exp-bus.md)
+[LX Modular Expansion Bus (AMEB)](./src/main/docs/14-exp-bus.md)
 
 Describes the expansion bus architecture and the mechanisms for connecting external hardware devices to the platform.
 
 ### 15. BIOS Specification
 
-[LX BIOS: Driver Architecture Specification](./doc/15-bios-spec.md)
+[LX BIOS: Driver Architecture Specification](./src/main/docs/15-bios-spec.md)
 
 Defines the BIOS architecture and its software-facing interfaces.
 
@@ -138,7 +138,7 @@ Describes the driver model, method dispatch, and the contracts between applicati
 
 ### 16. BIOS Examples
 
-[LX Minimal Supervisor BIOS — example](./doc/16-bios-example.md)
+[LX Minimal Supervisor BIOS — example](./src/main/docs/16-bios-example.md)
 
 Provides practical examples illustrating the BIOS interfaces and their use by software components.
 
@@ -146,7 +146,46 @@ Provides practical examples illustrating the BIOS interfaces and their use by so
 
 [Aleste LX Video Subsystem — Programmer's Documentation](./gfx/README.md)
 
-[Aleste LX Video Subsystem — Programmer's Documentation](./gfx-coprocessor/README.md)
+[Aleste LX GPU — Programmer's Documentation](./gpu/README.md)
+
+## Documentation Build System
+
+The documentation is not edited directly in the final Markdown files. It is generated from a set of source files using a custom Python build script (`build.py`). This approach allows for automatic diagram generation, dynamic table insertion, and consistent cross-referencing.
+
+### Directory Structure
+
+The repository is structured to separate source files, generated content, and the final output:
+
+```text
+├── build.py              # The main build script
+├── src/                  # Source files
+│   ├── <project>/        # e.g., gfx, gpu, main
+│   │   ├── docs/         # Markdown templates
+│   │   │   ├── images/   # Hand-drawn images (e.g., .webp, .png)
+│   │   │   └── gen/      # Generated content (e.g., .svg, -table.md)
+│   │   └── spec/         # YAML specifications for diagrams and tables
+└── out/                  # Final compiled documents and assets
+```
+
+### How It Works
+
+1. **YAML Specifications (`spec/*.yaml`)**:
+   Diagrams (bitfields, timing, register maps) and data tables are defined in YAML format. This ensures a single source of truth for hardware specifications.
+
+2. **Generation (`docs/gen/`)**:
+   The build script reads the YAML files and generates:
+   - SVG vector graphics (`*.svg`).
+   - Markdown tables (`*-table.md`).
+   These files are placed in `docs/gen/`, allowing VS Code to display them directly in the editor.
+
+3. **Templating (`docs/*.md`)**:
+   Source Markdown files contain special include tags, such as:
+   - `![](gen/alu.svg)` — inserts a generated image.
+   - `[include](gen/registers-table.md)` — injects a generated table directly into the text.
+   - `![](images/foo.webp)` — inserts a manually created image.
+
+4. **Assembly (`out/`)**:
+   The build script processes the templates, resolves the `[include]` tags, and writes the final, self-contained Markdown files to `out/`. It also copies all required images into `out/<project>/images/`, ensuring the final directory is ready for publishing.
 
 ## Reading Order
 
