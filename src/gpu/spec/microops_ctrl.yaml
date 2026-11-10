@@ -6,9 +6,16 @@ columns:
   - {key: description, label: "Действие"}
   - {key: cycles, label: "Тактов"}
 rows:
-  - {op: "NOP", description: "Увеличить PC+1", cycles: "1"}
-  - {op: "JMP X", description: "Безусловный переход", cycles: "1"}
-  - {op: "CALL X", description: "Вызов подпрограммы", cycles: "1"}
-  - {op: "RET", description: "Возврат из подпрограммы", cycles: "1"}
-  - {op: "HALT", description: "Остановка исполнения", cycles: "1"}
-  - {op: "NEXT", description: "Обработать следующую команду FIFO или ждать", cycles: "1"}
+  - {op: "NOP",      description: "Ничего не делать", cycles: "1"}
+  - {op: "JMP X",    description: "Безусловный переход", cycles: "1"}
+  - {op: "CALL X",   description: "Вызов подпрограммы", cycles: "1"}
+  - {op: "RET",      description: "Возврат", cycles: "1"}
+  - {op: "LOOP X",   description: "Если счётчик цикла не ноль: уменьшить и перейти", cycles: "1"}
+  - {op: "JMPA",     description: "Переход на адрес из ACC[8:0]", cycles: "1"}
+  - {op: "HALT",     description: "Остановиться до START, BUSY → IDLE", cycles: "1"}
+  - {op: "LDI",      description: "OPR = IMM со знаком", cycles: "1"}
+  - {op: "LDH",      description: "OPR = IMM × 4096, дробная часть ноль", cycles: "1"}
+  - {op: "LDL",      description: "OPR[11:0] = IMM, старшие 12 бит не трогает", cycles: "1"}
+  - {op: "IRQ n",    description: "Флаг прерывания и 12-битный код n в STATUS", cycles: "1"}
+  - {op: "FAULT",    description: "Остановиться с ошибкой, статус ERROR", cycles: "1"}
+  - {op: "(свободно 4)", description: "Резерв, в т.ч. возможное место FLUSH", cycles: "—"}

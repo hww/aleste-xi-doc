@@ -7,19 +7,13 @@ columns:
   - {key: read, label: "Чтение"}
   - {key: write, label: "Запись"}
 rows:
-  - {address: "0–31", name: "R0–R31",   read: "Регистровый файл, 24 бита",       write: "То же"}
-  - {address: "32",   name: "ZERO",     read: "0",                              write: "Игнорируется"}
-  - {address: "33",   name: "ACC",      read: "Результат предыдущей операции", write: "—"}
-  - {address: "34",   name: "P",        read: "Результат умножителя",          write: "—"}
-  - {address: "35",   name: "FIFO8",    read: "Взять байт (ждёт, если пуст)",   write: "—"}
-  - {address: "36",   name: "FIFO16",   read: "2 байта, младший первым",        write: "—"}
-  - {address: "37",   name: "FIFO16S",  read: "2 байта, со знаком",             write: "—"}
-  - {address: "38",   name: "SPIX",     read: "Пиксель источника (SW)",         write: "—"}
-  - {address: "39",   name: "DPIX",     read: "Пиксель приёмника (DW)",         write: "Запись в DW, dirty"}
-  - {address: "40",   name: "SIDX",     read: "—",                             write: "Индекс источника"}
-  - {address: "41",   name: "DIDX",     read: "—",                             write: "Индекс приёмника"}
-  - {address: "42",   name: "FLUSH",    read: "—",                             write: "Запись DW в память"}
-  - {address: "43",   name: "PALI",     read: "—",                             write: "Индекс палитры"}
-  - {address: "44",   name: "PALD",     read: "—",                             write: "Цвет палитры"}
-  - {address: "45",   name: "IMM",      read: "9-бит константа из X",          write: "—"}
-  - {address: "46",   name: "STAT",     read: "Флаги",                         write: "Запрос прерывания"}
+  - {address: "0–31", name: "R0–R31",  read: "Регистровый файл, 24 бита", write: "То же"}
+  - {address: "32",   name: "ZERO",    read: "0",                        write: "Игнорируется"}
+  - {address: "33",   name: "ACC",     read: "Результат предыдущей операции", write: "—"}
+  - {address: "34",   name: "SPIX",    read: "Пиксель источника (SW)",  write: "—"}
+  - {address: "35",   name: "DPIX",    read: "Пиксель приёмника (DW)",  write: "Запись в DW, dirty"}
+  - {address: "36",   name: "SIDX",    read: "—",                       write: "Индекс источника"}
+  - {address: "37",   name: "DIDX",    read: "—",                       write: "Индекс приёмника"}
+  - {address: "38",   name: "DPTR",    read: "—",                       write: "Индекс потока данных"}
+  - {address: "39",   name: "FLAG",    read: "Z, N, C",                 write: "—"}
+  - {address: "40",   name: "CNT",     read: "Счётчик цикла",           write: "Загрузка (LDCNT)"}

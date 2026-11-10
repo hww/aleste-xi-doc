@@ -1,12 +1,12 @@
 kind: table
 name: microops_mask
-title: "CONDITION MASK · 3 BIT"
+title: "MASK · 3 BIT"
 autoindex: "{}"
 autoindex_label: "Код"
 columns:
-  - {key: name, label: "Маска условий", bold: true}
-  - {key: description, label: "Описание"}
+  - {key: name, label: "Маска", bold: true}
+  - {key: description, label: "Что блокирует при выполнении условия"}
 rows:
-  - {name: REG,    description: "Условное исполнение регистровой операции"}
-  - {name: ALU,    description: "Условное исполнение операции ALU"}
-  - {name: CTRL,   description: "Условное исполнение операции ветвления"}
+  - {name: REG,    description: "Блокировать REG_OP"}
+  - {name: ALU,    description: "Блокировать ALU_OP"}
+  - {name: CTRL,   description: "Блокировать CTRL_OP"}

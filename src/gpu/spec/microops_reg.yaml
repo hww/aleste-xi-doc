@@ -1,25 +1,22 @@
 kind: table
 name: microops_reg
-title: "Микрокоманды"
+title: "REG_OP · Передача данных"
 columns:
   - {key: op, label: "Микрокоманда"}
-  - {key: slot, label: "Слот"}
   - {key: description, label: "Действие"}
   - {key: cycles, label: "Тактов"}
 rows:
-  - {op: "LD SRC1, Rn",   slot: "reg",  description: "SRC1 ← R[n]",                                              cycles: "1"}
-  - {op: "LD SRC1, DST",  slot: "reg",  description: "SRC1 ← DST (результат предыдущей АЛУ-операции)",            cycles: "1"}
-  - {op: "LDL SRC1, IMM12",  slot: "reg",  description: "SRC1 ← X (константа из микрослова)",                        cycles: "1"}
-  - {op: "LDH SRC1, IMM12",  slot: "reg",  description: "SRC1 ← X (константа из микрослова)",                        cycles: "1"}
-  - {op: "LD SRC2, Rn",   slot: "reg",  description: "SRC2 ← R[n]",                                              cycles: "1"}
-  - {op: "LD SRC2, DST12",  slot: "reg",  description: "SRC2 ← DST",                                               cycles: "1"}
-  - {op: "LDL SRC2, IMM12",  slot: "reg",  description: "SRC2 ← X",                                                 cycles: "1"}
-  - {op: "LDH SRC2, IMM12",  slot: "reg",  description: "SRC2 ← X",                                                 cycles: "1"}
-  - {op: "ST Rn, DST",    slot: "reg",  description: "R[n] ← DST",                                               cycles: "1"}
-  - {op: "SIDX Rn",       slot: "io",   description: "Задать индекс источника",                                  cycles: "1"}
-  - {op: "DIDX Rn",       slot: "io",   description: "Задать индекс приёмника",                                  cycles: "1"}
-  - {op: "READ SRCk, IDXk",     slot: "io",   description: "Читать пиксель источника в SRCk",                          cycles: "зависит"}
-  - {op: "READ SRCk, IDXk",     slot: "io",   description: "Записать пиксель приёмника из SRCk",                       cycles: "1"}
-  - {op: "WRITE IDXk, DST",     slot: "io",   description: "Читать пиксель источника в SRCk",                          cycles: "зависит"}
-  - {op: "WRITE IDXk, DST",     slot: "io",   description: "Записать пиксель приёмника из SRCk",                       cycles: "1"}
-  - {op: "SYNC",         slot: "io",   description: "Сброс DW в память",                                        cycles: "зависит"}
+  - {op: "NOP",     description: "—", cycles: "1"}
+  - {op: "PASS",    description: "ACC = OPR", cycles: "1"}
+  - {op: "LDR",     description: "OPR = R[n]", cycles: "1"}
+  - {op: "STR",     description: "R[n] = ACC", cycles: "1"}
+  - {op: "LDD",     description: "OPR = слово из канала DATA (16 бит, без знака), DPTR++", cycles: "1"}
+  - {op: "LDDS",    description: "То же, со знаком", cycles: "1"}
+  - {op: "LDSP",    description: "OPR = SPIX, SIDX++", cycles: "1"}
+  - {op: "LDDP",    description: "OPR = DPIX", cycles: "1"}
+  - {op: "STDP",    description: "DPIX = ACC, DIDX++", cycles: "1"}
+  - {op: "SETS",    description: "SIDX = ACC", cycles: "1"}
+  - {op: "SETD",    description: "DIDX = ACC", cycles: "1"}
+  - {op: "SETP",    description: "DPTR = ACC", cycles: "1"}
+  - {op: "LDCNT",   description: "Счётчик цикла = ACC", cycles: "1"}
+  - {op: "FLUSH?",  description: "Согласовать память (место — TBD на симуляторе)", cycles: "зависит"}

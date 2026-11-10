@@ -157,9 +157,15 @@ def process_file(filepath, gen_dir, src_dir, seen=None):
 
     def replacer(match):
         rel = match.group(1)
+        
+        # Очищаем путь от "./" в начале
+        if rel.startswith("./"):
+            rel = rel[2:]
+            
         p = gen_dir / rel
         if not p.exists():
             p = src_dir / rel
+            
         if not p.exists():
             print(f"    ⚠️  not found: {rel} (in {filepath.name})")
             return f"*[Missing: {rel}]*"

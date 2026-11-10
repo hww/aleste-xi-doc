@@ -3,10 +3,10 @@ name: microinstruction
 title: "MICROINSTRUCTION · 36 BIT"
 width: 36
 fields:
-  - {name: REG_OP,  msb: 35, lsb: 31, description: "Операция передачи данных"}
-  - {name: ALU_OP,  msb: 30, lsb: 26, description: "Арифметическая или логическая операция"}
-  - {name: CTRL_OP, msb: 25, lsb: 23, description: "Управление последовательностью"}
-  - {name: REG_ADDR, msb: 22, lsb: 17, description: "Адрес регистра Rn"}
-  - {name: MASK, msb: 16, lsb: 14, description: "Условие перехода"}
-  - {name: COND, msb: 13, lsb: 12, description: "Условие перехода"}
-  - {name: IMM, msb: 11, lsb: 0, description: "12-битная непосредственная константа"}
+  - {name: REG_OP,  msb: 35, lsb: 32, description: "Операция передачи данных"}
+  - {name: ALU_OP,  msb: 31, lsb: 27, description: "Арифметическая или логическая операция"}
+  - {name: CTRL_OP, msb: 26, lsb: 23, description: "Управление последовательностью"}
+  - {name: REG_ADDR, msb: 22, lsb: 18, description: "Адрес регистра Rn (5 бит)"}
+  - {name: MASK, msb: 17, lsb: 15, description: "Что блокировать при выполнении условия"}
+  - {name: COND, msb: 14, lsb: 12, description: "Условие (Z, NZ, N, NN, C, NC + 2)"}
+  - {name: IMM, msb: 11, lsb: 0, description: "12-битная константа или адрес перехода"}

@@ -1,9 +1,24 @@
 kind: table
 name: microops_alu
-title: "ALU · Арифметические и логические операции"
+title: "ALU · ACC = ACC op OPR"
 columns:
   - {key: op, label: "Микрокоманда"}
   - {key: description, label: "Действие"}
   - {key: cycles, label: "Тактов"}
 rows:
-  - {op: "ALU <op>", description: "DST ← op(SRC1, SRC2); обновляет FLAGS", cycles: "1 (MUL — зависит от FPGA)"}
+  - {op: "NOP",  description: "ACC не меняется", cycles: "1"}
+  - {op: "PASS", description: "ACC = OPR", cycles: "1"}
+  - {op: "ADD",  description: "ACC = ACC + OPR; Z, N, C", cycles: "1"}
+  - {op: "SUB",  description: "ACC = ACC − OPR; Z, N, C", cycles: "1"}
+  - {op: "AND",  description: "ACC = ACC & OPR", cycles: "1"}
+  - {op: "OR",   description: "ACC = ACC | OPR", cycles: "1"}
+  - {op: "XOR",  description: "ACC = ACC ^ OPR", cycles: "1"}
+  - {op: "SHL",  description: "ACC = ACC << OPR[4:0]", cycles: "1"}
+  - {op: "SHR",  description: "ACC = ACC >> OPR[4:0] (логический)", cycles: "1"}
+  - {op: "SAR",  description: "ACC = ACC >> OPR[4:0] (арифметический)", cycles: "1"}
+  - {op: "MIN",  description: "ACC = min(ACC, OPR) со знаком", cycles: "1"}
+  - {op: "MAX",  description: "ACC = max(ACC, OPR) со знаком", cycles: "1"}
+  - {op: "MUL",  description: "ACC = ACC[11:0] × OPR[11:0]", cycles: "2"}
+  - {op: "ADDS", description: "ACC = saturate(ACC + OPR)", cycles: "1"}
+  - {op: "SUBS", description: "ACC = saturate(ACC − OPR)", cycles: "1"}
+  - {op: "COMB", description: "ACC = combine(OPR, ACC) по MODE", cycles: "1"}
