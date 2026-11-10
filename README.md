@@ -142,6 +142,12 @@ Describes the driver model, method dispatch, and the contracts between applicati
 
 Provides practical examples illustrating the BIOS interfaces and their use by software components.
 
+### Appendixes 
+
+[Aleste LX Video Subsystem — Programmer's Documentation](./gfx/README.md)
+
+[Aleste LX Video Subsystem — Programmer's Documentation](./gfx-coprocessor/README.md)
+
 ## Reading Order
 
 For readers approaching the architecture for the first time, the recommended reading order is:

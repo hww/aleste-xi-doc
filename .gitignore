@@ -7,3 +7,15 @@
 *.bcf
 *.aux
 *.bbl
+
+# Generated
+gen/
+out/
+images/*/
+!images/*/.gitkeep
+
+# Python
+.venv/
+__pycache__
+__pycache__/
+

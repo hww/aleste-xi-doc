@@ -16,7 +16,7 @@ The original machine evolved beyond a straightforward CPC clone.
 
 Inspired by the music of the demoscene and Scream Tracker, we developed **Magic Sound**, an expansion sound card capable of using DMA (Direct Memory Access) to transfer audio data directly from system memory.
 
-![Magic Sound](../images/msound-green-wo-spot-preview.jpg)
+![Magic Sound](./images/msound-green-wo-spot-preview.jpg)
 
 The musical side of the project continued with **Magic Sound**, an affordable sound expansion designed to bring Amiga-class module playback to Aleste. It could play MOD and STM music files, delivering a music experience comparable to that of the Amiga 500.
 
@@ -26,7 +26,7 @@ Supporting this new hardware required architectural changes. We expanded the mem
 
 This was the origin of the **EX** designation and the Aleste 520 EX architecture. The number **520** referred to its 520 KB of memory.
 
-![Magic Sound](../images/aleste_520ex_512px.jpg)
+![Magic Sound](./images/aleste_520ex_512px.jpg)
 
 Alongside the development of the original Aleste architecture, we also explored compatibility with other popular computer platforms. The Aleste 520 EX could run MSX-DOS and even execute some MSX games through software emulation, using its own processor to simulate the MSX environment.
 
@@ -38,7 +38,7 @@ Aleste was never just about reproducing an existing computer. Even in its earlie
 
 The original Aleste was, inevitably, a product of its time. Its architecture was shaped by the limitations of available components, manufacturing costs, and the practical realities of building complex digital hardware without programmable logic devices such as modern FPGAs.
 
-![Aleste Family Tree](../images/AlesteFamilyTree.webp)
+![Aleste Family Tree](./images/AlesteFamilyTree.webp)
 
 Almost every design decision involved a compromise: how many chips would it take, how much would they cost, and could we achieve the desired functionality with the resources available?
 
@@ -52,7 +52,7 @@ This became **Aleste Xi**.
 
 The name Xi (Ξ, ξ) comes from the Greek alphabet. We chose it simply because it is a beautiful, distinctive, and memorable letter. It is not an abbreviation. It is the name of the computer.
 
-![Xi Aleste Preview](../images/xi-aleste-pcb-preview.jpg)
+![Xi Aleste Preview](./images/xi-aleste-pcb-preview.jpg)
 
 Xi represented an uncompromising approach to the Aleste architecture: expanded capabilities, greater flexibility, and the freedom to implement ideas that would have been impractical or prohibitively complex in the original design.
 
@@ -91,7 +91,7 @@ Outside the FPGA: only what is necessary.**
 
 Aleste LX is therefore more than a cost-reduced version of Xi. It is a new hardware architecture and a different way of thinking about how a retrocomputer should be built.
 
-![LX 8 Bits Per Pixel](../images/lx_aleste_64k8b.jpg)
+![LX 8 Bits Per Pixel](./images/lx_aleste_64k8b.jpg)
 *Image: Aleste LX 8 Bits per Pixel Mode*
 
 ## The Names and Their Meaning

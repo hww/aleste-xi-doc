@@ -1,0 +1,35 @@
+# projects.yaml
+projects:
+  - name: gfx
+    root: gfx
+    spec: spec          # относительно root
+    src: src
+    output: output
+    doc: doc
+    images: images
+  - name: gfx-coprocessor
+    root: gfx-coprocessor
+    spec: spec
+    src: src
+    output: output
+    doc: doc
+    images: images
+    extra_scripts:
+      - check.py
+  - name: doc
+    root: doc
+    # без spec/output — только сборка src -> doc (если понадобится)
+    src: .
+    doc: .
+  - name: sm
+    root: sm
+    src: .
+    doc: .
+  - name: lx
+    root: lx
+    src: .
+    doc: .
+  - name: archive
+    root: archive
+    src: .
+    doc: .

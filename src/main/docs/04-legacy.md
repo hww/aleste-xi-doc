@@ -49,7 +49,7 @@ What was **outside** the CPC case — third‑party expansions, cartridges,
 external peripherals, Amstrad‑branded "standard" add‑ons — is **not**
 part of the LX compatibility target. LX may ignore it.
 
-![Amstrad CPC](../images/i-love-amstrad.png)
+![Amstrad CPC](./images/i-love-amstrad.png)
 
 **Aleste 520EX** is an *extended* platform (1990s, discrete components).
 It is **not canon**. It contains many cost‑cutting compromises of the
@@ -352,7 +352,7 @@ Gate Array does. Address bits 9 and 8 select the page. To avoid writing
 to the Aleste Gate Array, data bits 7 and 6 must be `1`. The remaining
 bits define the RAM block/configuration.
 
-![CPC Legacy Memory Management](../images/cpc-legacy-memory-management.webp)
+![CPC Legacy Memory Management](./images/cpc-legacy-memory-management.webp)
 
 **Unknowns:**
 

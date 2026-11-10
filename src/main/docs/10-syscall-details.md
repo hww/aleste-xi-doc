@@ -5,7 +5,7 @@ rationale**
 
 |         |                                                                                              |
 |:--------|:---------------------------------------------------------------------------------------------|
-| Date    | 2026-11-07                                                                                   |
+| Date    | 2026-11-07 (rev. 2026-11-10: syscall reverted to `OUT (F2h)`; `RST 6` and `RETN` rejected)   |
 | Basis   | Discussion of the IPC/syscall/asynchrony article; `aleste-lx_spec_rev2.md` specification     |
 | Purpose | Record the decisions, explain how the system works, and document why these choices were made |
 
@@ -40,25 +40,27 @@ on a real implementation.
 |   1 | Every interrupt causes a hardware transition to Supervisor and activates `SUPER_SLOT`.                                                                                                             | ACCEPTED       |
 |   2 | Interrupt service routines (ISRs) reside alongside the kernel, in W0 of the Supervisor map.                                                                                                        | ACCEPTED       |
 |   3 | No hardware IPC mailbox is required.                                                                                                                                                               | ACCEPTED       |
-|   4 | There is exactly one syscall mechanism: the `RST 6` instruction (`0030h`). It can be disabled with the `rst6_hook` bit.                                                                            | ACCEPTED       |
-|   5 | There is no `OUT (F2h),A` alias. `F2h` has been removed because it introduces a more complicated protocol with different behaviour.                                                                | ACCEPTED       |
+|   4 | The syscall mechanism is `OUT (F2h)` in Native mode and `OUT (F2xxh)` in Legacy mode. `RST 6` is **rejected** (see decision 23).                                                                   | ACCEPTED (restored) |
+|   5 | The `OUT (F2h)` alias is **retained**. The earlier removal of `F2h` in favour of `RST 6` is reverted.                                                                                              | ACCEPTED (restored) |
 |   6 | Supervisor memory layout: W0 contains the kernel and ISRs; W1 and W2 provide 32 KB of working memory; W3 contains the driver entry table and driver environment.                                   | ACCEPTED       |
 |   7 | W0 is permanent and is not virtualized. It always maps the same physical system bank in Supervisor.                                                                                                | ACCEPTED       |
 |   8 | W3 is the virtualized Supervisor window. It can contain driver entry tables, driver implementations, driver data, and specialized privileged or high-performance code.                             | ACCEPTED       |
 |   9 | The Supervisor driver table contains direct jumps (`JP`) to driver methods.                                                                                                                        | ACCEPTED       |
-|  10 | The same table in User contains fixed stubs with no logic: `LD A,n / RST 6 / RET`. A User-side driver implementation in W3 is unnecessary.                                                         | ACCEPTED       |
+|  10 | The same table in User contains fixed stubs with no logic: `LD A,n / OUT (F2h),A / RET`. A User-side driver implementation in W3 is unnecessary.                                                   | ACCEPTED       |
 |  11 | The stubs exist for one reason: to allow the same application binary to enter Supervisor takeover mode without recompilation.                                                                      | ACCEPTED       |
 |  12 | In takeover mode, the application uses W1/W2, drivers are called directly through W3, and the kernel remains in W0.                                                                                | ACCEPTED       |
 |  13 | The application may request W3 environment changes, but only the kernel performs the actual bank switch, and only at a safe point.                                                                 | ACCEPTED       |
 |  14 | Syscalls are not inherently “heavy processes”; they are the cost of safety and convenience.                                                                                                        | ACCEPTED       |
-|  15 | Leaving Supervisor is tied to `RETN`, not to “the next M1”.                                                                                                                                        | RECOMMENDATION |
+|  15 | Leaving Supervisor is synchronized with the next M1 cycle after the `GLOBAL_CTRL` write; ordinary `RET` is the final instruction. `RETN`/`RETI` are **not** used (see decision 24).              | ACCEPTED (revised) |
 |  16 | Use IM1 and read the interrupt source from the PIC, rather than IM2.                                                                                                                               | RECOMMENDATION |
 |  17 | Deferred ISR work is communicated through an event mask in kernel RAM.                                                                                                                             | RECOMMENDATION |
 |  18 | Asynchronous completion is communicated through a request control block (RCB) in a shared memory region.                                                                                           | RECOMMENDATION |
 |  19 | Hardware should expose read-only status indicating entry from User and the interrupt-enable state captured at the trap. The exact semantics of the latter must follow the Z80 interrupt mechanism. | RECOMMENDATION |
 |  20 | Use one numbering scheme for syscall functions and driver-table entries.                                                                                                                           | RECOMMENDATION |
-|  21 | `rst6_hook` is a separate bit from `supervisor_hook`.                                                                                                                                              | RECOMMENDATION |
-|  22 | If `RST 6` is disabled (`rst6_hook = 0`), syscalls are unavailable. This is an intentional restriction for an isolated Legacy environment.                                                         | ACCEPTED       |
+|  21 | `mmio_userlock` (bit 4 of `GLOBAL_CTRL`) blocks the MMU port range in User mode; `F2` remains reachable through the separate syscall path. The old `rst6_hook` bit is not part of the retained design. | ACCEPTED (revised) |
+|  22 | Syscalls are available via `F2h`; `mmio_userlock` controls User access to the MMU port range, with `F2` reachable through the separate `is_syscall_access` path.                                  | ACCEPTED (restored) |
+|  23 | `RST n` is **rejected** as a syscall mechanism: it solves entry but not exit; the only exit is `GLOBAL_CTRL` + next-M1; MSX-style immediates after the `RST` live in User memory and must be fetched across a mode switch. | ACCEPTED |
+|  24 | `RETN`/`RETI` are **rejected** for exit; ordinary `RET` is used. The exit is synchronized with the next M1 cycle, and `RET` reads the return address from the stack in the User map.              | ACCEPTED |
 
 ------------------------------------------------------------------------
 
@@ -69,15 +71,15 @@ The decisions are based on several properties of the platform.
 1.  **The Z80 has no privilege levels.** Supervisor mode is implemented
     by Aleste LX hardware, not by the CPU. Entry into the kernel must
     therefore be initiated by hardware, using a trap on an instruction
-    fetch from a designated address.
+    fetch from a designated address, or by a write to a designated port.
 
 2.  **INT is accepted only between instructions.** A single instruction
     is atomic with respect to an ISR. This is the basis for simple
     coordination between an ISR and the kernel.
 
 3.  **`DI` masks only INT.** `RST n` and NMI are not affected by `DI`.
-    `RST 6` is suitable for syscalls precisely because it is
-    unconditional.
+    The syscall mechanism must work regardless of `DI`; `OUT (F2h)`
+    satisfies this.
 
 4.  **The MSX2-style mapper uses 16 KB windows** and has no access
     attributes such as read-only or no-execute. Protection is therefore
@@ -117,12 +119,12 @@ sound buffers.
 
 ### 3.1 Why this layout
 
-- **W0 — kernel and ISRs.** The vectors `0030h` (`RST 6`), `0038h`
-  (INT), and `0066h` (NMI) are located here. The kernel, interrupt
-  handlers, system stack, syscall dispatcher, and mutable kernel state
-  also reside here. W0 is always the same physical bank in Supervisor.
-  There is no situation in which an interrupt arrives while the kernel
-  code is absent.
+- **W0 — kernel and ISRs.** The vectors `0030h`, `0038h` (INT), and
+  `0066h` (NMI) are located here. The kernel, interrupt handlers, system
+  stack, syscall dispatcher, and mutable kernel state also reside here.
+  W0 is always the same physical bank in Supervisor. There is no
+  situation in which an interrupt arrives while the kernel code is
+  absent.
 
 - **W1 and W2 — working windows.** These two windows provide 32 KB for
   data and code that needs to be simultaneously accessible: graphics,
@@ -139,9 +141,9 @@ sound buffers.
 - **W3 in User — stubs only.** The User version does not need driver
   implementations. Safe memory operations belong in application
   libraries; privileged operations go through syscalls. At each public
-  entry address, User has a fixed stub `LD A,n / RST 6 / RET`. It is not
-  a “smart trampoline”; it simply invokes the syscall interface at a
-  stable address.
+  entry address, User has a fixed stub `LD A,n / OUT (F2h),A / RET`. It
+  is not a “smart trampoline”; it simply invokes the syscall interface at
+  a stable address.
 
 ### 3.2 W3 virtualization — \[ACCEPTED\]
 
@@ -220,9 +222,8 @@ kernel copies or synchronized kernel updates across physical banks.
 
 4.  The handler saves the User stack pointer, switches to the kernel’s
     own stack in W0, performs its work, restores the original stack
-    pointer, and returns using `RETN`. The hardware recognizes the
-    `RETN` instruction and switches back to `USER_SLOT` before the
-    return address is read from the stack.
+    pointer, and returns. The hardware switches back to `USER_SLOT` as
+    part of the exit protocol (§5.5).
 
 The hardware transition is tied to the vector fetch itself. No software
 instruction at the vector address is required to cause the switch.
@@ -351,92 +352,80 @@ separate preemption mechanism is required (question O5).
 
 ### 5.1 Calling convention — \[ACCEPTED\]
 
-- **One entry path only.** `RST 6` (`0030h`). The trap is triggered by a
-  fetch from `0030h` in User when `rst6_hook` is enabled. The Z80 itself
-  pushes the return address onto the User stack before the vector fetch
-  causes the hardware transition. Registers are not modified by the
-  transition itself.
-- **There is no `F2h` alias.** `OUT (F2h),A` has been removed as a
-  separate mechanism: it has different behaviour (opcode substitution
-  and implementation dependence), requires a separate port detector,
-  clobbers `BC` in Legacy, and is harder to implement and debug. The
-  standard `RST 6` instruction provides the required entry mechanism.
+- **One entry path only.** `OUT (F2h),A` in Native mode; `OUT (F2xxh),A`
+  in Legacy mode. The write enters Supervisor. Registers are not
+  modified by the transition itself.
+- **There is no `RST 6` syscall.** `RST 6` was considered and adopted
+  briefly, then **reverted** in favour of `OUT (F2h)` (decisions 4, 5,
+  23). The rationale is recorded in §5.2.
 - **Calling convention:** function number in `A`; arguments in `BC`,
   `DE`, and `HL`; result in `A` (0 = success), and, when needed, in
-  `HL`. `RST 6` does not clobber `BC`.
+  `HL`. The wrapper is `OUT (F2h),A / RET`.
 
 ``` asm
 ; Call from User:
     LD   A,SYS_WRITE
-    RST  30h                 ; 11 T
+    CALL syscall_wrapper      ; wrapper does OUT (F2h),A / RET
 ```
 
-### 5.2 Why `RST 6`
+### 5.2 Why `OUT (F2h)` and not `RST 6`
 
-- **It is not masked by `DI`.** It provides the unconditional entry that
-  was originally sought through `OUT`.
-- **The CPU pushes the return address itself.** `RST 6` pushes the
-  return address onto the **User stack**, using the User `SP` and User
-  map, because the trap occurs on the fetch from `0030h`, **after** the
-  stack write. This closes Q24 (where the return address is stored: on
-  the User stack, by the standard Z80 mechanism). Q22 (how the kernel
-  accesses the User stack) is closed by the `RETN` exit mechanism
-  (§5.5).
-- **It does not clobber `BC`**, so no Legacy wrapper is needed.
-- **It is shorter and faster** than a wrapper: 11 T versus `CALL` +
-  `OUT` + `RET` (about 38 T).
-- **Precedents:** `RST 30h` in the MSX BIOS (inter-slot call), and
-  `RST 8` in ZX Spectrum ESXDOS.
+> **⚠ Rejected: `RST 6` for syscall.** `RST 6` (`0030h`) was considered
+> and adopted briefly, then **reverted**. It solves *entry* — the fetch
+> from `0030h` enters Supervisor cleanly — but not *exit*.
+>
+> The only exit from Supervisor is the hardware exit protocol (§5.5):
+> write `supervisor_mode = 0` to `GLOBAL_CTRL`, then the mode switches on
+> the **next M1 cycle**. An `RST`-based syscall would still have to use
+> that exact exit path. So `RST` buys a cheaper entry but does not remove
+> the exit cost; the round trip is not cheaper than `OUT (F2h)`.
+>
+> In addition, the MSX `RST 6` convention reads immediate bytes placed
+> after the `RST`; those immediates are in **User** memory. Once the trap
+> has fired we are in Supervisor, so reading them would require either
+> switching back to User or saving/restoring the User map — cost and
+> complexity added to **every** call.
+>
+> Finally, the role of `RET` is to **read the return address from the
+> stack**. That does not require `RST`; the `OUT` path uses ordinary
+> `RET` and the same M1-synchronized exit.
+>
+> **Result:** `OUT (F2h)` (Native) / `OUT (F2xxh)` (Legacy) is the
+> retained syscall mechanism. The earlier switch to `RST 6` is reverted.
 
-### 5.3 Disable control — \[ACCEPTED\]; implementation \[RECOMMENDATION\]
+**Why `F2`:**
 
-A `rst6_hook` bit in `GLOBAL_CTRL` is proposed (bit 3, currently
-reserved), **separate** from `supervisor_hook` (bit 2). This allows a
-Legacy task to retain its own contents at `0030h`, while the kernel may
-still trap `0038h` and `0066h` if desired.
+1. It is in the MMU/control port range (`F0–FF`), already reserved for
+   LX system use.
+2. It does not conflict with typical peripherals.
+3. It works in both Native and Legacy modes with a single logical port.
 
-**If `RST 6` is disabled (`rst6_hook = 0`), syscalls are unavailable.**
-This is an intentional restriction: an application either runs in the
-native environment and uses `RST 6`, or runs in an isolated Legacy
-environment without syscalls. Policy: for Legacy tasks that do not use
-`0030h`, `rst6_hook` may remain enabled; for those that do use it, it
-must be disabled.
+### 5.3 Disable control — \[ACCEPTED\]
 
-### 5.4 Kernel entry: hardware vector transition
+`mmio_userlock` (bit 4 of `GLOBAL_CTRL`) blocks the MMU port range
+(`E0–FF`) in User mode; `F2` remains reachable through the separate
+`is_syscall_access` path. The old `rst6_hook` bit (bit 3) is **not**
+part of the retained design; bit 3 is reserved.
 
-The fetch from `0030h` causes the hardware to activate `SUPER_SLOT`. The
-bytes at `0030h` are the kernel’s RST 6 vector in permanent W0; no
-software `DI`/`JP` sequence is required to perform the transition.
+### 5.4 Kernel entry: hardware transition
 
-The syscall entry path then:
+The write to `F2` sets `supervisor_mode_reg <= 1` on the syscall
+trigger. The kernel entry path then:
 
 1.  saves the User `SP` in kernel state;
 2.  switches to the kernel stack in W0;
 3.  saves the required registers and identifies the entry context;
 4.  dispatches according to the function number in `A`.
 
-The precise vector contents and register-save sequence are
-implementation details of the W0 kernel entry code. The important
-architectural point is that the map switch is performed by hardware on
-the vector fetch, not by an instruction executed at `0030h`.
+The precise register-save sequence is an implementation detail of the W0
+kernel entry code. The important architectural point is that the map
+switch is performed by hardware on the syscall trigger, not by an
+instruction executed at the vector address.
 
-The interrupt-entry and syscall-entry paths must preserve the standard
-Z80 semantics of the relevant instruction and interrupt source. Any
-hardware status latch used to report the origin or saved
-interrupt-enable state must be specified in terms of the state captured
-at the actual transition, not as an ambiguous sample taken after the CPU
-has already modified its flip-flops.
+### 5.5 Leaving Supervisor — \[ACCEPTED\]
 
-### 5.5 Leaving Supervisor — \[RECOMMENDATION\]
-
-**`RETN` is the context-switch point.** The hardware recognizes `ED 45`
-on the bus and switches to User, activating `USER_SLOT`, **after the
-fetch of `45h` but before the stack read**. Thus `RETN` reads the return
-address from the User stack, using the User map.
-
-The kernel does **not** read the User stack. It only restores `SP` so
-that the return address is at the top of that stack, then executes
-`RETN`.
+**The exit is synchronized with the next M1 cycle.** Ordinary `RET` is
+the final instruction. `RETN`/`RETI` are **not** used (decision 24).
 
 Sequence:
 
@@ -445,46 +434,34 @@ Sequence:
 2.  The kernel writes a value to `GLOBAL_CTRL` with
     `supervisor_mode = 0`. This only **arms** the exit; it does not
     itself change the active mode.
-3.  The kernel restores registers (including `A`) and executes `RETN`.
-4.  When the hardware sees `ED 45` on the bus, it switches to User and
-    activates `USER_SLOT` after the fetch of byte `45h`, but before the
-    stack read.
-5.  `RETN` reads the return address **in the User map** and loads it
-    into `PC`.
-6.  `RETN` copies `IFF2` to `IFF1`, restoring the interrupt-enable state
-    prepared by the kernel.
-7.  The next instruction executes in User at the return address.
+3.  The kernel restores registers (including `A`) and executes ordinary
+    `RET`.
+4.  On the next M1 cycle, the hardware switches to User and activates
+    `USER_SLOT`.
+5.  `RET` reads the return address **in the User map** and loads it into
+    `PC`.
+6.  The next instruction executes in User at the return address.
 
 **Why this mechanism:**
 
-- The transition is tied to `RETN`, not to “the next M1” after a
-  control-register write. This removes the ambiguity in Q28: a literal
-  “next M1” would trigger on the `ED` prefix byte of `RETN` itself.
+- The transition is synchronized with the next M1 cycle after the
+  `GLOBAL_CTRL` write. `RET` provides that M1 naturally.
 - Arbitrary instructions may execute between arming the transition and
-  `RETN` (for example, register restoration). Writing to `F0h` must not
-  consume `A`, which may contain the syscall result.
-- The return address is read from the User stack under the User map, so
-  the kernel does not need special access to User memory (**Q22
-  closed**).
-- `RETN` copies `IFF2` to `IFF1`; the kernel prepares `IFF2` from the
-  saved interrupt state before executing it.
-- Z80 peripherals already recognize `RETI` in a similar bus-based way
-  (`ED 4D`); the general technique is familiar.
+  `RET` (for example, register restoration). Writing to `GLOBAL_CTRL`
+  must not consume `A`, which may contain the syscall result.
+- The return address is read from the User stack under the User map.
+- `RETN`’s `IFF2→IFF1` copy is unnecessary and was one of the reasons
+  `RST`-based syscalls were rejected (§5.2).
 
-The ordinary Z80 semantics of INT and NMI, including their effects on
-`IFF1` and `IFF2`, remain in force. The hardware transition does not
-replace those CPU semantics. The kernel’s entry/exit code must preserve
-the appropriate state for the particular entry source.
-
-**If `RETN` does not work as intended** (for example, because the
-application has corrupted its stack and `RETN` reads the wrong address),
-the result is a crash or a jump to an arbitrary location. `SP` is not
-validated. Recovery is not possible. This is an intentional limitation:
-the system protects against mistakes, not deliberate corruption.
+**If `RET` reads a corrupted return address** (for example, because the
+application has corrupted its stack), the result is a crash or a jump to
+an arbitrary location. `SP` is not validated. Recovery is not possible.
+This is an intentional limitation: the system protects against mistakes,
+not deliberate corruption.
 
 ### 5.6 Syscall cost — principle \[ACCEPTED\], number \[OPEN\]
 
-A complete round trip (`RST`, entry code, stack switch, dispatch,
+A complete round trip (`OUT`, entry code, stack switch, dispatch,
 restoration, exit) is estimated at 200–300 T, or 50–75 μs at 4 MHz. This
 is an estimate, not a measurement.
 
@@ -513,7 +490,7 @@ implementation is in the same W3 environment.
 
 |                       | Supervisor (including takeover)            | User                                                                                        |
 |-----------------------|:-------------------------------------------|:--------------------------------------------------------------------------------------------|
-| Table entry           | `JP` directly to the method implementation | **Stub:** `LD A,n / RST 6 / RET` (fixed, with no logic)                                     |
+| Table entry           | `JP` directly to the method implementation | **Stub:** `LD A,n / OUT (F2h),A / RET` (fixed, with no logic)                               |
 | What the call does    | Executes the method in the same window     | Performs a syscall                                                                          |
 | Driver implementation | In W3, in the same window                  | **Not required** (safe memory operations are a library; privileged operations use syscalls) |
 | Speed                 | Direct call (about 27 T for `CALL` + `JP`) | Full syscall cost                                                                           |
@@ -524,12 +501,12 @@ depend on the active environment.
 
 ### 6.3 Why keep stubs if they always invoke a syscall? — \[ACCEPTED\]
 
-They do not make calls faster. A `SYSCALL n` macro at the call site
-would be sufficient by itself (18 T versus about 45 T). **The stubs
-exist for one reason:** to let the same application enter Supervisor
-takeover mode **without recompilation**. At the same address, User
-contains a stub while takeover contains a direct jump to the driver
-method. There is one binary; the kernel selects the mode.
+They do not make calls faster. A `syscall n` macro at the call site
+would be sufficient by itself. **The stubs exist for one reason:** to let
+the same application enter Supervisor takeover mode **without
+recompilation**. At the same address, User contains a stub while takeover
+contains a direct jump to the driver method. There is one binary; the
+kernel selects the mode.
 
 This is consistent with the observation that in the User environment
 most driver calls go through syscalls, so the application runs more
@@ -546,7 +523,7 @@ a separate window.
     rather than two.
 2.  **The kernel does not trust the table.** A User stub resides in
     application memory. The kernel validates the function number and
-    arguments just as it does for a direct `RST 6`. The table is a
+    arguments just as it does for a direct `OUT (F2h)`. The table is a
     convenience, not a security boundary.
 3.  **Driver state does not live in the table.** Pass context through a
     pointer (for example, `IX`) to caller-owned memory. The table page
@@ -566,7 +543,7 @@ a separate window.
 
 | Level | Mode                         | Application location                          | Driver call mechanism              | Scheduler                                                     |
 |------:|:-----------------------------|:----------------------------------------------|:-----------------------------------|:--------------------------------------------------------------|
-|     0 | User (managed)               | Its own map (`USER_SLOT`)                     | Stubs → `RST 6`                    | Active                                                        |
+|     0 | User (managed)               | Its own map (`USER_SLOT`)                     | Stubs → `OUT (F2h)`                | Active                                                        |
 |     1 | Takeover                     | W1/W2 (code and data)                         | Direct `CALL` through the W3 table | Disabled                                                      |
 |     2 | Takeover with a W0 extension | W1/W2 plus a fragment inside a virtualized W0 | Same as takeover                   | Disabled; experimental, not part of the baseline architecture |
 
@@ -631,25 +608,26 @@ access.
 3.  **The ISR uses a kernel stack.** On entry from User, the return
     address has already been pushed onto the User stack. The handler
     saves the User `SP`, switches to the kernel stack in W0, performs
-    its work, restores the saved `SP`, and returns with `RETN`. When
-    already in Supervisor, the appropriate Supervisor stack is used.
-    This avoids requiring a documented minimum amount of free space on
-    an application stack for kernel ISR work.
+    its work, restores the saved `SP`, and returns using the exit
+    protocol (§5.5). When already in Supervisor, the appropriate
+    Supervisor stack is used. This avoids requiring a documented
+    minimum amount of free space on an application stack for kernel ISR
+    work.
 
-4.  **Kernel calls remain available through `RST 6`.** In Supervisor,
-    `RST 6` does not cause a User-to-Supervisor trap; it simply fetches
-    the vector in the already active Supervisor map. The entry code
-    distinguishes a User-originated trap from a call made while already
-    in Supervisor and uses the appropriate return path (`RETN` for a
-    User transition, ordinary `RET` where applicable).
+4.  **Kernel calls remain available through `OUT (F2h)`.** In
+    Supervisor, `OUT (F2h)` does not cause a User-to-Supervisor trap; it
+    simply records the syscall function in the already active Supervisor
+    map. The entry code distinguishes a User-originated call from a call
+    made while already in Supervisor and uses the appropriate return
+    path.
 
 5.  **Hardware state is the application’s responsibility.** The kernel
     does not know what the application has done to devices. Each driver
     should provide a `reset()` entry, called when takeover ends.
 
-6.  **Exit.** The same `RST 6` mechanism (or a dedicated `end_takeover`
-    syscall) restores the managed environment and returns to User using
-    the sequence in §5.5.
+6.  **Exit.** The same `OUT (F2h)` mechanism (or a dedicated
+    `end_takeover` syscall) restores the managed environment and returns
+    to User using the sequence in §5.5.
 
 7.  **W0 is not hardware-protected in takeover.** An application that
     redirects `BANK_0` can break the ISR. Under the “user takes
@@ -679,11 +657,11 @@ application-controlled bank-register write.
 ### 8.5 Summary: how the modes relate
 
 ``` text
-User (managed)          RST 6 → kernel → RETN              slower, managed
+User (managed)          OUT (F2h) → kernel → exit protocol            slower, managed
        |
        | takeover (same binary; same call sites)
        v
-Supervisor takeover    CALL → JP → driver implementation  fast, unprotected
+Supervisor takeover    CALL → JP → driver implementation              fast, unprotected
        |
        | request a W3 environment change
        v
@@ -736,12 +714,10 @@ on that environment’s code or private data.
 - In User mode, the application cannot change the active map, access
   newly privileged ports, or start DMA if the relevant ports are locked
   (`mmio_userlock`).
-- The only privileged entry paths are `RST 6` and the interrupt traps
-  (`0038h`, `0066h`).
+- The privileged entry paths are the syscall port (`F2h`) and the
+  interrupt traps (`0038h`, `0066h`).
 - The kernel does not depend on the state in which the application left
   W1/W2: the kernel and ISRs reside in W0 of Supervisor.
-- If `RST 6` is disabled (`rst6_hook = 0`), syscalls are unavailable.
-  This is an intentional restriction for an isolated Legacy environment.
 
 **What is not protected:**
 
@@ -754,7 +730,7 @@ on that environment’s code or private data.
   memory access attributes.
 - DMA addresses physical memory directly; it has not yet been defined
   who may start it and under what restrictions (Q33).
-- `SP` is not validated. If the application corrupts it, `RETN` may jump
+- `SP` is not validated. If the application corrupts it, `RET` may jump
   to an invalid address, causing a crash.
 - Whether a separate “unlock” mechanism from the specification (`0xFE`)
   is needed in the presence of takeover remains undecided (O6).
@@ -771,7 +747,8 @@ Documentation wording: this is protection against **mistakes** and
 | Hardware IPC mailbox                                                           | It solves a problem that does not exist: with hardware traps and ISRs in W0, kernel code is always visible. Deferred work is handled through an event mask.                                                                                                                                                           |
 | Map hash or “random index”                                                     | Needed only in a design where the kernel does not know which map is active. With separate slot sets, each side has its own map.                                                                                                                                                                                       |
 | Save and restore the map in every ISR                                          | Expensive and unnecessary: the Supervisor slot set is selected by hardware.                                                                                                                                                                                                                                           |
-| `OUT (F2h),A` as a syscall alias                                               | A separate mechanism with different behaviour (opcode substitution and implementation dependence), a separate port detector, `BC` clobbering in Legacy, and greater implementation/debugging complexity than one `RST 6` instruction. Its purpose is unclear because `RST 6` already provides the required mechanism. |
+| **`RST 6` (`0030h`) as syscall**                                               | Clean entry, but exit is still `GLOBAL_CTRL` + next-M1; MSX-style immediates after the `RST` are in User memory; no cheaper round trip. **Rejected; `OUT (F2h)` retained.**                                                                                                                                        |
+| **`RETN`/`RETI` for exit**                                                     | Exit is M1-synchronized; ordinary `RET` provides the M1 and reads the return address in the User map. `IFF2→IFF1` copy is unnecessary. **Rejected.**                                                                                                                                                                |
 | User trampolines with logic (some methods work locally, others issue syscalls) | They either duplicate syscall functionality or perform work that can be done without a driver (as an application library). A User-side W3 driver body is unnecessary. Only fixed stubs remain.                                                                                                                        |
 | IM2                                                                            | Register `I` belongs to User; IM2 is less safe than IM1.                                                                                                                                                                                                                                                              |
 | Direct driver calls for every application                                      | This removes the distinction between managed and trusted applications. Takeover provides the same speed, but only after an explicit request.                                                                                                                                                                          |
@@ -786,10 +763,10 @@ Documentation wording: this is protection against **mistakes** and
 
 | Section                | Change                                                                                                                                             |
 |:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------|
-| §2.2 `GLOBAL_CTRL`     | Bit 3 = `rst6_hook`, separate from `supervisor_hook` (bit 2); define status bits for “entry from User” and any captured interrupt state precisely. |
-| §7.2 Trap              | Add address `0030h` (controlled by `rst6_hook`). Clarify that the slot-set transition occurs on the vector fetch.                                  |
-| §7.3 Syscall           | Rewrite: the **only** path is `RST 6`; `F2h` is **removed**; `rst6_hook` is the only syscall enable/disable bit.                                   |
-| §7.4 Exit              | Replace “next M1” with recognition of `RETN` (switch after fetch of `45h`, before stack read); closes Q28 and Q22.                                 |
+| §2.2 `GLOBAL_CTRL`     | Bit 4 = `mmio_userlock`. Bit 3 is reserved (the old `rst6_hook` is not part of the retained design). Define status bits for “entry from User” and any captured interrupt state precisely. |
+| §7.2 Trap              | Clarify that the slot-set transition occurs on the vector fetch. The `0030h` comparator is not required.                                          |
+| §7.3 Syscall           | Retain `OUT (F2h)`/`F2xxh`. `RST 6` is rejected (decision 23). `RETN` is rejected (decision 24).                                                 |
+| §7.4 Exit              | Exit is synchronized with the next M1 cycle after the `GLOBAL_CTRL` write; ordinary `RET` is the final instruction.                              |
 | §8 Security            | Document User and takeover modes; W0 remains permanent; W3 is virtualized. Reassess the role of unlock/`0xFE`.                                     |
 | §9 IPC Mailbox         | Mark optional or remove.                                                                                                                           |
 | Memory map / slot sets | Specify permanent W0, working W1/W2, and virtualized W3; define the stable W3 public table ABI and kernel-only safe switching.                     |
@@ -800,10 +777,10 @@ Documentation wording: this is protection against **mistakes** and
 
 | Question                                     | Resolution                                                                                                                                                                                        |
 |:---------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Q24** (where the return address is pushed) | Closed by `RST 6`: the return address is pushed onto the User stack by the standard Z80 mechanism, before the vector-fetch transition.                                                            |
-| **Q22** (access to the User stack)           | Closed by `RETN`: the switch occurs after fetch of `45h` and before the stack read; `RETN` reads the return address under the User map. The kernel does not need direct access to the User stack. |
-| **Q28** (leaving Supervisor)                 | Closed by `RETN`: the switch is tied to `ED 45`, not to “the next M1”.                                                                                                                            |
-| **Q27** (Legacy wrapper `F200h`)             | Closed: `F2h` is removed; a Legacy task either uses `RST 6` or does not use syscalls.                                                                                                             |
+| **Q24** (where the return address is pushed) | Closed: `OUT (F2h)` does not touch the stack; the return address is pushed by the `CALL` in the wrapper, before the syscall.                                                                     |
+| **Q22** (access to the User stack)           | Closed by the exit protocol: `RET` reads the return address under the User map, after the M1 switch. The kernel does not need direct access to the User stack.                                   |
+| **Q27** (Legacy wrapper `F200h`)             | Reopened: with `OUT` retained, the Legacy port is `F2xxh` and the wrapper question returns.                                                                                                     |
+| **Q28** (leaving Supervisor)                 | Closed: exit is synchronized with the next M1 after the `GLOBAL_CTRL` write; `RETN` is not used.                                                                                                |
 | **Q21, Q29, Q30**                            | Addressed by the revised entry and exit model.                                                                                                                                                    |
 | **Q34–Q36**                                  | Made unnecessary by the decision to remove IPC.                                                                                                                                                   |
 | W0 virtualization questions                  | Obsolete in the baseline architecture: W0 is permanent and W3 is virtualized instead.                                                                                                             |
@@ -811,18 +788,17 @@ Documentation wording: this is protection against **mistakes** and
 ### 12.3 MiSTer
 
 The current implementation does not have `supervisor_hook` (D01, D09),
-so some decisions (interrupt trap, `RST 6`) cannot be implemented there
-without changes:
+so some decisions (interrupt trap) cannot be implemented there without
+changes:
 
 | Decision                             | Required implementation change                                                                          |
 |:-------------------------------------|:--------------------------------------------------------------------------------------------------------|
-| ISR in W0 Supervisor after interrupt | Trap on `0038h`/`0066h`, i.e. resolve D09.                                                              |
-| `RST 6` as syscall                   | Comparator for `0030h` and the `rst6_hook` bit.                                                         |
-| Exit via `RETN`                      | Detect `ED 45` on the bus (after fetch of `45h`, before stack read).                                    |
+| ISR in W0 Supervisor after interrupt | Trap on `0038h`/`0066h`, i.e. resolve D09.                                                              |
+| `OUT (F2h)` as syscall               | `F2h`/`F2xxh` syscall decode and `mmio_userlock`. The `0030h` comparator is not required.               |
+| Exit via M1                          | Synchronize the switch with the next M1 cycle after the `GLOBAL_CTRL` write.                           |
 | Takeover                             | Slot sets and Supervisor mode on request; an interrupt trap is not required once already in Supervisor. |
 | W3 virtualization                    | Kernel-controlled selection of the W3 bank, with safe-point rules.                                      |
 | IPC                                  | Not required (it is not implemented in the current implementation either, D06).                         |
-| `F2h`                                | Removed from the specification; implementation support is not required.                                 |
 
 ------------------------------------------------------------------------
 
@@ -836,10 +812,10 @@ without changes:
 | O4  | Are any User-mode driver functions needed that do not issue syscalls?                                                                                   | Determines whether the User table remains stubs only (§6.2).                                                                                |
 | O5  | Preemption: cooperative scheduling only, or a second non-maskable source?                                                                               | §4.6.                                                                                                                                       |
 | O6  | Is `0xFE`/unlock still needed in the presence of takeover, and in what form?                                                                            | §10.                                                                                                                                        |
-| O7  | Legacy tasks: should the hook remain enabled (potentially costly at about 300 interrupts per second), be disabled, or have a separate lightweight path? | Q23.                                                                                                                                        |
+| O7  | Legacy tasks and the `F2xxh` decode: is a per-task enable needed?                                                                                       | Q23.                                                                                                                                        |
 | O8  | Should W0 be hardware-protected in takeover (write protection for `BANK_0`)?                                                                            | §8.3.                                                                                                                                       |
 | O9  | Is a “level 4” required, in which the application takes W0 as well and can return only by reset?                                                        | §8.                                                                                                                                         |
-| O10 | Measure the real cost of a syscall round trip (`RST 6` and return).                                                                                     | §5.6.                                                                                                                                       |
+| O10 | Measure the real cost of a syscall round trip (`OUT (F2h)` and exit protocol).                                                                          | §5.6.                                                                                                                                       |
 | O11 | Do Q05 (bank width), Q19 (`MMU_EXT` address), and similar specification questions remain open?                                                          | They determine whether the architecture described above is implementable.                                                                   |
 
 The Z80 interrupt-entry and return semantics are not treated here as a
@@ -854,20 +830,22 @@ kernel.
 
 An interrupt causes a hardware transition to Supervisor at vector fetch;
 the kernel and ISRs reside in permanent W0 and are therefore always
-visible, so no hardware mailbox is required. Syscalls use exactly one
-mechanism, `RST 6`; the `F2h` alias has been removed because it
-introduces a more complicated protocol with different behaviour. `RST 6`
-pushes the return address onto the User stack (Q24), and `RETN` reads it
-under the User map because the hardware switches back after fetching
-`45h` but before reading the stack (Q22). W1 and W2 provide 32 KB of
-working memory. W3 contains the driver entry table and a virtualized
-driver environment: in Supervisor the table jumps directly to method
-implementations, while in User it consists of fixed stubs that invoke
-syscalls. The same binary can therefore run in managed User mode or in
-takeover mode without recompilation; in takeover, the application uses
-direct driver calls, the kernel remains in W0, and W3 changes only on a
-kernel request at a safe point. W0 is never virtualized in the baseline
-architecture. If `RST 6` is disabled, syscalls are unavailable—an
-intentional restriction for an isolated Legacy environment. If `RETN`
-reads a corrupted return address, the result is a crash; recovery is not
-guaranteed.
+visible, so no hardware mailbox is required. Syscalls use `OUT (F2h)` in
+Native mode and `OUT (F2xxh)` in Legacy mode, protected in User mode by
+`mmio_userlock`. `RST n` was considered and adopted briefly, then
+**reverted**: it gives a clean entry but the only exit is the
+`GLOBAL_CTRL` + next-M1 protocol, which `RST`-based calls would still
+pay, while MSX-style immediates after the `RST` live in User memory.
+`RETN`/`RETI` were rejected for the same reason — ordinary `RET`
+provides the M1 and reads the return address in the User map. W1 and W2
+provide 32 KB of working memory. W3 contains the driver entry table and
+a virtualized driver environment: in Supervisor the table jumps directly
+to method implementations, while in User it consists of fixed stubs that
+invoke syscalls. The same binary can therefore run in managed User mode
+or in takeover mode without recompilation; in takeover, the application
+uses direct driver calls, the kernel remains in W0, and W3 changes only
+on a kernel request at a safe point. W0 is never virtualized in the
+baseline architecture. If `mmio_userlock` is set, User-mode MMU port
+access is blocked; `F2` remains reachable through the separate syscall
+path. If `RET` reads a corrupted return address, the result is a crash;
+recovery is not guaranteed.

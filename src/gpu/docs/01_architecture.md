@@ -14,7 +14,7 @@
 
 ## 2. Общая картина
 
-![Архитектура микроядра](../images/lx-gpu-architecture.webp)
+![Архитектура микроядра](./images/lx-gpu-architecture.webp)
 
 *Где проходит граница доменов: **вся логика команд и регистров живёт в 8-битном домене**, где её проще минимизировать. **Ядро, буферы слов и видеоконтроллер** обращаются к памяти по 16 битам. Ядро по сути «мастер» на 16-битной шине, а в 8-битном домене оно видно только как набор регистров.*
 
@@ -76,43 +76,7 @@ COPY:
 
 Регистры:
 
-### Регистровый файл · R0–R31
-
-| Регистр | Имя | Назначение | Группа |
-| --- | --- | --- | --- |
-| R0 | **DX** | Destination X coordinate | destination |
-| R1 | **DY** | Destination Y coordinate | destination |
-| R2 | **DW** | Destination width | destination |
-| R3 | **DH** | Destination height | destination |
-| R4 | **SX** | Source X coordinate | source |
-| R5 | **SY** | Source Y coordinate | source |
-| R6 | **SW** | Source width | source |
-| R7 | **SH** | Source height | source |
-| R8 | **DSTRIDE** | Destination row stride (screen width) | memory |
-| R9 | **SSTRIDE** | Source row stride (screen width) | memory |
-| R10 | **DBASE** | Destination base address | memory |
-| R11 | **SBASE** | Source base address | memory |
-| R12 | **FG** | Foreground colour | pixel |
-| R13 | **BG** | Background colour | pixel |
-| R14 | **MODE** | Pixel formats and combine operation | pixel |
-| R15 | **CX0** | Clip window left | clipping |
-| R16 | **CY0** | Clip window top | clipping |
-| R17 | **CX1** | Clip window right | clipping |
-| R18 | **CY1** | Clip window bottom | clipping |
-| R19 | **SDX** | Source delta X (12.12) | increment |
-| R20 | **SDY** | Source delta Y (12.12) | increment |
-| R21 | **DDX** | Destination delta X (12.12) | increment |
-| R22 | **DDY** | Destination delta Y (12.12) | increment |
-| R23 | **T0** | Временный регистр | temporary |
-| R24 | **T1** | Временный регистр | temporary |
-| R25 | **T2** | Временный регистр | temporary |
-| R26 | **T3** | Временный регистр | temporary |
-| R27 | **T4** | Временный регистр | temporary |
-| R28 | **T5** | Временный регистр | temporary |
-| R29 | **T6** | Временный регистр | temporary |
-| R30 | **T7** | Временный регистр | temporary |
-| R31 | **T8** | Временный регистр | temporary |
-
+[include](registers-table.md)
 
 ### 3.4 Конвертер координат в адрес
 
@@ -168,9 +132,9 @@ FSM собирает полную команду из FIFO и передаёт �
 
 ## 5. Микрокод
 
-![Формат микрослова](../output/microinstruction.svg)
+![Формат микрослова](./gen/microinstruction.svg)
 
-![Внутренняя структура АЛУ](../output/alu_block.svg)
+![Внутренняя структура АЛУ](./gen/alu_block.svg)
 
 Микрокоманды — `LD SRC1, Rn`, `LD SRC2, Rn`, `ALU <op>`, `ST Rn, DST`, `JMP`, `Jcond`, `NEXT`. Полный список и семантику см. в `02_microcore.md`.
 
@@ -208,7 +172,7 @@ FSM собирает полную команду из FIFO и передаёт �
 - **Переполнение FIFO:** шина просто не выдаёт ACK, пока в FIFO нет места.
 - **Режим 8 bpp:** только 320×200.
 
-![Регистр MODE](../output/mode_register.svg)
+![Регистр MODE](./gen/mode_register.svg)
 
 ## 8. Открытые вопросы
 
@@ -225,6 +189,3 @@ FSM собирает полную команду из FIFO и передаёт �
 2. Описать микрослово и набор микрокоманд.
 3. Написать три эталонные программы (заливка, спрайт, линия) и посчитать такты.
 4. Только после этого писать Verilog.
-```
-
----
