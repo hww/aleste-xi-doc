@@ -82,25 +82,6 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 ![ALU internal structure](images/lx-gpu-alu-architecture.webp)
 
-```
-        memory (Wishbone 16 bit)
-          ^        ^        ^
-        [S]      [D]     [DATA]
-       SIDX     DIDX      DPTR
-          |        |        |
-        SPIX     DPIX     data word
-          \        |        /
-       [IN_ stage register] <-- devices (DeviceMap), memory, pixel, flags
-                   |
-                   v
-   A ---+--> [ALU 24 bit] <---+--- B
-        |         |              |
-        |      result R          |
-        |         v              |
-        +----- mux into A <-- C -+
-                              (stack)
-```
-
 **A inputs (4:1):** result R (ALU), B (pop/swap), IN_ (external stage), IMM (constant).
 **B inputs:** A (push/swap) or C (pop). **C input:** B (push) or zero (pop).
 **ALU** has no input muxes: operands are always A and B (plus C for `BLEND`, currently not implemented).
