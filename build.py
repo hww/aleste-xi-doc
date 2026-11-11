@@ -109,14 +109,18 @@ def render_bitfield_svg(bf, REGISTRY):
     W, left, top, row_h = 1200, 32, 120, 50
     col_w = (W - left * 2) / width_bits
     H = top + row_h + 50
+    tick_h = row_h * 0.15
     parts = []
-    for i in range(width_bits):
-        bit_num = width_bits - 1 - i
-        x = left + i * col_w
-        parts.append(f'<text x="{x+col_w/2}" y="{top-10}" text-anchor="middle" style="font: 12px monospace; fill:#666;">{bit_num}</text>')
-        if i > 0:
-            parts.append(f'<line x1="{x}" y1="{top}" x2="{x}" y2="{top+row_h}" stroke="{COLOR_GRID}" stroke-dasharray="2,2"/>')
     
+    # 1. Номера битов и пунктирные линии
+    for i in range(width_bits + 1):
+        x = left + i * col_w
+        if i < width_bits:
+            bit_num = width_bits - 1 - i
+            parts.append(f'<text x="{x+col_w/2}" y="{top-10}" text-anchor="middle" style="font: 12px monospace; fill:#666;">{bit_num}</text>')
+        parts.append(f'<line x1="{x}" y1="{top}" x2="{x}" y2="{top+row_h}" stroke="{COLOR_GRID}" stroke-dasharray="2,2" stroke-width="1"/>')
+    
+    # 2. Поля
     ordered = sorted(fields, key=lambda f: int(f.get("msb", 0)), reverse=True)
     for idx, f in enumerate(ordered):
         msb, lsb = int(f.get("msb", 0)), int(f.get("lsb", 0))
@@ -126,9 +130,14 @@ def render_bitfield_svg(bf, REGISTRY):
         fill = COLOR_FILL_LIGHT if idx % 2 == 0 else COLOR_FILL_MED
         parts.append(f'<rect x="{x}" y="{top}" width="{w}" height="{row_h}" fill="{fill}" stroke="{COLOR_GRID}" stroke-width="2"/>')
         parts.append(f'<text x="{x+w/2}" y="{top+row_h/2+6}" text-anchor="middle" style="font: 700 16px sans-serif;">{esc(f.get("name", ""))}</text>')
-        
+    
+    # 3. Штрихи ТОЛЬКО СВЕРХУ на каждой границе бита
+    for i in range(width_bits + 1):
+        x = left + i * col_w
+        parts.append(f'<line x1="{x}" y1="{top}" x2="{x}" y2="{top + tick_h}" stroke="{COLOR_GRID}" stroke-width="1"/>')
+    
     return {"W": W, "H": H, "title": title, "subtitle": f"{width_bits}-bit bitfield", "parts": parts}
-
+    
 # ---------- Рендерер SVG для code_list с width ----------
 def render_code_list_svg(cl, REGISTRY):
     name = cl.get("name", "unknown")
@@ -140,34 +149,81 @@ def render_code_list_svg(cl, REGISTRY):
         return None
 
     W, left, top, row_h = 1200, 32, 120, 40
-    max_index_len = max(len(str(e.get("index", ""))) for e in entries)
+    max_index_len = max(len(str(e.get("addr", e.get("index", "")))) for e in entries)
     max_name_len = max(len(str(e.get("name", ""))) for e in entries)
     char_width = 8
     left_bits = left + (max_index_len + max_name_len) * char_width + 40
 
     col_w = (W - left_bits - 32) / width_bits
     H = top + len(entries) * row_h + 50
+    tick_h = row_h * 0.15  # Длина штриха
     parts = []
     
-    for i in range(width_bits):
-        bit_num = width_bits - 1 - i
+    # 1. Номера битов и пунктирные линии (сетка)
+    for i in range(width_bits + 1):
         x = left_bits + i * col_w
-        parts.append(f'<text x="{x+col_w/2}" y="{top-10}" text-anchor="middle" style="font: 12px monospace; fill:#666;">{bit_num}</text>')
-        if i > 0:
-            parts.append(f'<line x1="{x}" y1="{top}" x2="{x}" y2="{top+len(entries)*row_h}" stroke="{COLOR_GRID}" stroke-dasharray="2,2"/>')
+        if i < width_bits:
+            bit_num = width_bits - 1 - i
+            parts.append(f'<text x="{x+col_w/2}" y="{top-10}" text-anchor="middle" style="font: 12px monospace; fill:#666;">{bit_num}</text>')
+        parts.append(f'<line x1="{x}" y1="{top}" x2="{x}" y2="{top+len(entries)*row_h}" stroke="{COLOR_GRID}" stroke-dasharray="2,2" stroke-width="1"/>')
     
+    # 2. Рисуем строки
     y = top
     for e in entries:
-        idx = e.get("index", e.get("addr", ""))
+        idx = e.get("addr", e.get("index", ""))
         name = e.get("name", "")
         
+        fields = []
+        if "ref" in e and e["ref"] in REGISTRY:
+            fields = REGISTRY[e["ref"]].get("fields", [])
+        elif "fields" in e:
+            fields = e["fields"]
+        
+        # Текст слева
         parts.append(f'<text x="{left}" y="{y + row_h/2 + 5}" style="font: 700 14px monospace;">{idx}</text>')
         parts.append(f'<text x="{left + max_index_len * char_width + 10}" y="{y + row_h/2 + 5}" style="font: 700 14px sans-serif;">{name}</text>')
-        parts.append(f'<rect x="{left_bits}" y="{y}" width="{W - left_bits - 32}" height="{row_h}" fill="{COLOR_FILL_LIGHT}" stroke="{COLOR_GRID}" stroke-width="2"/>')
         
+        if fields:
+            ordered = sorted(fields, key=lambda f: int(f["msb"]), reverse=True)
+            
+            # 2.1. Рисуем прямоугольники полей
+            for idx2, f in enumerate(ordered):
+                msb, lsb = int(f["msb"]), int(f["lsb"])
+                nbits = msb - lsb + 1
+                x = left_bits + (width_bits - 1 - msb) * col_w
+                w = nbits * col_w
+                fill = COLOR_FILL_LIGHT if idx2 % 2 == 0 else COLOR_FILL_MED
+                parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{row_h}" fill="{fill}" stroke="{COLOR_GRID}" stroke-width="2"/>')
+                parts.append(f'<text x="{x+w/2}" y="{y+row_h/2+6}" text-anchor="middle" style="font: 700 14px sans-serif;">{esc(f.get("name", ""))}</text>')
+            
+            # 2.2. Рисуем штрихи ТОЛЬКО ВНУТРИ КАЖДОГО ПОЛЯ
+            for f in ordered:
+                msb, lsb = int(f["msb"]), int(f["lsb"])
+                # Штрихи для каждой границы бита внутри поля
+                for bit_idx in range(lsb, msb + 1):
+                    # Позиция границы бита: bit_idx — это LSB. 
+                    # В SVG координаты: биты идут справа налево.
+                    # x = left_bits + (width_bits - 1 - bit_idx) * col_w
+                    x = left_bits + (width_bits - 1 - bit_idx) * col_w
+                    parts.append(f'<line x1="{x}" y1="{y}" x2="{x}" y2="{y + tick_h}" stroke="{COLOR_GRID}" stroke-width="1"/>')
+                    
+                    # А также правую границу последнего бита (msb)
+                    # (если bit_idx == msb, то нужно добавить x + col_w)
+                
+                # Добавляем правую границу поля (x + w), чтобы штрих был и там
+                x_right = left_bits + (width_bits - lsb) * col_w
+                parts.append(f'<line x1="{x_right}" y1="{y}" x2="{x_right}" y2="{y + tick_h}" stroke="{COLOR_GRID}" stroke-width="1"/>')
+        else:
+            # Если полей нет — рисуем пустую полосу
+            parts.append(f'<rect x="{left_bits}" y="{y}" width="{W - left_bits - 32}" height="{row_h}" fill="{COLOR_FILL_LIGHT}" stroke="{COLOR_GRID}" stroke-width="2"/>')
+            
+            # Штрихи для всех битов (потому что это цельный регистр)
+            for i in range(width_bits + 1):
+                x = left_bits + i * col_w
+                parts.append(f'<line x1="{x}" y1="{y}" x2="{x}" y2="{y + tick_h}" stroke="{COLOR_GRID}" stroke-width="1"/>')        
         y += row_h
     
-    return {"W": W, "H": H, "title": title, "subtitle": f"{width_bits}-bit register file", "parts": parts}
+    return {"W": W, "H": H, "title": title, "subtitle": f"{width_bits}-bit register map", "parts": parts}
 
 # ---------- Рендерер Markdown для bitfield ----------
 def render_bitfield_md(bf, REGISTRY):
