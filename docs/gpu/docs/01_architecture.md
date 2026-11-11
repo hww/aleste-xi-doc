@@ -27,6 +27,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 ![Формат микрослова](gen/microinstruction.svg)
 
 <!-- table: generated -->
+
 **MICROINSTRUCTION · 36 BIT**
 
 | Поле | Биты | Ширина | Описание |
@@ -45,6 +46,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 **Условие и маска.** Флаги Z, N, C — из предыдущего слова. COND (3 бита) выбирает условие; если оно выполняется, MASK (3 бита) блокирует отмеченные блоки (бит 0 — REG_OP, бит 1 — ALU_OP, бит 2 — CTRL_OP). MASK = 0 — безусловно.
 
 <!-- table: generated -->
+
 **CONDITION**
 
 | Code | Name | Description |
@@ -60,6 +62,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 
 <!-- table: generated -->
+
 **MASK**
 
 | Code | Name | Description |
@@ -111,6 +114,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 ## 5. Микрокоманды
 
 <!-- table: generated -->
+
 **REG_OP — Передача данных и служебное**
 
 | Code | Name | Description | Cycles | Imm |
@@ -142,6 +146,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 
 <!-- table: generated -->
+
 **ALU_OP — Арифметика и логика**
 
 | Code | Name | Description | Cycles |
@@ -165,6 +170,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 
 <!-- table: generated -->
+
 **CTRL_OP — Управление потоком**
 
 | Code | Name | Description | Imm | Cycles |
@@ -190,6 +196,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 ![Карта операндов](gen/operand_map.svg)
 
 <!-- table: generated -->
+
 **Карта операндов микрокода**
 
 | Code | Name | Read | Write |
@@ -221,6 +228,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 ![Регистры](gen/registers.svg)
 
 <!-- table: generated -->
+
 **Регистровый файл · R0–R31**
 
 | Index | Name | Description | Group |
@@ -265,6 +273,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 ![Mode Register](gen/channel_mode.svg)
 <!-- table: generated -->
+
 **CHANNEL MODE**
 
 | Fmt | Name | Description |
@@ -282,6 +291,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 **`MODE` (R14) — только `TR`** (бит 0). Формат канала — в `ch_mode_[4]` (3 бита `fmt` на канал), ставится `SETMODE` (`REG_ADDR[1:0]` = канал, `ACC[2:0]` = fmt). **`COP` убран** (комбайнера нет).
 
 <!-- table: generated -->
+
 *[Cycle: channel_mode-table.md]*
 
 **Порядок пикселей:** для 4 bpp `pos=0` — старшая тетрада, `pos=3` — младшая; для 8 bpp `pos=0` — старший байт, `pos=1` — младший; для 1 bpp `pos=0` — бит 15, `pos=15` — бит 0.
@@ -295,6 +305,7 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 **Формат пакета:** последовательность блоков, каждый начинается 16-битным заголовком `{kind[15:12], arg[11:0]}`:
 
 <!-- table: generated -->
+
 **Заголовки пакетов загрузчика**
 
 | Code | Name | Arg | Description |

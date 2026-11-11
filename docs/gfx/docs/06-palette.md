@@ -20,6 +20,7 @@ The following register map shows the unified native mode interface:
 ![Registers](gen/palette_regmap.svg)
 
 <!-- table: generated -->
+
 **Palette Controller Register Map**
 
 | Code | Name | Description |
@@ -40,6 +41,7 @@ The Control Register (0x05) configures the palette behavior:
 ![Control Register](gen/palette_control.svg)
 
 <!-- table: generated -->
+
 **Palette Control Register (0x05)**
 
 | Поле | Биты | Ширина | Описание |
@@ -56,6 +58,7 @@ The Control Register (0x05) configures the palette behavior:
 The palette supports multiple color conversion modes:
 
 <!-- table: generated -->
+
 **Color Modes**
 
 | Code | Mode | Bits | Desc |

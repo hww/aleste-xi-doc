@@ -35,6 +35,7 @@ Four mode-switching mechanisms of LX:
 ### 5.1.2 Bit descriptions
 
 <!-- table: generated -->
+
 **GLOBAL_CTRL (F0h) Bit Map**
 
 | Поле | Биты | Ширина | Описание |

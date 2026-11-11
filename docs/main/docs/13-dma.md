@@ -44,6 +44,7 @@ from the base address.
 ### 1.3 Modes
 
 <!-- table: generated -->
+
 **Blitter Modes**
 
 | Mode | Val | Desc |
@@ -101,6 +102,7 @@ SysDMA has per-channel registers and common registers. The layout is in
 ### 2.3 Modes
 
 <!-- table: generated -->
+
 **SysDMA Modes**
 
 | Mode | Val | Desc |

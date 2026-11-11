@@ -68,6 +68,7 @@ active.
 ### 2.3 Mode table
 
 <!-- table: generated -->
+
 **Operating Modes**
 
 | Mode | Supervisor | Native | Description |
@@ -98,6 +99,7 @@ supervisor, bit 1 = native).
   16 KB slots:
 
 <!-- table: generated -->
+
 **Logical Slots**
 
 | Slot | Range | Purpose |
@@ -134,6 +136,7 @@ There are **16 internal mapper registers**, organized as 4 slots × 4
 pages:
 
 <!-- table: generated -->
+
 **Internal Mapper Registers (16 × 8-bit)**
 
 | Index | Slot | Page | Purpose |
@@ -172,6 +175,7 @@ I/O access.
 All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
 <!-- table: generated -->
+
 **Control Registers (Ports F0–FF, E0–EF)**
 
 | Port | Register | Function |
@@ -201,6 +205,7 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 ### 4.2 GLOBAL_CTRL (`F0`)
 
 <!-- table: generated -->
+
 **GLOBAL_CTRL (F0h)**
 
 | Поле | Биты | Ширина | Описание |
@@ -448,6 +453,7 @@ etc.
 ### 6.2 Access security policy
 
 <!-- table: generated -->
+
 **Access Security Policy**
 
 | Mode | Lock | Ports |
@@ -480,6 +486,7 @@ mechanism is). See §10.
 ## 7. Reset state
 
 <!-- table: generated -->
+
 **Reset State (RTL)**
 
 | Register | Address | Reset_value | Description |

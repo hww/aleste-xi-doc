@@ -94,6 +94,7 @@ When the DMA reads memory and the memory controller returns a timeout (watchdog)
 ![Global Registers Map](gen/ms2a_global_map.svg)
 
 <!-- table: generated -->
+
 ### Rev. A: Global Registers
 
 | Offset | Name | R/W | Bits |
@@ -115,6 +116,7 @@ Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, chan
 ![Channel Registers Map](gen/ms2a_channel_map.svg)
 
 <!-- table: generated -->
+
 ### Rev. A: Channel Registers (Base 0x20, 0x30, 0x40, 0x50)
 
 | Offset | Name | R/W | Bits |
