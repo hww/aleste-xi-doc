@@ -144,9 +144,9 @@ Provides practical examples illustrating the BIOS interfaces and their use by so
 
 ### Appendixes 
 
-[Aleste LX Video Subsystem — Programmer's Documentation](./docs/gfx/README.md)
+[Aleste LX Video Subsystem — Programmer's Documentation](./docs/gfx/docs/README.md)
 
-[Aleste LX GPU — Programmer's Documentation](./docs/gpu/README.md)
+[Aleste LX GPU — Programmer's Documentation](./docs/gpu//docsREADME.md)
 
 ## Documentation Build System
 

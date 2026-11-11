@@ -1,134 +1,138 @@
-## 4. `03_draw_sprite.md`
+# Example: drawing a sprite rotated 45°
 
-```markdown
-# Пример: рисование спрайта под углом 45°
+Affine mode: source sampled with step `(SDX, SDY)` in 12.12 format; destination is a normal rectangle `(DX, DY, DW, DH)`.
 
-Аффинный режим: источник сэмплируется с шагом `(SDX, SDY)` в формате 12.12, приёмник — обычная прямоугольная область `(DX, DY, DW, DH)`.
+Before calling the microprogram, Z80 fills:
 
-Перед вызовом микропрограммы Z80 заполняет:
+- `DX, DY, DW, DH` — destination rectangle;
+- `SBASE, SSTRIDE` — source;
+- `SX, SY` — initial source point (12.12);
+- `SDX, SDY` — increments (12.12). For a 45° rotation: `SDX = 0x1000`, `SDY = 0x1000`;
+- `MODE` — pixel formats and `TR` bit.
 
-- `DX, DY, DW, DH` — область приёмника;
-- `SBASE, SSTRIDE` — источник;
-- `SX, SY` — начальная точка в источнике (12.12);
-- `SDX, SDY` — приращения (12.12). Для поворота на 45°: `SDX = 0x1000`, `SDY = 0x1000`;
-- `MODE` — формат пикселей и операция `COMB`.
-
-Клиппинг по X показан полностью; клиппинг по Y аналогичен через `MIN`/`MAX` и здесь опущен.
+X clipping shown in full; Y clipping is symmetric (via `CMP` + `COND`/`MASK`).
 
 ```
 DRAW_SPRITE:
-    ; --- клиппинг по X ---
-    LD SRC1, DX
-    LD SRC2, CX0
-    ALU MAX
-    ST T3, DST                 ; T3 = x0 = MAX(DX, CX0)
+    ; --- clip X ---
+    LDX CX0
+    STR T3                 ; T3 = CX0
+    LDX DX
+    STR T0                 ; T0 = DX
+    ; if DX < CX0: T3 = CX0, else T3 = DX
+    ; CMP T0, T3
+    LDX T0
+    LDI_PUSH T3
+    ; ... SUB, COND N, MASK REG to keep max
+    ; (pseudo — real code uses CMP + COND/MASK)
 
-    LD SRC1, DX
-    LD SRC2, DW
-    ALU ADD
-    LD SRC2, CX1
-    ALU MIN
-    ST T4, DST                 ; T4 = x1 = MIN(DX + DW, CX1)
+    ; x1 = MIN(DX + DW, CX1)
+    LDX DX
+    LDI_PUSH DW
+    ; ADD -> A = DX + DW
+    STR T4
+    LDX CX1
+    STR T5
+    ; CMP T4, T5 -> keep min
 
-    LD SRC1, T4
-    LD SRC2, T3
-    ALU SUB
-    ST T4, DST                 ; T4 = W' = x1 - x0
-    ; COND=Z, MASK=CTRL
-    JMP DONE
+    ; W' = x1 - x0
+    LDX T4
+    LDI_PUSH T3
+    ; SUB -> W'
+    STR T4
 
-    LD SRC1, DH
-    ST T2, DST                 ; T2 = H'
+    ; if W' == 0: JMP DONE (COND Z, MASK CTRL)
+
+    ; H' = DH
+    LDX DH
+    STR T2
 
 ROW:
-    ; T0 = DY * DSTRIDE + x0
-    LD SRC1, DY
-    LD SRC2, DSTRIDE
-    ALU MUL
-    LD SRC2, T3
-    ALU ADD
-    ST T0, DST
+    ; T0 = DY * DSTRIDE + x0  (AddrPacker-style arithmetic in microcode)
+    LDX DY
+    LDI_PUSH DSTRIDE
+    ; (multiplication: shift/add for small values; full DSP not exposed to ALU)
+    ; then ADD x0
+    STR T0
 
-    LD SRC1, T4
-    ST T1, DST                 ; T1 = W'
+    ; T1 = W'
+    LDX T4
+    STR T1
 
 PIX:
-    ; sidx = (SY >> 12) * SSTRIDE + (SX >> 12)
-    LD SRC1, SY
-    LD SRC2, IMM 12
-    ALU SHR
-    LD SRC2, SSTRIDE
-    ALU MUL
-    ST T6, DST                 ; T6 = (SY >> 12) * SSTRIDE
+    ; SX += SDX
+    LDX SX
+    LDI_PUSH SDX
+    ; ADD (12.12 addition)
+    STR SX
 
-    LD SRC1, SX
-    LD SRC2, IMM 12
-    ALU SHR
-    LD SRC2, T6
-    ALU ADD
-    ST T6, DST                 ; T6 = sidx
+    ; SY += SDY
+    LDX SY
+    LDI_PUSH SDY
+    ; ADD
+    STR SY
 
-    SIDX T6
-    DIDX T0
-    ALU COMB                   ; DPIX = COMB(SPIX, DPIX)
-    WRITE DIDX, DST
+    ; A = (SY_int << 12) | SX_int
+    LDX SX
+    STR T6
+    LDX SY
+    SHR 12
+    ; LDH T6?  -> A[23:12] = SY_int, A[11:0] = SX_int
+    ; (in the simulator: LDI SX_int; LDH SY_int)
 
-    ; SX += SDX; SY += SDY
-    LD SRC1, SX
-    LD SRC2, SDX
-    ALU ADD
-    ST SX, DST
-
-    LD SRC1, SY
-    LD SRC2, SDY
-    ALU ADD
-    ST SY, DST
+    ; ADDR SRC: ADDR_ = AddrPacker(A), pos
+    ; PACKER_RD SRC  -> A = source pixel
+    ; STR T7
+    ; ADDR DEST
+    ; LDR T7
+    ; PACKER_WR DEST
 
     ; T0++; T1--
-    LD SRC1, T0
-    LD SRC2, IMM 1
-    ALU ADD
-    ST T0, DST
-
-    LD SRC1, T1
-    LD SRC2, IMM 1
-    ALU SUB
-    ST T1, DST
-    ; COND=NZ, MASK=CTRL
-    JMP PIX
+    ; if T1 != 0: JMP PIX
 
     ; DY++; T2--
-    LD SRC1, DY
-    LD SRC2, IMM 1
-    ALU ADD
-    ST DY, DST
-
-    LD SRC1, T2
-    LD SRC2, IMM 1
-    ALU SUB
-    ST T2, DST
-    ; COND=NZ, MASK=CTRL
-    JMP ROW
+    ; if T2 != 0: JMP ROW
 
 DONE:
-    SYNC
-    JMP MAIN
+    FLUSH
+    IRQ
+    HALT 0
 ```
 
-## Замечания по согласованию мнемоник
+**Notes on mnemonics**
 
-1. **`JMP X` с условием.** В таблице `CTRL` есть только `JMP X`. Условие задаётся полями `COND`/`MASK` того же микрослова. В примере я оставил комментарий `; COND=Z, MASK=CTRL` — это указание ассемблеру, какие поля выставить. Если хочешь мнемонический сахар `JZ`/`JNZ` — это уровень ассемблера, не микрокода; в спецификации оставляем `JMP X` + поля.
-2. **`IMM 12` как операнд `ALU SHR`.** В таблице ALU операция `SHR` должна принимать `SRC2` как величину сдвига. В примере `LD SRC2, IMM 12` + `ALU SHR` — это ровно та семантика. Но `LD SRC2, IMM` в таблице нет — есть `LDL/LDH SRC2, IMM12`. Надо либо добавить в таблицу псевдоним `LD SRCk, IMM` (ассемблер раскладывает в `LDL`/`LDH` по значению), либо в примерах писать `LDL SRC2, IMM12`. **Рекомендую** добавить в таблицу строку-псевдоним:
-   - `LD SRCk, IMM` — ассемблерный псевдоним: `LDL`, если IMM ≤ 0xFFF, иначе `LDH`.
-   Тогда примеры остаются читаемыми.
-3. **`SIDX T6` / `DIDX T0`** — согласовано с таблицей (`SIDX Rn`, `DIDX Rn`). В старом примере было `ST DIDX, T0` — исправлено.
-4. **`WRITE DIDX, DST`** — согласовано с таблицей. `ALU COMB` читает `SPIX`/`DPIX` по текущим `SIDX`/`DIDX`, результат в `DST`; `WRITE` его фиксирует.
-5. **`SYNC` в конце** — согласовано.
+1. **`JMP X` with a condition.** `CTRL_OP` has `JMP X`; the condition lives in `COND`/`MASK` of the same micro-word. Mnemonic sugar like `JZ`/`JNZ` is assembler-level, not microcode.
+2. **`LDI` vs `LDH`/`LDL`.** `LDI` replaces A entirely (sign-extended). `LDH`/`LDL` modify only the upper/lower 12 bits, so `LDI low; LDH high` builds a 24-bit value.
+3. **`SIDX`/`DIDX` set via `ADDR ch`.** The address is computed by `AddrPacker` and stored in `ADDR_`; `PACKER_RD/WR` consume it.
+4. **`WRITE`** is `PACKER_WR ch=REG_ADDR[1:0]`.
+5. **`FLUSH` + `IRQ` + `HALT 0`** at the end of the packet, in that order.
 
 ---
 
-## Что осталось решить (открытые вопросы)
+## Open questions
 
-1. **Псевдоним `LD SRCk, IMM`** — добавляем в таблицу или в примерах пишем `LDL/LDH`? (Рекомендую добавить.)
-2. **`COMB` в таблице ALU** — сейчас `COMB` упомянут в разделе 12 и в примерах, но в `microops_alu-table.md` его нет. Надо добавить строку `ALU COMB | DPIX ← COMB(SPIX, DPIX); DST ← DPIX | 1 (зависит от памяти)`. Пришлёшь текущий `microops_alu-table.md` — впишу.
-3. **`04_fill_rect.md` и `05_copy_transparent.md`** — собрать по тому же шаблону? Скажи, и я выдам их следом (с учётом исправленных мнемоник: `DW`/`DH` вместо `W`/`H`, `SIDX`/`DIDX`, `SYNC`, `LD SRCk, IMM`).
+1. **`LD SRCk, IMM` pseudo-op** — add or use `LDI`/`LDH`/`LDL` explicitly? (Recommendation: add assembler pseudo-op that expands into `LDI` + `LDH` if the value is 12-bit, otherwise `LDH` only.)
+2. **`COMB`** — removed from the ALU. Transparency is done via `COND Z` + `MASK CTRL` on `PACKER_WR`. Blending is shift-based (`SHR` + `ADD`).
+3. **`04_fill_rect.md`, `05_copy_transparent.md`** — should I generate them next, using the updated mnemonics (`DW`/`DH`, `SIDX`/`DIDX`, `FLUSH`, `LDI`/`LDH`/`LDL`)?
+```
+
+---
+
+## Summary of changes baked into the docs
+
+| Item | Old | New |
+|---|---|---|
+| Data model | `ACC`/`OPR` parallel | **Stack A/B/C**, push/pop, C=0 on pop |
+| Microcode | 36-bit, `CTRL_OP` 5 | 36-bit, `REG_OP` 5, `ALU_OP` 5, **`CTRL_OP` 3** |
+| ALU | 16 ops incl. MUL/MIN/MAX/ADDS/SUBS/COMB | **16 `LOGIC` LUT + ADD/SUB/CMP/SHL/SHR/SAR**, rest reserved |
+| Multiplication | `MUL` in ALU | **DSP inside `AddrPacker`** |
+| Saturation | `ADDS`/`SUBS` | **removed** (via `SUB` + `COND`) |
+| Combiner | `COMB` | **removed** (logic via `LOGIC`, transparency via `COND`/`MASK`) |
+| `SKIP_IF_Z` | in `CTRL_OP` | **removed** |
+| `FAULT` | in `REG_OP` | **removed** (`HALT X`, `X != 0`) |
+| `SETMASK`, `mask_` | in `REG_OP` / GPU | **removed** |
+| `LDH`/`LDL` | replace A | **partial write** (`A[23:12]`, `A[11:0]`) |
+| `OperandMap` | 32..44 | **`DeviceMap` 0..31**, flags + inverses |
+| `WAIT_FLAG` | `IMM[5:0]` | **`REG_ADDR`** (device number, 5 bits) |
+| `PACKER_*` | `ACC` = `(y<<12)|x` | **`ADDR` fills `ADDR_`**, `PACKER_*` consume it |
+| Affine | `ACC[11:0]=x`, `ACC[23:12]=y` | **A = `(y<<12)|x`** via `LDI`/`LDH` |

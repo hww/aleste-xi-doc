@@ -3,9 +3,9 @@
 Generated SVGs live in `../output/`. Reference them from Markdown:
 
 ```markdown
-![Register file](../output/register_map.svg)
-![Microinstruction format](../output/microinstruction.svg)
-![MODE register](../output/mode_register.svg)
+![Architecture](../output/register_map.svg)
+![Pixel Buffer](../output/microinstruction.svg)
+![Draw Swprite](../output/mode_register.svg)
 ![Operand map](../output/operand_map.svg)
 ![ALU operations](../output/alu_map.svg)
 ```

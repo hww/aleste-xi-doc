@@ -1,81 +1,88 @@
-# Графический сопроцессор для Z80: архитектура
+# Graphics coprocessor for Z80: architecture
 
-*Источник для генератора документации. YAML-декларации в `gen/` порождают SVG и MD-таблицы; `[include]` вставляет их сюда. Цифры ориентировочные, детали уточняются на симуляторе.*
+*Source for the documentation generator. YAML declarations in `gen/` produce SVG and MD tables; `[include]` inserts them here. Numbers are approximate; details are refined on the simulator.*
 
-## 1. Принципы
+## 1. Principles
 
-1. **Простота важнее пиковой скорости.** Узкое место — память, поэтому ядро можно делать простым.
-2. **Ядро программируемое, а не жёстко-автоматное.** Микрокод в BRAM, новый алгоритм — новый микрокод, а не новая логика.
-3. **В железо выносится только горячий путь:** буферы слова, адресные генераторы, упаковка пикселя.
-4. **Экранные координаты внутри, адреса снаружи не видны.** CPU говорит «нарисуй в (x, y)».
-5. **Два формата пикселя: 4 и 8 bpp.** 1 bpp — только как источник (шрифты, маски). 16 bpp — через `PASS16` (слово насквозь).
-6. **Никакого аппаратного скроллинга.** Вместо него быстрое копирование блоков.
-7. **Команды — следствие раскладки микрослова.** Сначала поля, из них видны команды.
-8. **`REG_ADDR` — resource select.** Поле не обязано иметь одну семантику: `LDR`/`STR` — регистр, `PACKER_*`/`SETPAGE`/`SETMODE`/`ADDR` — канал.
-9. **`IMM` — универсальный аргумент.** Его потребители: `LDI`/`LDH`/`LDL` (константа), `LDX`/`STX` (код операнда), `JMP`/`CALL`/`LOOP` (адрес), `HALT` (код ошибки), `WAIT_FLAG` (код флага). В одном слове — один потребитель, проверяет ассемблер.
+1. **Simplicity over peak speed.** The bottleneck is memory, so the core can be simple.
+2. **Programmable core, not a hardwired state machine.** Microcode lives in BRAM; a new algorithm means new microcode, not new logic.
+3. **Only the hot path goes into hardware:** word buffers, address generators, pixel packing.
+4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)".
+5. **Two pixel formats: 4 and 8 bpp.** 1 bpp is source only (fonts, masks). 16 bpp via `PASS16` (word pass-through).
+6. **No hardware scrolling.** Replaced by fast block copying.
+7. **Commands are a consequence of the microcode layout.** Fields first, commands follow.
+8. **`REG_ADDR` — resource select.** The field has no single meaning: `LDR`/`STR` — a register; `LDX`/`STX` — a device; `PACKER_*`/`SETPAGE`/`SETMODE`/`ADDR` — a channel.
+9. **`IMM` — universal argument.** Consumers: `LDI`/`LDH`/`LDL` (constant), `JMP`/`CALL`/`LOOP` (address), `HALT` (error code). In one word — one consumer, enforced by the assembler.
+10. **Stack A/B/C.** Three registers, push/pop. A is the only write port; B and C are stack-internal. C is zeroed on pop.
 
-## 2. Общая картина
+## 2. Overall picture
 
-![Архитектура микроядра](images/lx-gpu-architecture.webp)
+![Microcore architecture](images/lx-gpu-architecture.webp)
 
-*Граница доменов: логика команд и регистров — в 8-битном домене; ядро, буферы слов и видеоконтроллер — 16-битная память. Пересечение — в регистрах ядра.*
+*Domain boundary: command and register logic in the 8-bit domain; the core, word buffers, and video controller on 16-bit memory. They meet at the core's registers.*
 
-GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра не обсуждаем; у развёртки высший приоритет.
+GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster scan has top priority.
 
-## 3. Микрослово
+## 3. Microinstruction
 
-![Формат микрослова](gen/microinstruction.svg)
+![Microinstruction format](gen/microinstruction.svg)
 
 [include](gen/microinstruction-table.md)
 
-**Порядок выполнения.** Три блока (REG_OP, ALU_OP, CTRL_OP) работают параллельно: все читают ACC и OPR на начало такта, запись — в конце. АЛУ считает на старом OPR, REG_OP грузит следующий OPR; `STR` сохраняет ACC после предыдущего слова.
+**Execution order.** The three blocks (`REG_OP`, `ALU_OP`, `CTRL_OP`) run in parallel: all read A/B/C at the start of the cycle, writes happen at the end. ALU computes on the old operands; `REG_OP` loads the next value; `STR` saves A after the previous word.
 
-**Условие и маска.** Флаги Z, N, C — из предыдущего слова. COND (3 бита) выбирает условие; если оно выполняется, MASK (3 бита) блокирует отмеченные блоки (бит 0 — REG_OP, бит 1 — ALU_OP, бит 2 — CTRL_OP). MASK = 0 — безусловно.
+**Condition and mask.** Flags Z, N, C come from the previous word. `COND` (3 bits) selects the condition; if it holds, `MASK` (3 bits) blocks the marked blocks (bit 0 — `REG_OP`, bit 1 — `ALU_OP`, bit 2 — `CTRL_OP`). `MASK = 0` — unconditional.
 
 [include](gen/microops_cond-table.md)
 
 [include](gen/microops_mask-table.md)
 
-**`IMM` — 12 бит, универсальный аргумент.** Семантика зависит от команды:
+**`IMM` — 12-bit universal argument.** Its meaning depends on the command:
 
-| Команда | Что в `IMM` |
+| Command | `IMM` contents |
 |---|---|
-| `LDI`/`LDH`/`LDL` | константа (12 бит) |
-| `LDX`/`STX` | код операнда (`OperandMap`, 6 бит) |
-| `JMP`/`CALL`/`LOOP` | адрес (12 бит) |
-| `HALT X` | код ошибки (12 бит) |
-| `WAIT_FLAG` | код флага (`IMM[5:0]`) + инверсия (`IMM[6]`) |
-| `PACKER_RD`/`WR`/`SETPAGE`/`SETMODE`/`ADDR`/`IRQ` | не используется (канал — в `REG_ADDR`, код `IRQ` — в `ACC`) |
+| `LDI`/`LDH`/`LDL` | constant (12 bits) |
+| `JMP`/`CALL`/`LOOP` | address (12 bits) |
+| `HALT X` | error code (12 bits) |
+| everything else | not used |
 
-**Правило:** в одном микрослове — **один** потребитель `IMM`. `LDI` + `JMP` — можно. `LDI` + `LDX` — **нельзя** (оба хотят `IMM`). Проверяет **ассемблер**.
+**Rule:** one consumer of `IMM` per micro-word. `LDI` + `JMP` — OK. `LDI` + another `IMM` consumer — forbidden. Enforced by the assembler.
 
-## 4. Тракт ACC/OPR
+## 4. Stack A/B/C and the ALU
 
-![Внутренняя структура АЛУ](images/lx-gpu-alu-architecture.webp)
+![ALU internal structure](images/lx-gpu-alu-architecture.webp)
 
 ```
-          память (Wishbone 16 бит)
-            ^        ^        ^
-          [S]      [D]     [DATA]
-         SIDX     DIDX      DPTR
-            |        |        |
-          SPIX     DPIX     слово данных
-            \        |        /
-         [мультиплексор OPR] <-- IMM, R[n], ZERO
-                     |
-                     v
-   ACC ---A---> [АЛУ 24 бита] <---B--- OPR
-    ^                |
-    +----результат-----+        [DSP 12x12] -> ACC
+        memory (Wishbone 16 bit)
+          ^        ^        ^
+        [S]      [D]     [DATA]
+       SIDX     DIDX      DPTR
+          |        |        |
+        SPIX     DPIX     data word
+          \        |        /
+       [IN_ stage register] <-- devices (DeviceMap), memory, pixel, flags
+                   |
+                   v
+   A ---+--> [ALU 24 bit] <---+--- B
+        |         |              |
+        |      result R          |
+        |         v              |
+        +----- mux into A <-- C -+
+                              (stack)
 ```
 
-Мультиплексор только на входе OPR. ACC загружается исключительно из АЛУ; «загрузка» — операция `PASS` (ACC = OPR). Входы DSP подключены к ACC и OPR. `MUL` — обычная операция АЛУ (`ACC = ACC[11:0] × OPR[11:0]`), два такта; если следующее слово использует АЛУ, железо само вставляет такт ожидания.
+**A inputs (4:1):** result R (ALU), B (pop/swap), IN_ (external stage), IMM (constant).
+**B inputs:** A (push/swap) or C (pop). **C input:** B (push) or zero (pop).
+**ALU** has no input muxes: operands are always A and B (plus C for `BLEND`, currently not implemented).
+**C is zeroed on pop** — 100% by design.
 
-**Пиксельный путь.** `PACKER_RD`/`PACKER_WR` — единый путь для пикселей/слова. `SPIX`/`DPIX` доступны **только** через `PACKER_*` (или `LDX SPIX`/`STX DPIX` для отладки). `LDSP`/`LDDP`/`STDP` — **убраны** (зарезервированы).
+**External (slow) devices** all go through `IN_` (a pipeline stage register in hardware; a single register in the model). A device read always lands in A — never B, never C. A device write takes A (some devices may also read B or C).
 
-**AddrPacker** — отдельный класс: `x_int`/`y_int` из `ACC` (`ACC[11:0]=x`, `ACC[23:12]=y`), `base`/`stride` из регистров, `fmt` из `ch_mode_[ch]` → `addr24` + `pos`. `PACKER_RD/WR` вызывают `AddrPacker` внутри. **`CH_DATA`** — `DPTR` напрямую (не `AddrPacker`), `fmt` — `ch_mode_[DATA]` (`PASS16`/`PASS_LO8`/`PASS_HI8`).
+**AddrPacker** — a separate class. `ADDR ch` pops A (x, 12.12) and B (y, 12.12), passes them to `AddrPacker` (DSP inside: `y_int × stride`), which produces `addr24` + `pos` into a dedicated `ADDR_` register inside the GPU. `PACKER_RD/WR` then use `ADDR_` (and A as data). `CH_DATA` bypasses `AddrPacker` and uses `DPTR` directly, with `fmt` from `ch_mode_[DATA]` (`PASS16`/`PASS_LO8`/`PASS_HI8`).
 
-## 5. Микрокоманды
+**No MUL in the ALU.** Multiplication lives in `AddrPacker` (DSP). Pixel blending is done with shifts (power-of-two alpha).
+
+## 5. Micro-commands
 
 [include](gen/microops_reg-table.md)
 
@@ -83,138 +90,144 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 [include](gen/microops_ctrl-table.md)
 
-**REG_OP** — передача данных и служебное (5 бит, 24 кода): `NOP`, `PASS`, `LDR`, `STR`, `LDD`, `LDDS`, `SETS`, `SETD`, `SETP`, `LDCNT`, `FLUSH`, `LDX`, `STX`, `LDI`, `LDH`, `LDL`, `PACKER_RD`, `PACKER_WR`, `SETMODE`, `SETPAGE`, `ADDR`, `SETMASK`, `IRQ` + резерв.
+**REG_OP** — stack A/B/C and data (5 bits, 32 codes): `NOP`, `LDR`, `LDR_PUSH`, `STR`, `STR_POP`, `CLR_A`, `CLR_AB`, `CLR_C`, `LDD`, `LDD_PUSH`, `LDDS`, `LDDS_PUSH`, `SETS`, `SETD`, `SETP`, `LDCNT`, `FLUSH`, `LDX`, `LDX_PUSH`, `STX`, `STX_POP`, `LDI`, `LDI_PUSH`, `LDH`, `LDL`, `PACKER_RD`, `PACKER_RD_PUSH`, `PACKER_WR`, `PACKER_WR_POP`, `SETMODE`, `SETPAGE`, `ADDR`, `IRQ`.
 
-**ALU_OP** — 16 кодов из 16. `COMB` **убран**, логика (`AND`/`OR`/`XOR`) — через ALU. `ADDS`/`SUBS` — ширина канала из `ch_mode_[DEST].fmt`.
+**ALU_OP** — 32 codes (5 bits): 0..15 — 16 `LOGIC` LUT functions (AND=8, OR=14, XOR=6, PASS A=12, PASS B=10, NOT A=3, NOT B=5, ZERO=0, ONE=15); 16 — `ADD`; 17 — `SUB`; 18 — `CMP` (SUB without writing A, flags only); 19 — `SHL`; 20 — `SHR`; 21 — `SAR`; 22..31 reserved.
 
-**CTRL_OP** — 3 бита, 8 команд: `NOP`, `JMP`, `CALL`, `RET`, `LOOP`, `JMPA`, `HALT X`, `WAIT_FLAG`. `LDI`/`LDH`/`LDL`/`IRQ`/`FAULT`/`SKIP_IF_Z` — **убраны** (в `REG_OP`).
+**CTRL_OP** — 3 bits, 8 commands: `NOP`, `JMP`, `CALL`, `RET`, `LOOP`, `JMPA`, `HALT X`, `WAIT_FLAG`.
 
-## 6. Карта операндов
+## 6. Operand / device map
 
-![Карта операндов](gen/operand_map.svg)
+![Device map](gen/device_map.svg)
 
-[include](gen/operand_map-table.md)
+[include](gen/device_map-table.md)
 
-`ZERO` — операнд; при комбинаторном взрыве на мультиплексоре OPR заменяется на `LDI 0`.
+`R0..R31` are separate from `DeviceMap`: `LDR`/`STR` address the register file via `REG_ADDR` (0..31); `LDX`/`STX`/`WAIT_FLAG` address devices via `REG_ADDR` (0..31).
 
-`SPIX`/`DPIX` — **через `PACKER_RD/WR`**, не через `LDX`/`STX` (последние читают значение, не пиксель).
+`SPIX`/`DPIX` are accessed through `PACKER_RD/WR`, not `LDX`/`STX`.
 
-Флаги (`FLAG_BUSY`, `FLAG_IRQ`, `FLAG_DMA`, `FLAG_CNT_ZERO`) — однобитные операнды для `WAIT_FLAG` и `LDX`.
+Device flags (`FLAG_BUSY`, `FLAG_IRQ`, `FLAG_DMA`, `FLAG_CNT_ZERO`) and their inverses (`FLAG_*_NOT`) are one-bit devices. `WAIT_FLAG` waits until the chosen device reads as 1; the inverse device is used for "wait until 0".
 
-## 7. Регистровый файл
+## 7. Register file
 
-![Регистры](gen/registers.svg)
+![Registers](gen/registers.svg)
 
 [include](gen/registers-table.md)
 
-`SDX`, `SDY`, `DDX`, `DDY` — соглашение микрокода (аффинный режим, 12.12), не отдельная аппаратная фича.
+`SDX`, `SDY`, `DDX`, `DDY` are a microcode convention (affine mode, 12.12), not a hardware feature.
 
-## 8. Форматы пикселя и MODE
+## 8. Pixel formats and MODE
 
-![Mode Register](gen/channel_mode.svg)
+![Channel mode](gen/channel_mode.svg)
 [include](gen/channel_mode-table.md)
 
-**`MODE` (R14) — только `TR`** (бит 0). Формат канала — в `ch_mode_[4]` (3 бита `fmt` на канал), ставится `SETMODE` (`REG_ADDR[1:0]` = канал, `ACC[2:0]` = fmt). **`COP` убран** (комбайнера нет).
+**`MODE` (R14) — only `TR` bit** (bit 0). Channel format lives in `ch_mode_[4]` (3-bit `fmt` per channel), set by `SETMODE` (`REG_ADDR[1:0]` = channel, `A[2:0]` = fmt). `COP` removed (no combiner).
 
 [include](gen/channel_mode-table.md)
 
-**Порядок пикселей:** для 4 bpp `pos=0` — старшая тетрада, `pos=3` — младшая; для 8 bpp `pos=0` — старший байт, `pos=1` — младший; для 1 bpp `pos=0` — бит 15, `pos=15` — бит 0.
+**Pixel order:** for 4 bpp `pos=0` — high nibble, `pos=3` — low nibble; for 8 bpp `pos=0` — high byte, `pos=1` — low byte; for 1 bpp `pos=0` — bit 15, `pos=15` — bit 0.
 
-## 9. Загрузчик и пакеты
+## 9. Loader and packets
 
-**Загрузчик — полная замена старому протоколу обмена.** Защищённая область BRAM 0–31 занята загрузчиком, не перезаписывается (попытка → `HALT 1`). Понятия «загрузка микрокода» и «защищённая область» — новые; это новая архитектура, не надстройка.
+**The loader is a full replacement for the old exchange protocol.** BRAM 0–31 holds the loader; writing there → `HALT 1`. "Microcode loading" and "protected area" are new concepts; this is a new architecture, not a retrofit.
 
-Три адресных канала: `S` (SIDX → SPIX), `D` (DIDX → DPIX), `DATA` (DPTR → слово данных). Третий канал — поток данных, читаемый программно самим ядром.
+Three address channels: `S` (`SIDX → SPIX`), `D` (`DIDX → DPIX`), `DATA` (`DPTR → data word`).
 
-**Формат пакета:** последовательность блоков, каждый начинается 16-битным заголовком `{kind[15:12], arg[11:0]}`:
+**Packet format:** sequence of blocks, each starts with a 16-bit header `{kind[15:12], arg[11:0]}`:
 
 [include](gen/commands-table.md)
 
-`CODE`: arg = число микрослов; следующее слово — адрес в микрокоде; дальше по 3 слова на микрослово (36 бит в трёх 16-битных словах: `w0[15:0]`, `w1[31:16]`, `w2[35:32]`, `w2[15:4]` — резерв). `RUN`: arg = точка входа; программа сама читает свои данные и возвращается к загрузчику. `JUMP`: следующие 2 слова — новый DPTR.
+`CODE`: arg = number of micro-words; next word is the microcode address; then 3 words per micro-word (36 bits in three 16-bit words: `w0[15:0]`, `w1[31:16]`, `w2[35:32]`, `w2[15:4]` reserved). `RUN`: arg = entry point. `JUMP`: next 2 words = new `DPTR`.
 
-Конец пакета собирается из команд, а не прячется в одной:
+The end of a packet is assembled from commands:
 
 ```
-END:   FLUSH               ; REG_OP: память согласована
-       IRQ 1               ; REG_OP: ACC=1, выставить код прерывания
-       HALT 0              ; CTRL_OP: IDLE (успех)
+END:   FLUSH               ; REG_OP: memory is coherent
+       IRQ                 ; REG_OP: A = 1 → IRQ code
+       HALT 0              ; CTRL_OP: IDLE (success)
 ```
 
-Порядок важен: прерывание до `FLUSH` сообщило бы о рисунке, которого в памяти ещё нет. `FLUSH` синхронный. `END` (без прерывания) и `ENDI` (с ним) — разные типы заголовка.
+Order matters: an interrupt before `FLUSH` would announce a picture not yet in memory. `FLUSH` is synchronous. `END` (no IRQ) and `ENDI` (with IRQ) are distinct header kinds.
 
-## 10. Системные команды
+## 10. System commands
 
-| Команда | Одна функция | Чего не делает |
+| Command | Single function | What it does not do |
 |---|---|---|
-| `JMP`, `CALL`, `RET`, `LOOP`, `JMPA` | управление потоком | |
-| `LDI`, `LDH`, `LDL` | загрузка константы из `IMM` в `OPR` | |
-| `WAIT_FLAG X` | ждать, пока флаг (`IMM[5:0]`) не станет `(inv ? 0 : 1)` | не ждёт тактов, только флагов |
-| `FLUSH` | согласовать память | не прерывает CPU и не останавливает ядро |
-| `IRQ` | выставить событие | не сливает память и не останавливает ядро |
-| `HALT X` | `X=0` → IDLE (успех); `X!=0` → ERROR | не прерывает CPU |
+| `JMP`, `CALL`, `RET`, `LOOP`, `JMPA` | control flow | |
+| `LDI`, `LDH`, `LDL` | load constant from `IMM` into A | |
+| `WAIT_FLAG` | wait until the device selected by `REG_ADDR` reads 1 | does not wait for cycles, only for flags |
+| `FLUSH` | make memory coherent | does not interrupt the CPU, does not stop the core |
+| `IRQ` | raise an event | does not flush memory, does not stop the core |
+| `HALT X` | `X=0` → IDLE (success); `X!=0` → ERROR | does not interrupt the CPU |
 
-`SYNC` убран: его три функции разложены на `FLUSH` / `IRQ` / `HALT`. `STOP`/`CONTINUE` — команды CPU через порт. `ERROR` снимается только новым `START` (или `reset()`).
+`SYNC` removed: its three functions split into `FLUSH` / `IRQ` / `HALT`. `STOP`/`CONTINUE` are CPU commands through a port. `ERROR` is cleared only by a new `START` (or `reset()`).
 
-## 11. Эталонные циклы
+**`LDH` and `LDL`:** `LDI` loads a sign-extended 12-bit constant into A (replaces A entirely). `LDH` writes `IMM` into `A[23:12]` without touching the lower 12 bits. `LDL` writes `IMM` into `A[11:0]` without touching the upper 12 bits. To build a 24-bit address: `LDL low12; LDH high12`.
 
-**Заливка одним цветом** (перед циклом `DIDX` установлен через `SETD`, счётчик загружен через `LDCNT`):
+## 11. Reference loops
 
-```
-;        REG_OP          ALU     CTRL
-PIX:     PACKER_RD DEST  -       -           ; OPR = пиксель приёмника
-         LDR FG          PASS    -           ; ACC = FG, OPR = пиксель
-         -               AND/OR/XOR/...       ; ACC = ACC op OPR
-         PACKER_WR DEST  -       LOOP PIX    ; пиксель записан
-```
-
-**Копирование спрайта**:
+**Solid fill** (before the loop `DIDX` is set via `SETD`, the counter is loaded via `LDCNT`):
 
 ```
-PIX:     PACKER_RD SRC   -       -
-         PASS            -       -           ; ACC = пиксель источника
-         STR T0          -       -           ; T0 = пиксель
-         PACKER_RD DEST  -       -
-         LDR T0          PASS    -           ; ACC = пиксель приёмника, OPR = T0
-         PACKER_WR DEST  -       LOOP PIX
+;        REG_OP          ALU        CTRL
+PIX:     PACKER_RD DEST  -          -           ; A = destination pixel
+         LDR FG          -          -           ; A = FG
+         -               AND/OR/XOR/...          ; A = A op B (B = dest pixel)
+         PACKER_WR DEST  -          LOOP PIX
 ```
 
-**Аффинный режим** — источник считается на каждый пиксель:
+**Sprite copy:**
 
 ```
-    LDX SX              ; OPR = SX (x_int)
-    LDI SDX             ; OPR = SDX (12.12)
-    ADD                 ; ACC = SX + SDX
-    STR SX              ; SX = ACC
-    SHR 12              ; ACC = x_int
-    ; ... аналогично y, затем AddrPacker
+PIX:     PACKER_RD SRC   -          -
+         STR T0          -          -           ; T0 = source pixel
+         PACKER_RD DEST  -          -
+         LDR_PUSH T0     -          -           ; push A(dest); A = T0 (src)
+         -               AND/OR/XOR/...          ; A = A op B
+         PACKER_WR DEST  -          LOOP PIX
 ```
 
-## 12. Клиппинг и аффинный режим
+**Affine mode** — source sampled per pixel:
 
-Регистры клиппинга (`CX0`, `CY0`, `CX1`, `CY1`) и инкремента аффинного режима (`SDX`, `SDY`, `DDX`, `DDY`) специфицированы. **Микрокод не написан** — соглашение микрокода, не железо.
+```
+    ; A = (SY >> 12) << 12 | (SX >> 12)
+    LDX SX
+    STR T0
+    LDX SY
+    SHR 12
+    LDH (no — LDH takes IMM) ...
+```
 
-## 13. Что осознанно не делаем
+See `03_draw_sprite.md` for a complete affine example.
 
-- Аппаратный скроллинг и page flip.
-- LUT цвет×цвет.
-- Форматы 2 и 3 bpp (коды `fmt=1`, резерв).
-- Третий источник (заменяется двумя проходами через скрытую страницу).
-- Быстрая заливка по целому слову (решается программно).
-- Палитра (не часть процессора).
-- **Комбайнер (`COMB`)** — убран, логика через ALU (`AND`/`OR`/`XOR`).
-- **`SKIP_IF_Z`** — убран, прозрачность через `COND Z` + `MASK CTRL`.
-- **`LDSP`/`LDDP`/`STDP`** — убраны (заменены `PACKER_RD/WR`).
-- **`FAULT`** — убран (`HALT X`).
+## 12. Clipping and affine mode
 
-## 14. Открытые вопросы
+Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `SDY`, `DDX`, `DDY`) are specified. **Microcode is not written yet** — it is a microcode convention, not a hardware feature.
 
-1. **`WAIT_FLAG`** (реализован).
-2. **Точная раскладка микрослова** — 36 бит, `w2[3:0]` — `reg_op` (4 бита), `w2[15:4]` — резерв. **`reg_op` 5 бит** — в `w1[4:0]`? — **уточнить** в `MicroWord::pack/unpack`.
-3. **Место `FLUSH`** → **`REG_OP`** (`R_FLUSH`).
-4. **Аппаратные детекторы `FAULT`** — открыты.
-5. **`kind` 4 бита** — хватает.
-6. **36 бит vs 16** → **36 бит**, 3×16.
-7. **Аффинный режим** — `SDX`/`SDY` (12.12), микрокод **не написан**.
-8. **Клиппинг** — `CX0..CY1`, микрокод **не написан**.
-9. **Блендинг** — `BLEND_SHIFT`, **не реализован**.
-10. **Интеграция с `machine.cpp`** — `gpu_mmio` (страница 3), `set_line(5)`, `tick(t)` — **в процессе**.
+## 13. Deliberately not done
+
+- Hardware scrolling and page flip.
+- Color × color LUT.
+- 2 and 3 bpp formats (`fmt=1`, reserved).
+- Third source (replaced by two passes through a hidden page).
+- Fast whole-word fill (solved in software).
+- Palette (not part of the processor).
+- **Combiner (`COMB`)** — removed; logic via ALU (`LOGIC` LUT).
+- **`SKIP_IF_Z`** — removed; transparency via `COND Z` + `MASK CTRL` on `PACKER_WR`.
+- **`LDSP`/`LDDP`/`STDP`** — removed (replaced by `PACKER_RD/WR`).
+- **`FAULT`** — removed (`HALT X` with `X != 0`).
+- **Saturation (`ADDS`, `SUBS`), `MIN`, `MAX`, `MUL`, `COMB`** — removed from ALU.
+- **`SETMASK` / pixel mask / bit-plane layers** — removed. Layers and partial updates are done by the microcode (per-pixel writes, `COND`/`MASK`).
+
+## 14. Open questions
+
+1. **`WAIT_FLAG`** — implemented.
+2. **Exact microinstruction packing** — 36 bits, `MicroWord::pack/unpack`.
+3. **`FLUSH`** — in `REG_OP` (`R_FLUSH`).
+4. **Hardware detectors for `HALT 1`** — open.
+5. **`kind` 4 bits** — sufficient.
+6. **36 bits vs 16** — chosen: 36 bits, 3×16.
+7. **Affine mode** — `SDX`/`SDY` (12.12), microcode not written.
+8. **Clipping** — `CX0..CY1`, microcode not written.
+9. **Blending** — shift-based (`SHR`/`ADD`), not a dedicated command.
+10. **Integration with `machine.cpp`** — `gpu_mmio` (page 3), `set_line(5)`, `tick(t)` — in progress.

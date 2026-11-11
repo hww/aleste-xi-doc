@@ -1,40 +1,40 @@
-# LX-GPU: архитектура пиксельного буферного блока
+# LX-GPU: pixel buffer block architecture
 
-Цель — проверить архитектурную идею и основные ограничения будущего железа, а не строить точный RTL- или цикл-в-цикл симулятор.
+Goal: validate the architectural idea and the main hardware constraints, not to build an exact RTL or cycle-accurate simulator.
 
-## 1. Общая структура
+## 1. Structure
 
-Один общий буферный модуль с четырьмя логическими записями:
+A single shared buffer module with four logical entries:
 
-| Номер | Назначение |
+| Number | Purpose |
 |---|---|
-| 0 | SOURCE — чтение исходных пикселей |
-| 1 | DESTINATION — чтение и изменение пикселей назначения с последующей записью |
-| 2 | DATA — поток обычных 16-битных слов |
-| 3 | RESERVED — резерв |
+| 0 | SOURCE — read source pixels |
+| 1 | DESTINATION — read-modify-write destination pixels |
+| 2 | DATA — plain 16-bit words |
+| 3 | RESERVED |
 
-**Реализация:** `PixelBuffer` — один класс, `BufferEntry e_[4]`:
+**Implementation:** `PixelBuffer` — one class, `BufferEntry e_[4]`:
 
 ```cpp
 struct BufferEntry {
-    uint16_t tag;      // младшие 16 бит адреса слова
-    uint16_t data;     // 16-битное содержимое
-    uint8_t  page;     // старшие 8 бит адреса (страница)
+    uint16_t tag;      // low 16 bits of the word address
+    uint16_t data;     // 16-bit content
+    uint8_t  page;     // high 8 bits of the address (page)
     bool     valid;
-    bool     dirty;    // для DEST; для SOURCE/DATA всегда false
+    bool     dirty;    // for DEST; always false for SOURCE/DATA
 };
 ```
 
-**Не** «BRAM 4 записи» — **4 структуры** в C++. Ширина BRAM — **не фиксирована** (отложено до RTL). `page` (8 бит) — **не входит** в TAG (16 бит): `page_of(addr24) = addr24 >> 16`, `tag_of(addr24) = addr24 & 0xFFFF`.
+Not "BRAM with 4 entries" — four C++ structs. BRAM width is not fixed (deferred to RTL). `page` (8 bits) is not part of TAG (16 bits): `page_of(addr24) = addr24 >> 16`, `tag_of(addr24) = addr24 & 0xFFFF`.
 
-## 2. Форматы пикселей
+## 2. Pixel formats
 
-Буфер работает с 16-битными словами. `fmt` — в `PixelPacker` (не в буфере). 8 кодов:
+The buffer works with 16-bit words. `fmt` lives in `PixelPacker`, not in the buffer. 8 codes:
 
-| Код | Формат | Пикселей в слове |
+| Code | Format | Pixels per word |
 |---|---|---|
 | 0 | 1 bpp | 16 |
-| 1 | резерв | — |
+| 1 | reserved | — |
 | 2 | 4 bpp | 4 |
 | 3 | 8 bpp | 2 |
 | 4 | 16 bpp | 1 |
@@ -42,65 +42,67 @@ struct BufferEntry {
 | 6 | PASS_HI8 | — |
 | 7 | PASS16 | — |
 
-1 bpp — **источник** (маски, шрифты), но `AddrPacker`/`PixelPacker` **умеют** и как приёмник (16 пикселей/слово).
+1 bpp is a source format (masks, fonts); `AddrPacker` and `PixelPacker` support it as a destination too (16 pixels per word).
 
-## 3. Адресация
+## 3. Addressing
 
-Адресную арифметику **не** переносить внутрь буфера. `AddrPacker` (отдельный класс) формирует `addr24` + `pos` из `x_int`/`y_int` (в `ACC`), `base`/`stride` (в регистрах), `fmt` (`ch_mode_[ch]`). Буфер получает **готовый `addr24`** (24 бита) и **`pos`** (0..15).
+Address arithmetic does not belong in the buffer. `AddrPacker` (a separate class) produces `addr24` + `pos` from `x_int`/`y_int` (in A), `base`/`stride` (in registers), and `fmt` (`ch_mode_[ch]`). The buffer receives a ready `addr24` (24 bits) and `pos` (0..15).
 
-Видеоконтроллер адресует страницы по 64 КБ. TAG — **16 бит** (младшие), `page` — **8 бит** (старшие). При смене страницы — `set_page(ch, page)` (writeback dirty, сброс канала).
+The video controller addresses 64 KB pages. TAG is 16 bits (low), `page` is 8 bits (high). A page change uses `set_page(ch, page)` (write back dirty, reset the channel).
 
-## 4. Назначение каналов
+## 4. Channel purposes
 
-**SOURCE** — чтение исходных пикселей. `PACKER_RD ch=SOURCE`, `pos` из `AddrPacker`, `fmt` из `ch_mode_[SOURCE]`.
+**SOURCE** — read source pixels. `PACKER_RD ch=SOURCE`, `pos` from `AddrPacker`, `fmt` from `ch_mode_[SOURCE]`.
 
-**DESTINATION** — чтение + запись. `PACKER_RD ch=DEST` (read), `PACKER_WR ch=DEST` (write, с `mask_`). Dirty — **флаг на запись** (не маска байтов): пишется **всё слово** (`write16`).
+**DESTINATION** — read + write. `PACKER_RD ch=DEST` (read), `PACKER_WR ch=DEST` (write). Dirty is a **single flag per entry** (not a byte mask): the whole word is written with `write16`.
 
-**DATA** — 16-битные слова, без пиксельной логики. `PACKER_RD/WR ch=DATA` — через `DPTR` (не `AddrPacker`), `fmt` из `ch_mode_[DATA]` (`PASS16`/`PASS_LO8`/`PASS_HI8`).
+**DATA** — plain 16-bit words, no pixel logic. `PACKER_RD/WR ch=DATA` goes through `DPTR` (not `AddrPacker`); `fmt` from `ch_mode_[DATA]` (`PASS16`/`PASS_LO8`/`PASS_HI8`).
 
-**RSV** — резерв, не используется.
+**RSV** — reserved, unused.
 
 ## 5. HIT/MISS
 
-`BufferEntry`: `{tag, data, page, valid, dirty}`. **DIRTY — один флаг** (не маска байтов). Запись — **всё слово** (`write16`).
+`BufferEntry`: `{tag, data, page, valid, dirty}`. **DIRTY — one flag** (no byte mask). Writes always use a full 16-bit `write16`.
 
-При обращении:
-1. Проверить `valid` и `tag == tag_of(addr)` и `page == page_of(addr)`.
-2. HIT → `data`, `hits++`, 1 такт.
-3. MISS → если `dirty`, `write16(page<<16 | tag, data)`, `writebacks++`, `MISS_CYCLES`; заполнить `data = read16(addr)`, `valid=true`, `dirty=false`, `misses++`, `MISS_CYCLES`.
+On access:
+1. Check `valid` and `tag == tag_of(addr)` and `page == page_of(addr)`.
+2. HIT → return `data`, `hits++`, 1 cycle.
+3. MISS → if dirty, `write16(page<<16 | tag, data)`, `writebacks++`, `MISS_CYCLES`; then `data = read16(addr)`, `valid=true`, `dirty=false`, `misses++`, `MISS_CYCLES`.
 
-`MISS_CYCLES = 6` — **модель**, не RTL.
+`MISS_CYCLES = 6` — a model constant, not RTL.
 
-## 6. Доступ к памяти
+## 6. Memory access
 
-`Memory16` — обёртка над `uint8_t*` (композиция, `Memory16(base, size)`). `read16`/`write16` — 16-битные, little-endian. В `Machine`: `gpu_mem_(mem.data(), MEM_SIZE)` — **не владеет** (`owns_=false`).
+`Memory16` is a wrapper over a `uint8_t*` (composition; `Memory16(base, size)`). `read16`/`write16` operate on 16-bit little-endian words. In `Machine`: `gpu_mem_(mem.data(), MEM_SIZE)` — does not own the buffer (`owns_=false`).
 
-Wishbone — общий интерфейс. 4 записи — **не** 4 параллельных порта. Одна транзакция за раз.
+Wishbone is the shared interface. Four logical entries are not four parallel ports. One transaction at a time.
 
-## 7. Принципы реализации
+## 7. Implementation principles
 
-- Один буфер, **не** три кэша. `PixelBuffer` — один класс, `ch` — enum (0..3).
-- `AddrPacker` — **вне** буфера, **в** `GPU`.
-- `DATA` — `DPTR` (нет отдельного инкрементатора).
-- `set_page` — **на канал** (writeback dirty канала, сброс).
-- `flush` — **глобальный** (writeback всех dirty, инвалидация).
-- `MISS_CYCLES = 6` — модель, не RTL.
+- One buffer, not three caches. `PixelBuffer` is a single class with a `ch` enum (0..3).
+- `AddrPacker` lives outside the buffer, inside `GPU`.
+- `DATA` uses `DPTR` (no dedicated incrementer).
+- `set_page` is per-channel (write back that channel's dirty entry, reset it).
+- `flush` is global (write back all dirty entries, invalidate all).
+- `MISS_CYCLES = 6` — model constant, not RTL.
 
-## 8. Что требуется от модели
+## 8. What the model must demonstrate
 
-Реализовано:
-- 4 записи (`BufferEntry e_[4]`);
-- `TAG`/`VALID`/`DIRTY`;
-- `HIT`/`MISS`;
-- writeback dirty DEST перед вытеснением;
-- fill при MISS;
-- `set_page` (writeback канала, сброс);
-- `flush` (writeback всех, инвалидация);
-- `buffer_error()` — модель **показывает** ошибку (обращение к чужой странице без `set_page`);
-- счётчики `hits`/`misses`/`writebacks`.
+Implemented:
+- four entries (`BufferEntry e_[4]`);
+- `TAG` / `VALID` / `DIRTY`;
+- `HIT` / `MISS`;
+- dirty DEST writeback before eviction;
+- fill on MISS;
+- `set_page` (channel writeback, reset);
+- `flush` (all writebacks, invalidate);
+- `buffer_error()` — the model surfaces the error (write to a foreign page without `set_page`);
+- counters `hits`, `misses`, `writebacks`.
 
-Тесты: `test_fill`, `test_sprite`, `test_sprite8`, `test_loop`, `test_setpage`, `test_page_error`, `test_mask`, `test_1bpp`, `test_pass`, `test_mmio` — **15 тестов PASS**.
+Tests: `test_fill`, `test_sprite`, `test_sprite8`, `test_loop`, `test_setpage`, `test_page_error`, `test_1bpp`, `test_pass`, `test_affine`, `test_comb_alu`, `test_mmio` — all passing.
 
-**`test_page_error`** — **модель показывает ошибку** (`buffer_error()`), **не скрывает**. Это **важнее** «удобства»: если микрокод забыл `set_page`, GPU **не должен** молча писать в чужую страницу.
+**`test_page_error`** demonstrates the error (`buffer_error()`) instead of hiding it. That matters more than convenience: if the microcode forgets `set_page`, the GPU must not silently write to a foreign page.
 
-**Важно:** точная ширина BRAM, структура dirty-масок (флаг vs маска байтов), FSM, интерфейс ожидания/готовности — **отложены** до RTL. В модели — **флаг** (проще, пишется всё слово).
+**Note:** exact BRAM width, dirty structure (flag vs byte mask), FSM, and ready/wait interface are deferred to RTL. The model uses a single flag and writes the whole word.
+
+**Removed in this revision:** `SETMASK`, pixel mask, bit-plane layers, `mask_` in the GPU. Partial updates and layer-like effects are done by microcode (per-pixel writes plus `COND`/`MASK`).

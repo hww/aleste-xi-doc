@@ -1,0 +1,30 @@
+kind: code_list
+name: device_map
+title: "Device map — devices accessible via LDX/STX/WAIT_FLAG (REG_ADDR 0..31)"
+fields: [code, name, description]
+entries:
+  - {code: 0,  name: "ZERO",             description: "Constant 0"}
+  - {code: 1,  name: "A",                description: "Stack register A"}
+  - {code: 2,  name: "B",                description: "Stack register B"}
+  - {code: 3,  name: "C",                description: "Stack register C"}
+  - {code: 4,  name: "SPIX",             description: "Source pixel (via PACKER_RD CH_SOURCE)"}
+  - {code: 5,  name: "DPIX",             description: "Destination pixel (via PACKER_RD/WR CH_DEST)"}
+  - {code: 6,  name: "SIDX",             description: "Source index"}
+  - {code: 7,  name: "DIDX",             description: "Destination index"}
+  - {code: 8,  name: "DPTR",             description: "Data stream pointer"}
+  - {code: 9,  name: "FLAG",             description: "Flags Z, N, C"}
+  - {code: 10, name: "CNT",              description: "Loop counter"}
+  - {code: 11, name: "FLAG_BUSY",        description: "1 if busy (model: always 0)"}
+  - {code: 12, name: "FLAG_IRQ",         description: "1 if irq_pending_"}
+  - {code: 13, name: "FLAG_DMA",         description: "Stub, 0"}
+  - {code: 14, name: "FLAG_CNT_ZERO",    description: "1 if loop_cnt_ == 0"}
+  - {code: 15, name: "FLAG_BUSY_NOT",    description: "Inverse of FLAG_BUSY"}
+  - {code: 16, name: "FLAG_IRQ_NOT",     description: "Inverse of FLAG_IRQ"}
+  - {code: 17, name: "FLAG_DMA_NOT",     description: "Inverse of FLAG_DMA"}
+  - {code: 18, name: "FLAG_CNT_ZERO_NOT", description: "Inverse of FLAG_CNT_ZERO"}
+  - {code: "19..31", name: "reserved",   description: "—"}
+notes:
+  - "R0..R31 are addressed separately via LDR/STR (REG_ADDR 0..31)."
+  - "LDX/STX/WAIT_FLAG use REG_ADDR as a device number (0..31)."
+  - "SPIX/DPIX are accessed through PACKER_RD/WR, not LDX/STX."
+  - "Flag inverses are separate devices (FLAG_*_NOT), no inversion bit."
