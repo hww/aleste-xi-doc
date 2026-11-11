@@ -161,7 +161,7 @@ set / enable) but uses the LX addressing model.
 - **Planned.** Not implemented in `gen_rtl`.
 - **API surface** is documented above. Signatures and register usage
   will be finalized when the library is written.
-- **Reference** for the current RTL registers: `lx_mmu.md` §4.
+- **Reference** for the current RTL entries: `lx_mmu.md` §4.
 - **Reference** for the BIOS driver architecture: `lx-bios.md`.
 
 ---

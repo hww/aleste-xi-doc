@@ -1,0 +1,61 @@
+kind: code_list
+name: dma_blitter_map
+title: "Blitter Register Map (lx_dma.sv)"
+width: 8
+
+entries:
+  - addr: "0x00"
+    name: "CTRL"
+    fields:
+      - {name: "START", msb: 0, lsb: 0, description: "Start transfer"}
+      - {name: "MODE", msb: 2, lsb: 1, description: "0=copy, 1=fill, 2=copy+transp"}
+      - {name: "IRQ", msb: 3, lsb: 3, description: "IRQ on done"}
+  - addr: "0x01"
+    name: "STATUS"
+    fields:
+      - {name: "DONE", msb: 0, lsb: 0, description: "Done pending (W 1 = clear)"}
+  - addr: "0x02"
+    name: "SRC_0"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Physical source [7:0]"}]
+  - addr: "0x03"
+    name: "SRC_1"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Physical source [15:8]"}]
+  - addr: "0x04"
+    name: "SRC_2"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Physical source [23:16]"}]
+  - addr: "0x05"
+    name: "DST_0"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Physical dest [7:0]"}]
+  - addr: "0x06"
+    name: "DST_1"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Physical dest [15:8]"}]
+  - addr: "0x07"
+    name: "DST_2"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Physical dest [23:16]"}]
+  - addr: "0x08"
+    name: "WIDTH_0"
+    fields: [{name: "W", msb: 7, lsb: 0, description: "Bytes per line [7:0]"}]
+  - addr: "0x09"
+    name: "WIDTH_1"
+    fields: [{name: "W", msb: 7, lsb: 0, description: "Bytes per line [15:8]"}]
+  - addr: "0x0A"
+    name: "HEIGHT_0"
+    fields: [{name: "H", msb: 7, lsb: 0, description: "Lines [7:0]"}]
+  - addr: "0x0B"
+    name: "HEIGHT_1"
+    fields: [{name: "H", msb: 7, lsb: 0, description: "Lines [15:8]"}]
+  - addr: "0x0C"
+    name: "SSTRIDE_0"
+    fields: [{name: "STR", msb: 7, lsb: 0, description: "Source stride (signed) [7:0]"}]
+  - addr: "0x0D"
+    name: "SSTRIDE_1"
+    fields: [{name: "STR", msb: 7, lsb: 0, description: "Source stride (signed) [15:8]"}]
+  - addr: "0x0E"
+    name: "DSTRIDE_0"
+    fields: [{name: "STR", msb: 7, lsb: 0, description: "Dest stride (signed) [7:0]"}]
+  - addr: "0x0F"
+    name: "DSTRIDE_1"
+    fields: [{name: "STR", msb: 7, lsb: 0, description: "Dest stride (signed) [15:8]"}]
+  - addr: "0x10"
+    name: "KEY"
+    fields: [{name: "KEY", msb: 7, lsb: 0, description: "Fill byte / transparent color"}]

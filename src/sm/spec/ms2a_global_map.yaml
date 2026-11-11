@@ -1,0 +1,43 @@
+kind: code_list
+name: ms2a_global_map
+title: "Rev. A: Global Registers Map"
+width: 8
+
+entries:
+  - addr: "0x00"
+    name: "GLOBAL_CR"
+    fields: 
+      - {name: "EN", msb: 0, lsb: 0, description: "Enable"}
+      - {name: "RST", msb: 1, lsb: 1, description: "Reset"}
+  - addr: "0x01"
+    name: "GLOBAL_VOL_L"
+    fields: [{name: "VOL_L", msb: 7, lsb: 0, description: "Global left volume"}]
+  - addr: "0x02"
+    name: "GLOBAL_VOL_R"
+    fields: [{name: "VOL_R", msb: 7, lsb: 0, description: "Global right volume"}]
+  - addr: "0x03"
+    name: "STATUS"
+    fields: 
+      - {name: "ACT", msb: 0, lsb: 0, description: "Global active"}
+      - {name: "CH_ACT", msb: 1, lsb: 1, description: "Any channel active"}
+      - {name: "ERR", msb: 2, lsb: 2, description: "Any error"}
+      - {name: "EOF", msb: 3, lsb: 3, description: "Any EOF"}
+      - {name: "DMA_ERR", msb: 4, lsb: 4, description: "DMA error"}
+      - {name: "TMR_IRQ", msb: 5, lsb: 5, description: "Timer IRQ"}
+  - addr: "0x04"
+    name: "IRQ_CTRL"
+    fields: 
+      - {name: "TMR_EN", msb: 0, lsb: 0, description: "Timer IRQ enable"}
+      - {name: "DMA_NMI", msb: 1, lsb: 1, description: "DMA error NMI enable"}
+  - addr: "0x05"
+    name: "DMA_ERR_CLR"
+    fields: [{name: "CLR", msb: 0, lsb: 0, description: "Write 1 to clear"}]
+  - addr: "0x10"
+    name: "TIMER_VAL"
+    fields: [{name: "VAL_L", msb: 7, lsb: 0, description: "Timer value low"}]
+  - addr: "0x11"
+    name: "TIMER_VAL_H"
+    fields: [{name: "VAL_H", msb: 7, lsb: 0, description: "Timer value high"}]
+  - addr: "0x12"
+    name: "TIMER_CTRL"
+    fields: [{name: "CTRL", msb: 7, lsb: 0, description: "Timer control"}]

@@ -1,0 +1,39 @@
+kind: code_list
+name: ms2c_global_map
+title: "Rev. C: Global Registers Map"
+width: 8
+
+entries:
+  - addr: "0x00"
+    name: "CTRL"
+    fields: [{name: "ENABLE", msb: 0, lsb: 0, description: "Enable MS2"}]
+  - addr: "0x01"
+    name: "VOL_L"
+    fields: [{name: "VOL_L", msb: 7, lsb: 0, description: "Global left volume"}]
+  - addr: "0x02"
+    name: "VOL_R"
+    fields: [{name: "VOL_R", msb: 7, lsb: 0, description: "Global right volume"}]
+  - addr: "0x03"
+    name: "STATUS (R)"
+    fields: 
+      - {name: "EOF_CH", msb: 3, lsb: 0, description: "EOF per channel"}
+      - {name: "PLAYING_CH", msb: 7, lsb: 4, description: "Playing per channel"}
+  - addr: "0x03"
+    name: "STATUS (W)"
+    fields: [{name: "CLR_EOF", msb: 3, lsb: 0, description: "Clear EOF"}]
+  - addr: "0x04"
+    name: "IRQ_CTRL"
+    fields: 
+      - {name: "EOF_IRQ", msb: 0, lsb: 0, description: "EOF IRQ enable"}
+      - {name: "TMR_IRQ", msb: 1, lsb: 1, description: "Timer IRQ enable"}
+  - addr: "0x05"
+    name: "IRQ_STAT (R)"
+    fields: 
+      - {name: "EOF_PEND", msb: 0, lsb: 0, description: "EOF pending"}
+      - {name: "TMR_PEND", msb: 1, lsb: 1, description: "Timer pending"}
+  - addr: "0x10"
+    name: "TIMER_LO"
+    fields: [{name: "TMR_LO", msb: 7, lsb: 0, description: "Timer period low"}]
+  - addr: "0x11"
+    name: "TIMER_HI"
+    fields: [{name: "TMR_HI", msb: 7, lsb: 0, description: "Timer period high"}]

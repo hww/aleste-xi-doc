@@ -1,0 +1,10 @@
+kind: code_list
+name: palette_modes
+output: [md]
+title: "Color Modes"
+fields: [code, mode, bits, desc]
+entries:
+  - {code: 0, mode: "12-bit Native", bits: "12-bit", desc: "Direct RGB, bypasses conversion"}
+  - {code: 1, mode: "CPC Legacy", bits: "5-bit", desc: "16 colors + border, hardware LUT conversion"}
+  - {code: 2, mode: "MSX", bits: "8-bit", desc: "MSX2+ compatible, perceptual mapping"}
+  - {code: 3, mode: "YJK", bits: "YJK", desc: "Advanced color space for graphic arts"}

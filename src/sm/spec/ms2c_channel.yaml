@@ -1,0 +1,61 @@
+kind: code_list
+name: ms2c_channel_map
+title: "Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)"
+width: 8
+
+entries:
+  - addr: "+0"
+    name: "CTRL"
+    fields: 
+      - {name: "PLAY", msb: 0, lsb: 0, description: "Play"}
+      - {name: "LOOP", msb: 1, lsb: 1, description: "Loop"}
+      - {name: "16BIT", msb: 2, lsb: 2, description: "16-bit samples"}
+      - {name: "IRQ", msb: 3, lsb: 3, description: "IRQ on EOF"}
+  - addr: "+1"
+    name: "START_0"
+    fields: [{name: "ADDR_0", msb: 7, lsb: 0, description: "Start address [7:0]"}]
+  - addr: "+2"
+    name: "START_1"
+    fields: [{name: "ADDR_1", msb: 7, lsb: 0, description: "Start address [15:8]"}]
+  - addr: "+3"
+    name: "START_2"
+    fields: [{name: "ADDR_2", msb: 7, lsb: 0, description: "Start address [23:16]"}]
+  - addr: "+4"
+    name: "END_0"
+    fields: [{name: "ADDR_0", msb: 7, lsb: 0, description: "End address [7:0]"}]
+  - addr: "+5"
+    name: "END_1"
+    fields: [{name: "ADDR_1", msb: 7, lsb: 0, description: "End address [15:8]"}]
+  - addr: "+6"
+    name: "END_2"
+    fields: [{name: "ADDR_2", msb: 7, lsb: 0, description: "End address [23:16]"}]
+  - addr: "+7"
+    name: "LOOP_0"
+    fields: [{name: "ADDR_0", msb: 7, lsb: 0, description: "Loop address [7:0]"}]
+  - addr: "+8"
+    name: "LOOP_1"
+    fields: [{name: "ADDR_1", msb: 7, lsb: 0, description: "Loop address [15:8]"}]
+  - addr: "+9"
+    name: "LOOP_2"
+    fields: [{name: "ADDR_2", msb: 7, lsb: 0, description: "Loop address [23:16]"}]
+  - addr: "+A"
+    name: "VOL_L"
+    fields: [{name: "VOL_L", msb: 7, lsb: 0, description: "Channel left volume"}]
+  - addr: "+B"
+    name: "VOL_R"
+    fields: [{name: "VOL_R", msb: 7, lsb: 0, description: "Channel right volume"}]
+  - addr: "+C"
+    name: "STEP_0"
+    fields: [{name: "FRAC_0", msb: 7, lsb: 0, description: "Step fraction [7:0]"}]
+  - addr: "+D"
+    name: "STEP_1"
+    fields: [{name: "FRAC_1", msb: 7, lsb: 0, description: "Step fraction [15:8]"}]
+  - addr: "+E"
+    name: "STEP_2"
+    fields: [{name: "INT", msb: 7, lsb: 0, description: "Step integer"}]
+  - addr: "+F"
+    name: "Status"
+    fields: 
+      - {name: "PLAYING", msb: 0, lsb: 0, description: "Playing"}
+      - {name: "EOF", msb: 1, lsb: 1, description: "EOF"}
+      - {name: "POS_HI", msb: 7, lsb: 4, description: "Position high byte"}

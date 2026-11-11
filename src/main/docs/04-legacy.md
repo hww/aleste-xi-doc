@@ -49,7 +49,7 @@ What was **outside** the CPC case — third‑party expansions, cartridges,
 external peripherals, Amstrad‑branded "standard" add‑ons — is **not**
 part of the LX compatibility target. LX may ignore it.
 
-![Amstrad CPC](./images/i-love-amstrad.png)
+![Amstrad CPC](images/i-love-amstrad.png)
 
 **Aleste 520EX** is an *extended* platform (1990s, discrete components).
 It is **not canon**. It contains many cost‑cutting compromises of the
@@ -79,6 +79,7 @@ Components use partial address decoding. It is therefore possible to
 send the same value to different components simultaneously by carefully
 using custom I/O ports.
 
+<!-- table: procedural -->
 | Hardware device | R/W | b15 | b14 | b13 | b12 | b11 | b10 | b9 | b8 | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Gate Array | W | 0 | 1 | - | - | - | - | - | - | - | - | - | - | - | - | - | - |
@@ -96,13 +97,12 @@ Legend:
 - `1` — bit must be `1` for the device to respond
 - `r1`, `r0` — register selector bits
 - `*` — bit 14 of the PAL port must be `1` on CPCs with CRTC 0/1/2.
-  It may be `0` or `1` on CRTC 3/4. For compatibility, always set
-  bit 14 to `1` when selecting PAL.
 
 **LX (hww):** Mandatory — needed for CPC compatibility.
 
 ### 1.2 Official I/O ports
 
+<!-- table: procedural -->
 | I/O | Decoded as | Port | R/W |
 |---|---|---|---|
 | `0x7FXX` | `%01xxxxxx xxxxxxxx` | Gate Array | W |
@@ -113,15 +113,15 @@ Legend:
 | `0xDFXX` | `%xx0xxxxx xxxxxxxx` | Upper ROM Bank Number | W |
 | `0xEFXX` | `%xxx0xxxx xxxxxxxx` | Printer Port | W |
 | `0xF4XX` | `%xxxx0x00 xxxxxxxx` | 8255 PPI Port A (PSG Data) | RW |
-| `0xF5XX` | `%xxxx0x01 xxxxxxxx` | 8255 PPI Port B (Vsync, PrnBusy, Tape) | R |
-| `0xF6XX` | `%xxxx0x10 xxxxxxxx` | 8255 PPI Port C (KeybRow, Tape, PSG Control) | W |
-| `0xF7XX` | `%xxxx0x11 xxxxxxxx` | 8255 PPI Control Register | W |
-| `0xFA7E` | `%xxxxx0x0 0xxxxxxx` | Floppy Motor Control (765 FDC) | W |
-| `0xFB7E` | `%xxxxx0x1 0xxxxxx0` | 765 FDC Status Register | R |
-| `0xFB7F` | `%xxxxx0x1 0xxxxxx1` | 765 FDC Data Register | RW |
+| `0xF5XX` | `%xxxx0x01 xxxxxxxx` | 8255 PPI Port B | R |
+| `0xF6XX` | `%xxxx0x10 xxxxxxxx` | 8255 PPI Port C | W |
+| `0xF7XX` | `%xxxx0x11 xxxxxxxx` | 8255 PPI Control | W |
+| `0xFA7E` | `%xxxxx0x0 0xxxxxxx` | Floppy Motor Control | W |
+| `0xFB7E` | `%xxxxx0x1 0xxxxxx0` | 765 FDC Status | R |
+| `0xFB7F` | `%xxxxx0x1 0xxxxxx1` | 765 FDC Data | RW |
 
 **LX (hww):** Mandatory — these are the CPC I/O conventions.
-Exception: `0xEFXX` printer port is **Optional** (see §1.11).
+Exception: `0xEFXX` printer port is **Optional**.
 
 ### 1.3 8255 PPI
 
@@ -129,90 +129,37 @@ The 8255 PPI is connected to the AY‑3‑8912 (PSG), the keyboard, the
 cassette tape, the CRTC VSYNC signal, and the printer "busy" signal.
 
 **Selection:** the PPI is active when **bit 11 of the I/O address is
-`0`**. Bits 9 and 8 select the function:
-
-| Bit 9 | Bit 8 | PPI function | Access |
-|---|---|---|---|
-| 0 | 0 | Port A (data) | R/W |
-| 0 | 1 | Port B (data) | R/W |
-| 1 | 0 | Port C (data) | R/W |
-| 1 | 1 | Control | W only |
+`0`**.
 
 **Recommended I/O addresses** (other bits set to `1` to avoid conflicts):
 
-| I/O | Function |
-|---|---|
-| `&F4xx` | Port A (data) |
-| `&F5xx` | Port B (data) |
-| `&F6xx` | Port C (data) |
-| `&F7xx` | Control |
-
-> **Note:** On CPC+, the 8255 is integrated into the ASIC. Emulation is
-> incomplete; some functions are unavailable.
-
-**Modes:** Mode 0 (Basic I/O) is always used by the system. Modes 1 and
-2 are not used by software. If firmware is used, always restore modes
-and port states to the settings below.
+![PPI Addresses](gen/L_PPI_ADDRS.svg)
 
 #### Port A
 
 OS settings: I/O Mode 0, Output.
 
-| Bit | Description | Use |
-|---|---|---|
-| 7..0 | PSG data bus | PSG read/write |
-
-> To write to the PSG, all bits must be outputs; to read from the PSG,
-> all bits must be inputs.
+![PPI Port A](gen/L_PPI_PORTA.svg)
 
 #### Port B
 
 OS settings: I/O Mode 0, Input.
 
-| Bit | Description | Use |
-|---|---|---|
-| 7 | Cassette data | |
-| 6 | Printer busy | `1` = busy, `0` = ready |
-| 5 | `/EXP` (expansion signal) | See note 6 |
-| 4 | Refresh rate | `1` = 50 Hz, `0` = 60 Hz (board‑set) |
-| 3 | Manufacturer bit 3 | Board‑set |
-| 2 | Manufacturer bit 2 | Board‑set |
-| 1 | Manufacturer bit 1 | Board‑set |
-| 0 | VSYNC from 6845 CRTC | `1` = VSYNC active |
+![PPI Port B](gen/L_PPI_PORTB.svg)
 
 **Manufacturer table (power‑on, CPC/CPC+ only):**
 
-| Bit 3 | Bit 2 | Bit 1 | Manufacturer |
-|---|---|---|---|
-| 0 | 0 | 0 | Isp |
-| 0 | 0 | 1 | Triumph |
-| 0 | 1 | 0 | Saisho |
-| 0 | 1 | 1 | Solavox |
-| 1 | 0 | 0 | Awa |
-| 1 | 0 | 1 | Schneider |
-| 1 | 1 | 0 | Orion |
-| 1 | 1 | 1 | Amstrad |
+![PPI Manufacturer](gen/L_PPI_MFG.svg)
 
 #### Port C
 
 OS settings: Upper half Mode 0 Output, lower half Mode 0 Output.
 
-| Bit | Description | Use |
-|---|---|---|
-| 7 | PSG BDIR | PSG function select |
-| 6 | PSG BC1 | PSG function select |
-| 5 | Cassette write data | |
-| 4 | Cassette motor control | `1` = on, `0` = off |
-| 3..0 | Keyboard line | Row select (0–15) |
+![PPI Port C](gen/L_PPI_PORTC.svg)
 
 **PSG function select:**
 
-| BDIR (7) | BC1 (6) | Function |
-|---|---|---|
-| 0 | 0 | Inactive |
-| 0 | 1 | Read from selected PSG register |
-| 1 | 0 | Write to selected PSG register |
-| 1 | 1 | Select PSG register |
+![PSG Select](gen/L_PSG_SELECT.svg)
 
 **Programming examples:**
 
@@ -249,37 +196,22 @@ RET
 **Important notes:**
 
 1. If a port is configured as input, its outputs are high‑impedance.
-   A device connected to the 8255 will see `&FF`.
-2. Manufacturer and refresh rate are **board‑set** and cannot be changed
-   by software.
-3. Bit 5 of Port B (`/EXP`) may be used by:
-   - KC Compact: bit 7 of printer data
-   - CPC: modified hardware for an 8‑bit printer port
-   - Expansions: device present signal (`1` = connected)
+2. Manufacturer and refresh rate are **board‑set** and cannot be changed.
+3. Bit 5 of Port B (`/EXP`) may be used by expansions.
 
 **LX (hww):** Mandatory — PPI is the CPC I/O hub.
-Exception: printer‑related bits are **Optional** (see §1.11).
+Exception: printer‑related bits are **Optional**.
 
 ### 1.4 Gate Array (port 7Fxx)
 
-The Gate Array is similar in functionality to the CPC/Plus Gate Array.
-
-| D7 | D6 | Register | Function |
-|---|---|---|---|
-| 0 | 0 | R0 | Palette index |
-| 0 | 1 | R1 | Palette data |
-| 1 | 0 | R2 | Mode, ROM enable, LEDs |
-| 1 | 1 | R3 | RAM banking |
+![Gate Array Registers](gen/L_GA_REGS.svg)
 
 #### Register 0 — Palette Index
 
-| Bit | Value |
-|---|---|
-| 7..6 | Must be 0 (select register 0) |
-| 5 | Not used |
-| 4..0 | Palette index (`00h..0Fh` = Ink 0–15, `10h` = Border, `11..1Fh` = same as `10h`) |
+![Gate Array R0](gen/L_GA_R0.svg)
 
-| Depth | Normal inks (CPC) | Secondary inks (Aleste future feature) |
+<!-- table: procedural -->
+| Depth | Normal inks (CPC) | Secondary inks (Aleste) |
 |---|---|---|
 | 1 bit | 0..1 | 2..3 |
 | 2 bit | 0..3 | 4..7 |
@@ -295,29 +227,15 @@ The number is converted by IC D62.
   looked up in IC D62 and converted to 2‑bit‑per‑element R, G, B.
 
 > The CPC supports 3 intensities per colour (0%, 50%, 100%). Aleste
-> supports 4 (0%, 33%, 66%, 100%). In CPC‑style 27‑colour mode, Aleste
-> uses only the dark intensities (0%, 33%, 66%), giving a proper ratio
-> (66% = twice 33%). The 64‑colour mode appears brighter — monitor
-> brightness may need adjusting when switching modes.
+> supports 4 (0%, 33%, 66%, 100%).
 
 #### Register 2 — Video Mode, ROM enable, LEDs
 
-| Bit | Action |
-|---|---|
-| 7 | 1 |
-| 6 | 0 |
-| 5 | CAPS LED |
-| 4 | RUS LED |
-| 3 | Upper ROM enable/disable |
-| 2 | Lower ROM enable/disable |
-| 1..0 | Mode |
-
-Mode bits 0–1 select the mode. Actual resolution depends on bit 1 of
-EXTPORT. When HIGHTX is 0, CPC modes are chosen; when HIGHTX is 1,
-Aleste modes are chosen.
+![Gate Array R2](gen/L_GA_R2.svg)
 
 **CPC modes:**
 
+<!-- table: procedural -->
 | bit 1 | bit 0 | Mode |
 |---|---|---|
 | 0 | 0 | 160×200 (16 colours) |
@@ -327,63 +245,33 @@ Aleste modes are chosen.
 
 Aleste modes use the same encoding but can run at higher rates.
 
-#### Register 3 — RAM banking (CPC‑style, MAPMOD=0)
-
-Controls RAM banking, similar to the CPC 6128 Gate Array (more
-specifically, similar to the 16L8 PAL IC that assists the CPC 6128
-Gate Array). In Aleste, register 3 is effectively the mapper select.
-
-Writing to `#7Fxx` with data bits 7 and 6 set to `1` sets page 3 RAM
-bank in Aleste mapper mode, or defines CPC RAM configuration in CPC
-mode. It behaves more like an Inicron RAM‑Box (not fully compatible
-with dk'tronics‑style standard memory expansions).
+#### Register 3 — RAM banking
 
 **Four I/O ports control the mapper:**
 
-| I/O | Decoded as | Page | Memory region |
-|---|---|---|---|
-| `0x7CXX` | `%0xxxxx00 xxxxxxxx` | page 0 | `&0000-&3fff` |
-| `0x7DXX` | `%0xxxxx01 xxxxxxxx` | page 1 | `&4000-&7fff` |
-| `0x7EXX` | `%0xxxxx10 xxxxxxxx` | page 2 | `&8000-&bfff` |
-| `0x7FXX` | `%0xxxxx11 xxxxxxxx` | page 3 | `&c000-&ffff` |
+![Gate Array Mapper Ports](gen/L_GA_MAPPER_PORTS.svg)
 
 The mapper port decode uses bit 15 of the I/O address, as the Aleste
 Gate Array does. Address bits 9 and 8 select the page. To avoid writing
 to the Aleste Gate Array, data bits 7 and 6 must be `1`. The remaining
 bits define the RAM block/configuration.
 
-![CPC Legacy Memory Management](./images/cpc-legacy-memory-management.webp)
-
-**Unknowns:**
-
-- Must you write `#7Fxx` in CPC mode to define RAM configuration, or
-  can `#7Cxx`, `#7Dxx`, `#7Exx` produce the same effect?
-- When you write CPC RAM configuration, is it mirrored in all mapper
-  registers?
+![CPC Legacy Memory Management](images/cpc-legacy-memory-management.webp)
 
 **LX (hww):** Mandatory — Gate Array is the core of CPC graphics and
 banking.
 
 > **⚠ Spec:** Old spec said `7Fxx` is decoded by full byte
-> `A[15:8] == 0x7F`. RTL (`mmu_legacy.sv`) decodes by `~A[15]` only,
-> and forwards `7Fxx` writes to the Wishbone bus (palette handled
-> outside legacy MMU). → see §4, item 1. **RTL is authoritative.**
+> `A[15:8] == 0x7F`. RTL (`mmu_legacy.sv`) decodes by `~A[15]` only.
+> **RTL is authoritative.**
 
 > **⚠ Carlos:** RTL implements 520EX palette (D62 conversion, 4
 > intensities, EXTPORT MAPPER bit). This is 520EX heritage, not the
-> LX design intent. See §2. **Not recommended** for LX.
+> LX design intent. **Not recommended** for LX.
 
 ### 1.5 CRTC 6845
 
-The 6845 CRTC provides video timing and addressing. It is accessed
-through four CPC ports:
-
-| I/O | Function | R/W |
-|---|---|---|
-| `0xBCXX` | Index register | W |
-| `0xBDXX` | Data register (write) | W |
-| `0xBEXX` | Status register | R |
-| `0xBFXX` | Data register (read) | R |
+![CRTC Ports](gen/L_CRTC_PORTS.svg)
 
 The CRTC registers are documented in the Amstrad CPC 6128 technical
 manual; LX does not change their behaviour.
@@ -397,32 +285,23 @@ when `upper_rom` (RMR bit 3) is `0`.
 
 **CPC 6128 ROM banks:**
 
-| Value | Name | Purpose |
-|---|---|---|
-| `00h` | BASIC | Lower ROM (also visible at `0000-3FFF`) |
-| `07h` | AMSDOS | Disk operating system |
-
-All other values select BASIC.
+![Upper ROM Banks](gen/L_UPPER_ROM_BANKS.svg)
 
 **LX (hww):** Mandatory — needed for CPC ROM switching.
 
 > **⚠ Spec:** Old spec said `DFxx` writes the bank number directly.
-> RTL (`mmu_legacy.sv`) recodes via D62 PROM: `7→2, 3→3, otherwise→1`
-> (520EX‑specific). → see §4, item 2. **RTL is authoritative.**
+> RTL (`mmu_legacy.sv`) recodes via D62 PROM: `7→2, 3→3, otherwise→1`.
+> **RTL is authoritative.**
 
 > **⚠ Carlos:** RTL applies the 520EX D62 recode. This is 520EX
-> heritage. See §2. **Not recommended** for LX (but documented).
+> heritage. **Not recommended** for LX (but documented).
 
 ### 1.7 FDC 765
 
 The floppy disk controller is a uPD765. It is accessed through the PPI
 and the following ports:
 
-| I/O | Function | R/W |
-|---|---|---|
-| `0xFA7E` | Floppy motor control | W |
-| `0xFB7E` | FDC status register | R |
-| `0xFB7F` | FDC data register | R/W |
+![FDC Ports](gen/L_FDC_PORTS.svg)
 
 **LX (hww):** Mandatory — FDC is the CPC disk interface.
 
@@ -430,15 +309,7 @@ and the following ports:
 
 #### RMR (Control Interrupt counter, ROM mapping, Graphics mode)
 
-| Bit | Name | Action |
-|---|---|---|
-| 7 | | Must be 1 |
-| 6 | | Must be 0 |
-| 5 | | Must be 0 on Plus machines with ASIC unlocked |
-| 4 | `irq_control` | Interrupt generation control |
-| 3 | `upper_rom` | `1` = upper ROM area disabled, `0` = enabled |
-| 2 | `lower_rom` | `1` = lower ROM area disabled, `0` = enabled |
-| 1..0 | `graphic_mode` | Graphics mode selection |
+![RMR](gen/L_RMR.svg)
 
 - `upper_rom` starts at `C000`.
 - `lower_rom` starts at `0000`.
@@ -447,15 +318,11 @@ and the following ports:
 
 #### MMR (RAM memory mapping)
 
-| Bit | Name | Description |
-|---|---|---|
-| 7 | | Must be 1 |
-| 6 | | Must be 1 |
-| 5..3 | `bbb` | Upper bank number bits; select a 64 KB block in extended memory |
-| 2..0 | `ccc` | Configuration; determines lower bank number bits |
+![MMR](gen/L_MMR.svg)
 
 **CPC 128 memory map:**
 
+<!-- table: procedural -->
 | Address | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|---|
 | `C000-FFFF` | RAM_3 | RAM_7 | RAM_7 | RAM_7 | RAM_3 | RAM_3 | RAM_3 | RAM_3 |
@@ -465,6 +332,7 @@ and the following ports:
 
 **CPC 512 KB memory map:**
 
+<!-- table: procedural -->
 | Address | ccc=0 | ccc=1 | ccc=2 | ccc=3 | ccc=4 | ccc=5 | ccc=6 | ccc=7 |
 |---|---|---|---|---|---|---|---|---|
 | `0000-3FFF` | 0 | 0 | `bbb*4 + 0` | 0 | 0 | 0 | 0 | 0 |
@@ -485,33 +353,28 @@ The PSG is accessed via the PPI:
 2. Write/read data via PPI Port A with `BDIR=1, BC1=0` (write) or
    `BDIR=0, BC1=1` (read).
 
-**LX (hww):** Mandatory — the PSG is the CPC sound core; all CPC music
-depends on it.
+**LX (hww):** Mandatory — the PSG is the CPC sound core.
 
 ### 1.10 Cassette tape
 
 The cassette tape interface is on the CPC board, connected through PPI
 Port B (data) and Port C (motor control, write data).
 
-**LX (hww):** Optional — standard, but not required. Modern users do
-not use tape.
+**LX (hww):** Optional.
 
 ### 1.11 Printer port (EFXX)
 
 The printer port is on the CPC board, connected through PPI Port B
 (busy) and `EFXX` (data).
 
-**LX (hww):** Optional — standard, but not required. A modern 8‑bit
-computer does not need a printer.
+**LX (hww):** Optional.
 
 ### 1.12 Joysticks
 
 The CPC joystick interface is on the CPC board, connected through PPI
 Port B and the keyboard matrix.
 
-**LX (hww):** Optional — standard, but not required. Modern users do
-not use 1980s joysticks; if needed, they should be done the LX way, not
-the 520EX way.
+**LX (hww):** Optional.
 
 ---
 
@@ -530,16 +393,9 @@ This section documents **only what is actually in the RTL** (`gen_rtl`,
 
 The 520EX adds an EXTPORT register at port `FABF`:
 
-| Bit | Name | Action |
-|---|---|---|
-| 7..6 | — | Not used |
-| 5..4 | PPI Port A usage | `0` = PSG (default), `1` = reserved, `2` = RTC, `3` = 8253 |
-| 3 | Force video to black | |
-| 2 | MAPMOD | `0` = CPC‑style 27‑colour palette + CPC6128 RAM banking; `1` = 64‑colour palette + extended RAM mapper |
-| 1 | HIGHX | Enables high resolution in X; changes clock frequencies; controls video address decoding |
-| 0 | HIZ | Not fully understood; controls video address decoding |
+![520EX EXTPORT](gen/L_520EX_EXTPORT.svg)
 
-**LX (hww):** Not recommended — 520EX cost‑cutting compromises.
+**LX (hww):** Not recommended.
 
 > **⚠ Carlos:** RTL implements `mapmod_i` (from `FABF` D2) and the MSX
 > mapper in `mmu_legacy.sv`. This is 520EX heritage, carefully preserved
@@ -553,48 +409,36 @@ See §2.1.
 
 In RTL (`mmu_legacy.sv`), the Aleste Gate Array is decoded by `~A[15]`
 (not by full byte `A[15:8]==0x7F`), and `7Fxx` writes are forwarded to
-the Wishbone bus. Palette is handled outside the legacy MMU.
+the Wishbone bus.
 
-**LX (hww):** Not recommended — 520EX decode differs from CPC.
-
-> **⚠ Carlos:** RTL forwards `7Fxx` to the bus. This is 520EX heritage;
-> it changes CPC behaviour. Documented here for completeness.
+**LX (hww):** Not recommended.
 
 ### 2.4 Upper ROM D62 recode (DFxx: 7→2, 3→3, else→1)
 
 In RTL (`mmu_legacy.sv`), `DFxx` writes are recoded via the 520EX D62
-PROM: `7→2, 3→3, otherwise→1`. This is 520EX‑specific; the CPC 6128
-uses the value directly.
+PROM: `7→2, 3→3, otherwise→1`.
 
-**LX (hww):** Not recommended — 520EX recode, not CPC.
-
-> **⚠ Carlos:** RTL applies the D62 recode. This is 520EX heritage.
+**LX (hww):** Not recommended.
 
 ### 2.5 Lower ROM at 400000
 
 In RTL (`mmu_legacy.sv`), the lower ROM is mapped at physical address
-`400000` (`CPC_ROM_SLOT = 2'b01`, `LOWER_ROM_BANK = 8'h00`). This is
-the 520EX layout; the CPC 6128 maps lower ROM at `0000`.
+`400000`.
 
-**LX (hww):** Not recommended — 520EX layout, not CPC.
-
-> **⚠ Carlos:** RTL maps lower ROM at `400000`. This is 520EX heritage.
+**LX (hww):** Not recommended.
 
 ### 2.6 MSX mapper (mapper_reg[0:3])
 
 In RTL (`mmu_legacy.sv`), when `mapmod_i = 1`, the legacy MMU uses an
-MSX‑style mapper with four 6‑bit page registers (`mapper_reg[0:3]`).
-This is 520EX‑specific; the CPC 6128 uses RMR/MMR.
+MSX‑style mapper with four 6‑bit page registers.
 
-**LX (hww):** Not recommended — 520EX mapper, not CPC.
-
-> **⚠ Carlos:** RTL implements the MSX mapper under `mapmod_i`. This is
-> 520EX heritage.
+**LX (hww):** Not recommended.
 
 ---
 
 ## 3. Author's recommendation for LX (summary)
 
+<!-- table: procedural -->
 | Element | CPC | 520EX | LX (hww) | Comment |
 |---|---|---|---|---|
 | Z80 CPU | yes | yes | **Mandatory** | Core CPU |
@@ -622,9 +466,7 @@ This is 520EX‑specific; the CPC 6128 uses RMR/MMR.
 
 ## 4. Spec vs RTL (RTL authoritative)
 
-Where the old spec (v7, `legacy_Info_io.md`) and the RTL (`gen_rtl`,
-latest) disagree, the RTL is authoritative.
-
+<!-- table: procedural -->
 | # | Old spec said | RTL does (gen_rtl) | Status | Comment |
 |---|---|---|---|---|
 | 1 | `7Fxx` = `A[15:8]==0x7F`, internal Gate Array | `7Fxx` = `~A[15]`, forwarded to Wishbone bus | outdated | Palette outside legacy MMU |

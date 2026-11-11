@@ -1,8 +1,6 @@
 # LX Mode Switching Mechanisms
 
-**Status:** reference. Aligned with the accepted decision to **retain
-`OUT (F2h)` and reject `RST 6`**. RTL (`gen_rtl`) remains authoritative
-for behaviour; this document records the rationale.
+**Status:** reference. Aligned with the accepted decision to **retain `OUT (F2h)` and reject `RST 6`**. RTL (`gen_rtl`) remains authoritative for behaviour; this document records the rationale.
 
 ---
 
@@ -13,8 +11,7 @@ Four mode-switching mechanisms of LX:
 1. **Software switching** — write to `GLOBAL_CTRL`.
 2. **Hardware trap** — M1 at `0038h` / `0066h`.
 3. **Syscall** — write to `F2h` (Native) / `F2xxh` (Legacy).
-4. **Exit from Supervisor** — write 0 to bit 0 of `GLOBAL_CTRL`, then
-   `RET`.
+4. **Exit from Supervisor** — write 0 to bit 0 of `GLOBAL_CTRL`, then `RET`.
 
 ### Markers
 
@@ -31,57 +28,15 @@ Four mode-switching mechanisms of LX:
 
 ### 5.1.1 `GLOBAL_CTRL` bit map
 
-```
-7 6 5 4 3 2 1 0
-│ │ │ │ │ │ │ └─ bit 0: supervisor_mode (0 = User, 1 = Supervisor)
-│ │ │ │ │ │ └─── bit 1: native_mode     (0 = Legacy, 1 = Native)
-│ │ │ │ │ └───── bit 2: supervisor_hook (0 = disabled, 1 = enabled)
-│ │ │ │ └─────── bit 3: reserved (must be 0)
-│ │ │ └───────── bit 4: mmio_userlock   (0 = unlocked, 1 = locked)
-└─┴─┴─────────── bits 5–7: reserved (must be 0)
-```
+![GLOBAL_CTRL bit map](gen/global_ctrl.svg)
 
-**✔ By design:** `reg_ctrl_super_in = din[0]`,
-`reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`,
-`reg_ctrl_user_lock = reg_control[4]`.
+**✔ By design:** `reg_ctrl_super_in = din[0]`, `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`, `reg_ctrl_user_lock = reg_control[4]`.
 
 ### 5.1.2 Bit descriptions
 
-**bit 0 — `supervisor_mode`** (0 = User, 1 = Supervisor)
+[include](gen/global_ctrl-table.md)
 
-- Determines the current execution mode.
-- In Supervisor mode, all system registers are accessible.
-- In User mode, access is restricted.
-
-**bit 1 — `native_mode`** (0 = Legacy, 1 = Native)
-
-- Legacy mode: CPC 6128 compatibility.
-- Native mode: modern LX address space and port map.
-- **✔ By design:** in Supervisor mode, `native_mode` is ignored — the
-  Native mechanism is always used.
-
-**bit 2 — `supervisor_hook`** (0 = disabled, 1 = enabled)
-
-- Enables hardware entry into Supervisor mode on M1 at `0038h` (IM 1)
-  or `0066h` (NMI).
-- Only active when the M1 cycle is active.
-- Allows the kernel to intercept interrupt handling.
-
-**bit 4 — `mmio_userlock`** (0 = unlocked, 1 = locked)
-
-- **Purpose:** prevents accidental or unauthorised access to MMU ports
-  from User mode.
-- **Behaviour:** when set (1), access to MMU ports is blocked in User
-  mode; only `F2` (syscall) is available.
-- **Usage:** the kernel sets `mmio_userlock` before starting a user
-  process; the user process cannot access MMU ports; only Supervisor
-  mode can change this bit.
-- **Motivation:** security, prevents privilege escalation.
-
-> **✔ By design:** `mmio_userlock` blocks **all MMU ports** (`E0–FF`),
-> not only the mode bits. Only `F2` (syscall) is reachable, because
-> syscall is handled in a separate path (`is_syscall_access`, not
-> `is_mmu_access`).
+> **✔ By design:** `mmio_userlock` blocks **all MMU ports** (`E0–FF`), not only the mode bits. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).
 
 ### 5.1.3 Constants
 
@@ -126,10 +81,7 @@ wire is_mmu_access = is_io_access && addr_is_mmu_space &&
                      reg_ctrl_native_mode && port_access_grant;
 ```
 
-When `mmio_userlock = 1` and the CPU is in User mode, `port_access_grant = 0`,
-and all MMU ports (`E0–FF`) are blocked. Only `F2` (syscall) is reachable,
-because syscall is handled in a separate path (`is_syscall_access`, not
-`is_mmu_access`).
+When `mmio_userlock = 1` and the CPU is in User mode, `port_access_grant = 0`, and all MMU ports (`E0–FF`) are blocked. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).
 
 ### 5.1.6 Practical scenarios
 
@@ -193,8 +145,7 @@ wire trap_condition = m1_detected & reg_ctrl_trap_enabled &
 
 ### 5.3.1 Purpose
 
-Syscall gives user programs access to kernel functions while preserving
-security, performance, reliability, and compatibility.
+Syscall gives user programs access to kernel functions while preserving security, performance, reliability, and compatibility.
 
 ### 5.3.2 Mechanism choice — `OUT (F2h)` retained; `RST 6` rejected
 
@@ -207,27 +158,13 @@ security, performance, reliability, and compatibility.
 
 > **⚠ Rejected: `RST 6` for syscall.**
 >
-> `RST 6` was considered and **rejected**. The reason is not entry — the
-> fetch from `0030h` enters Supervisor cleanly. The reason is **exit**.
-> The only way out of Supervisor is the hardware exit protocol: write
-> `supervisor_mode = 0` to `GLOBAL_CTRL`, then the mode switches on the
-> **next M1 cycle**. An `RST`-based syscall would still have to use that
-> exact exit path. So `RST` buys a cheaper entry but does not remove the
-> exit cost; the round trip is not cheaper than `OUT (F2h)`.
+> `RST 6` was considered and **rejected**. The reason is not entry — the fetch from `0030h` enters Supervisor cleanly. The reason is **exit**. The only way out of Supervisor is the hardware exit protocol: write `supervisor_mode = 0` to `GLOBAL_CTRL`, then the mode switches on the **next M1 cycle**. An `RST`-based syscall would still have to use that exact exit path. So `RST` buys a cheaper entry but does not remove the exit cost; the round trip is not cheaper than `OUT (F2h)`.
 >
-> In addition, the MSX `RST 6` convention reads immediate bytes placed
-> after the `RST`; those immediates are in **User** memory. Once the trap
-> has fired we are in Supervisor, so reading them would require either
-> switching back to User or saving/restoring the User map — cost and
-> complexity added to **every** call.
+> In addition, the MSX `RST 6` convention reads immediate bytes placed after the `RST`; those immediates are in **User** memory. Once the trap has fired we are in Supervisor, so reading them would require either switching back to User or saving/restoring the User map — cost and complexity added to **every** call.
 >
-> Finally, the role of `RET` is to **read the return address from the
-> stack**. That does not require `RST`; the `OUT` path uses the ordinary
-> `RET` and the same M1-synchronized exit. `RETN`/`RETI` are **not**
-> used.
+> Finally, the role of `RET` is to **read the return address from the stack**. That does not require `RST`; the `OUT` path uses the ordinary `RET` and the same M1-synchronized exit. `RETN`/`RETI` are **not** used.
 >
-> **Result:** `OUT (F2h)` (Native) / `OUT (F2xxh)` (Legacy) is the
-> retained syscall mechanism. The earlier switch to `RST 6` is reverted.
+> **Result:** `OUT (F2h)` (Native) / `OUT (F2xxh)` (Legacy) is the retained syscall mechanism. The earlier switch to `RST 6` is reverted.
 
 ### 5.3.3 Implementation
 
@@ -249,8 +186,7 @@ wire is_syscall_trigger = is_syscall_access && is_write;
 
 **Why `F2`:**
 
-1. It is in the MMU/control port range (`F0–FF`), already reserved for
-   LX system use.
+1. It is in the MMU/control port range (`F0–FF`), already reserved for LX system use.
 2. It does not conflict with typical peripherals.
 3. It works in both Native and Legacy modes with a single logical port.
 
@@ -308,8 +244,7 @@ CALL syscall_wrapper  ; guaranteed behaviour
 
 ### 5.3.6 Supervisor syscall handler
 
-**Location:** fixed address in Supervisor memory (`0038h`, the IM 1
-vector, where the trap lands).
+**Location:** fixed address in Supervisor memory (`0038h`, the IM 1 vector, where the trap lands).
 
 **Handler structure:**
 
@@ -369,15 +304,36 @@ syscall_return:
     LD A, 00000000b  ; supervisor=0 (prepare exit)
     OUT (F0h), A     ; set the exit flag (EXIT_PENDING)
     POP AF           ; restore the return code
+    EI
     RET              ; ordinary RET: its M1 completes the switch to User,
                      ; then RET reads the return address from the User stack
 ```
 
-> **✔ By design:** the exit is synchronized with the **next M1 cycle**
-> (`supervisor_exit_pending && m1_detected`). `RET` is used, not
-> `RETN`/`RETI`. `RET` is an ordinary Z80 instruction; the hardware
-> switches to User on its M1, and `RET` then reads the return address
-> from the stack in the User map. See §5.4.
+> **✔ By design:** the exit is synchronized with the **next M1 cycle** (`supervisor_exit_pending && m1_detected`). `RET` is used, not `RETN`/`RETI`. `RET` is an ordinary Z80 instruction; the hardware switches to User on its M1, and `RET` then reads the return address from the stack in the User map. See §5.4.
+
+---
+
+### Syscall flow across the user and supervisor maps
+
+| Step | Address | USER map (contents) | SUPERVISOR map (contents) | Map executed from |
+|:---:|---|---|---|---|
+| 1 | `0x8000` | `CALL syscall_wrapper` | — | user |
+| 2 | `0x8100` | `syscall_wrapper: OUT (F2h), A` | — | user |
+| 3 | `0x8101` | `RET` (unreachable) | `Syscall_Dispatcher: PUSH BC` | supervisor (switched by `OUT`) |
+| 4 | `0x8102…` | — | `…` (dispatcher body) | supervisor |
+| 5 | `0x8100` | — | `syscall_return: OUT (F0h), A` | supervisor |
+| 6 | `0x8101` | — | `POP AF` | supervisor |
+| 7 | `0x8102` | — | `EI` | supervisor |
+| 8 | `0x8103` | — | `RET` → return to user | supervisor → user |
+
+**The key idea the table shows:**
+
+- The addresses `0x8100`, `0x8101`, etc. exist **in both maps**.
+- In the user map, `0x8100` holds the stub (`OUT (F2h),A`), and `0x8101` holds a `RET` that is never executed.
+- In the supervisor map, `0x8101` (the next address after `OUT`) already holds the dispatcher.
+- The switch back is done by `OUT (F0h),A` with a deferred effect, and the actual map switch happens on `RET`.
+
+*Addresses are illustrative.*
 
 ### 5.3.7 Security
 
@@ -388,8 +344,7 @@ syscall_return:
 1. User code already executes arbitrarily.
 2. All dangerous operations are protected (MMU ports, interrupt control).
 3. The syscall handler validates parameters.
-4. Alternatives are worse (`RST`/`CALL` require reserved memory and add
-   exit-protocol cost — see §5.3.2).
+4. Alternatives are worse (`RST`/`CALL` require reserved memory and add exit-protocol cost — see §5.3.2).
 5. Analogues in modern systems: x86 SYSCALL/INT, ARM SVC.
 
 **Additional protections:**
@@ -455,19 +410,13 @@ if (supervisor_exit_pending && m1_detected) begin
 end
 ```
 
-> **⚠ Rejected: `RETN` for exit.** `RETN`/`RETI` are **not** used. The
-> exit is synchronized with the next M1 cycle, and `RET` is the ordinary
-> instruction that provides that M1 and then reads the return address
-> from the stack. `RETN`'s `IFF2→IFF1` copy is unnecessary and was one of
-> the reasons `RST`-based syscalls were rejected (§5.3.2).
+> **⚠ Rejected: `RETN` for exit.** `RETN`/`RETI` are **not** used. The exit is synchronized with the next M1 cycle, and `RET` is the ordinary instruction that provides that M1 and then reads the return address from the stack. `RETN`'s `IFF2→IFF1` copy is unnecessary and was one of the reasons `RST`-based syscalls were rejected (§5.3.2).
 
 ### 5.4.2 Why this sequence
 
 1. **`RET` in Supervisor** — the return stack is restored correctly.
-2. **M1 synchronization** — natural switch point in the Z80 instruction
-   cycle.
-3. **Atomicity** — an interrupt cannot slip between setting the flag and
-   switching.
+2. **M1 synchronization** — natural switch point in the Z80 instruction cycle.
+3. **Atomicity** — an interrupt cannot slip between setting the flag and switching.
 4. **Predictability** — always the same behaviour.
 
 ### 5.4.3 Interrupts during exit
@@ -577,26 +526,16 @@ Interrupt_Handler_38h:
 ## 5.7 FAQ
 
 **Q: Why not use `RST 6` for syscall?**
-**A:** `RST` gives a clean entry but does not solve the exit. The only
-exit is the `GLOBAL_CTRL` + next-M1 protocol, which `RST`-based syscalls
-would still have to use. MSX-style immediates after the `RST` also live
-in User memory and must be fetched across a mode switch. `RST 6` was
-considered, adopted briefly, and then **reverted** in favour of
-`OUT (F2h)`.
+**A:** `RST` gives a clean entry but does not solve the exit. The only exit is the `GLOBAL_CTRL` + next-M1 protocol, which `RST`-based syscalls would still have to use. MSX-style immediates after the `RST` also live in User memory and must be fetched across a mode switch. `RST 6` was considered, adopted briefly, and then **reverted** in favour of `OUT (F2h)`.
 
 **Q: Why is `RETN` not used?**
-**A:** The exit is synchronized with the next M1 cycle, and ordinary
-`RET` provides that M1 and then reads the return address from the stack
-in the User map. `RETN`'s `IFF2→IFF1` copy is unnecessary. `RETN` was
-rejected together with `RST`.
+**A:** The exit is synchronized with the next M1 cycle, and ordinary `RET` provides that M1 and then reads the return address from the stack in the User map. `RETN`'s `IFF2→IFF1` copy is unnecessary. `RETN` was rejected together with `RST`.
 
 **Q: What if the user calls `OUT (F2h)` not through the wrapper?**
-**A:** That violates the contract. The kernel can detect it (by checking
-PC) and return an error.
+**A:** That violates the contract. The kernel can detect it (by checking PC) and return an error.
 
 **Q: How is syscall reentrancy handled?**
-**A:** The kernel must handle reentrant calls correctly. Use indivisible
-operations.
+**A:** The kernel must handle reentrant calls correctly. Use indivisible operations.
 
 **Q: Can syscall be called from an interrupt?**
 **A:** Yes, but carefully. The kernel must handle nested calls.
@@ -607,4 +546,3 @@ operations.
 ---
 
 *End of document.*
-

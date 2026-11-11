@@ -1,0 +1,12 @@
+kind: bitfield
+name: palette_control
+output: [svg, md] 
+title: "Palette Control Register (0x05)"
+width: 8
+
+fields:
+  - {name: "write_mode", msb: 1, lsb: 0, description: "00=12-bit, 01=CPC, 10=MSX, 11=YJK"}
+  - {name: "RESERVED", msb: 4, lsb: 2, description: "Резерв (должно быть 0)"}
+  - {name: "auto_inc", msb: 5, lsb: 5, description: "1=Авто-инкремент индекса"}
+  - {name: "mod_type", msb: 6, lsb: 6, description: "0=OR, 1=XOR"}
+  - {name: "mod_en", msb: 7, lsb: 7, description: "1=Включить модификацию индекса"}

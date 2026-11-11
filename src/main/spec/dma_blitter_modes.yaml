@@ -1,0 +1,9 @@
+kind: code_list
+name: dma_blitter_modes
+output: [md]
+title: "Blitter Modes"
+fields: [mode, val, desc]
+entries:
+  - {mode: "Copy", val: "0", desc: "Read from SRC, write to DST"}
+  - {mode: "Fill", val: "1", desc: "Write KEY to DST"}
+  - {mode: "Copy with transparent", val: "2", desc: "Read from SRC; if byte == KEY, skip the write"}

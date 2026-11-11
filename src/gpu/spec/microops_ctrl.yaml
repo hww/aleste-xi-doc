@@ -1,21 +1,13 @@
-kind: table
+kind: code_list
 name: microops_ctrl
-title: "CTRL · Управление последовательностью"
-columns:
-  - {key: op, label: "Микрокоманда"}
-  - {key: description, label: "Действие"}
-  - {key: cycles, label: "Тактов"}
-rows:
-  - {op: "NOP",      description: "Ничего не делать", cycles: "1"}
-  - {op: "JMP X",    description: "Безусловный переход", cycles: "1"}
-  - {op: "CALL X",   description: "Вызов подпрограммы", cycles: "1"}
-  - {op: "RET",      description: "Возврат", cycles: "1"}
-  - {op: "LOOP X",   description: "Если счётчик цикла не ноль: уменьшить и перейти", cycles: "1"}
-  - {op: "JMPA",     description: "Переход на адрес из ACC[8:0]", cycles: "1"}
-  - {op: "HALT",     description: "Остановиться до START, BUSY → IDLE", cycles: "1"}
-  - {op: "LDI",      description: "OPR = IMM со знаком", cycles: "1"}
-  - {op: "LDH",      description: "OPR = IMM × 4096, дробная часть ноль", cycles: "1"}
-  - {op: "LDL",      description: "OPR[11:0] = IMM, старшие 12 бит не трогает", cycles: "1"}
-  - {op: "IRQ n",    description: "Флаг прерывания и 12-битный код n в STATUS", cycles: "1"}
-  - {op: "FAULT",    description: "Остановиться с ошибкой, статус ERROR", cycles: "1"}
-  - {op: "(свободно 4)", description: "Резерв, в т.ч. возможное место FLUSH", cycles: "—"}
+title: "CTRL_OP — Управление потоком"
+fields: [code, name, description, imm, cycles]
+entries:
+  - {code: 0, name: "NOP",       description: "Ничего не делать", imm: "—", cycles: 1}
+  - {code: 1, name: "JMP",       description: "Безусловный переход на X", imm: "адрес[11:0]", cycles: 1}
+  - {code: 2, name: "CALL",      description: "Вызов подпрограммы по адресу X", imm: "адрес[11:0]", cycles: 1}
+  - {code: 3, name: "RET",       description: "Возврат", imm: "—", cycles: 1}
+  - {code: 4, name: "LOOP",      description: "Уменьшить счётчик; если не ноль — перейти на X", imm: "адрес[11:0]", cycles: 1}
+  - {code: 5, name: "JMPA",      description: "Переход на адрес из ACC[8:0]", imm: "—", cycles: 1}
+  - {code: 6, name: "HALT",      description: "X=0 → IDLE; X!=0 → ERROR", imm: "код[11:0]", cycles: 1}
+  - {code: 7, name: "WAIT_FLAG", description: "Ждать флаг (IMM[5:0]), инверсия (IMM[6])", imm: "флаг[5:0]+inv[6]", cycles: "1+"}

@@ -840,7 +840,7 @@ NOTE_E4:  defc 64
 ;; XIFF:struct AYState
 public _ay_state
 _ay_state:
-_registers: ds 16  ;; XIFF:field uint8_t[16] -- Register shadows
+_entries: ds 16  ;; XIFF:field uint8_t[16] -- Register shadows
 _volume:    db 15  ;; XIFF:field uint8_t     -- Volume 0-15
 _muted:     db 0   ;; XIFF:field bool        -- Mute flag
 

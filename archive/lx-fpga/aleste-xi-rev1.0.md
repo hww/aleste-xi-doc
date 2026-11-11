@@ -336,7 +336,7 @@ Syscall_Dispatcher:
     ; ... and so on
 
 Syscall_WriteFile:
-    ; Parameters are already in registers:
+    ; Parameters are already in entries:
     ; A=function code, BC=file_handle, HL=buffer, DE=size
     ; The operation can now be performed.
     ; ... processing ...
@@ -463,7 +463,7 @@ communication of control commands and notifications between the
 
 **Address:** `FF0020h-FF003Fh` (32 bytes).
 
-**Hardware implementation:** The mailbox consists of a set of registers:
+**Hardware implementation:** The mailbox consists of a set of entries:
 
 - **`MAILBOX_CMD`**: The driver writes an operation code here (e.g.,
   `SND_BUF_EMPTY` or `DSK_IO_DONE`).

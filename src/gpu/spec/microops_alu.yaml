@@ -1,24 +1,21 @@
-kind: table
+kind: code_list
 name: microops_alu
-title: "ALU · ACC = ACC op OPR"
-columns:
-  - {key: op, label: "Микрокоманда"}
-  - {key: description, label: "Действие"}
-  - {key: cycles, label: "Тактов"}
-rows:
-  - {op: "NOP",  description: "ACC не меняется", cycles: "1"}
-  - {op: "PASS", description: "ACC = OPR", cycles: "1"}
-  - {op: "ADD",  description: "ACC = ACC + OPR; Z, N, C", cycles: "1"}
-  - {op: "SUB",  description: "ACC = ACC − OPR; Z, N, C", cycles: "1"}
-  - {op: "AND",  description: "ACC = ACC & OPR", cycles: "1"}
-  - {op: "OR",   description: "ACC = ACC | OPR", cycles: "1"}
-  - {op: "XOR",  description: "ACC = ACC ^ OPR", cycles: "1"}
-  - {op: "SHL",  description: "ACC = ACC << OPR[4:0]", cycles: "1"}
-  - {op: "SHR",  description: "ACC = ACC >> OPR[4:0] (логический)", cycles: "1"}
-  - {op: "SAR",  description: "ACC = ACC >> OPR[4:0] (арифметический)", cycles: "1"}
-  - {op: "MIN",  description: "ACC = min(ACC, OPR) со знаком", cycles: "1"}
-  - {op: "MAX",  description: "ACC = max(ACC, OPR) со знаком", cycles: "1"}
-  - {op: "MUL",  description: "ACC = ACC[11:0] × OPR[11:0]", cycles: "2"}
-  - {op: "ADDS", description: "ACC = saturate(ACC + OPR)", cycles: "1"}
-  - {op: "SUBS", description: "ACC = saturate(ACC − OPR)", cycles: "1"}
-  - {op: "COMB", description: "ACC = combine(OPR, ACC) по MODE", cycles: "1"}
+title: "ALU_OP — Арифметика и логика"
+fields: [code, name, description, cycles]
+entries:
+  - {code: 0,  name: "NOP",  description: "ACC не меняется", cycles: 1}
+  - {code: 1,  name: "PASS", description: "ACC = OPR", cycles: 1}
+  - {code: 2,  name: "ADD",  description: "ACC = ACC + OPR; Z, N, C", cycles: 1}
+  - {code: 3,  name: "SUB",  description: "ACC = ACC - OPR; Z, N, C", cycles: 1}
+  - {code: 4,  name: "AND",  description: "ACC = ACC & OPR", cycles: 1}
+  - {code: 5,  name: "OR",   description: "ACC = ACC | OPR", cycles: 1}
+  - {code: 6,  name: "XOR",  description: "ACC = ACC ^ OPR", cycles: 1}
+  - {code: 7,  name: "SHL",  description: "ACC = ACC << OPR[4:0]", cycles: 1}
+  - {code: 8,  name: "SHR",  description: "ACC = ACC >> OPR[4:0] (логический)", cycles: 1}
+  - {code: 9,  name: "SAR",  description: "ACC = ACC >> OPR[4:0] (арифметический)", cycles: 1}
+  - {code: 10, name: "MIN",  description: "ACC = min(ACC, OPR) со знаком", cycles: 1}
+  - {code: 11, name: "MAX",  description: "ACC = max(ACC, OPR) со знаком", cycles: 1}
+  - {code: 12, name: "MUL",  description: "ACC = ACC[11:0] × OPR[11:0]", cycles: 2}
+  - {code: 13, name: "ADDS", description: "ACC = saturate(ACC + OPR)", cycles: 1}
+  - {code: 14, name: "SUBS", description: "ACC = saturate(ACC - OPR)", cycles: 1}
+  - {code: 15, name: "резерв", description: "—", cycles: "—"}

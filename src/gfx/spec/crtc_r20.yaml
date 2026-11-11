@@ -1,0 +1,12 @@
+kind: bitfield
+name: crtc_r20
+output: [svg, md] 
+title: "R20 — Address Mode (0x14)"
+width: 8
+fields:
+  - {name: "linear_mode", msb: 0, lsb: 0, description: "0=CPC-style legacy, 1=linear counter"}
+  - {name: "address_step", msb: 1, lsb: 1, description: "0=increment by 2, 1=increment by 4"}
+  - {name: "address_rate", msb: 2, lsb: 2, description: "1=two increments per char"}
+  - {name: "RESERVED", msb: 3, lsb: 3, description: "Reserved"}
+  - {name: "addr_mode", msb: 6, lsb: 4, description: "000=CPC 16KB, 001=EX 32KB, 010=LX 32KB, 011=LX 64KB, 100=Linear"}
+  - {name: "RESERVED", msb: 7, lsb: 7, description: "Reserved"}

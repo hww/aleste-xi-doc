@@ -1,0 +1,250 @@
+# --- Gate Array Registers ---
+kind: code_list
+name: L_GA_REGS
+title: "Gate Array Register Select"
+width: 8
+entries:
+  - addr: "D7=0, D6=0"
+    name: "R0"
+    fields: [{name: "Palette index", msb: 7, lsb: 0, description: ""}]
+  - addr: "D7=0, D6=1"
+    name: "R1"
+    fields: [{name: "Palette data", msb: 7, lsb: 0, description: ""}]
+  - addr: "D7=1, D6=0"
+    name: "R2"
+    fields: [{name: "Mode, ROM enable, LEDs", msb: 7, lsb: 0, description: ""}]
+  - addr: "D7=1, D6=1"
+    name: "R3"
+    fields: [{name: "RAM banking", msb: 7, lsb: 0, description: ""}]
+
+---
+kind: bitfield
+name: L_GA_R0
+title: "Gate Array R0 — Palette Index"
+width: 8
+fields:
+  - {name: "SEL", msb: 7, lsb: 6, description: "Must be 00"}
+  - {name: "UNUSED", msb: 5, lsb: 5, description: "Not used"}
+  - {name: "INDEX", msb: 4, lsb: 0, description: "00h–0Fh=Ink, 10h=Border, 11h–1Fh=Border"}
+
+---
+kind: bitfield
+name: L_GA_R2
+title: "Gate Array R2 — Mode, ROM Enable, LEDs"
+width: 8
+fields:
+  - {name: "B7", msb: 7, lsb: 7, description: "Must be 1"}
+  - {name: "B6", msb: 6, lsb: 6, description: "Must be 0"}
+  - {name: "CAPS", msb: 5, lsb: 5, description: "CAPS LED"}
+  - {name: "RUS", msb: 4, lsb: 4, description: "RUS LED"}
+  - {name: "UPPER_ROM", msb: 3, lsb: 3, description: "1=disabled, 0=enabled"}
+  - {name: "LOWER_ROM", msb: 2, lsb: 2, description: "1=disabled, 0=enabled"}
+  - {name: "MODE", msb: 1, lsb: 0, description: "0=160x200, 1=320x200, 2=640x200"}
+---
+# --- PPI Registers ---
+kind: bitfield
+name: L_PPI_PORTA
+title: "8255 PPI Port A — PSG Data Bus"
+width: 8
+fields:
+  - {name: "PSG_DATA", msb: 7, lsb: 0, description: "PSG data bus"}
+
+---
+kind: bitfield
+name: L_PPI_PORTB
+title: "8255 PPI Port B — VSYNC, Cassette, Printer"
+width: 8
+fields:
+  - {name: "CASSETTE", msb: 7, lsb: 7, description: "Cassette data"}
+  - {name: "PRNBUSY", msb: 6, lsb: 6, description: "1=busy, 0=ready"}
+  - {name: "EXP", msb: 5, lsb: 5, description: "Expansion signal"}
+  - {name: "REFRESH", msb: 4, lsb: 4, description: "1=50Hz, 0=60Hz"}
+  - {name: "MFG", msb: 3, lsb: 1, description: "Manufacturer bits"}
+  - {name: "VSYNC", msb: 0, lsb: 0, description: "1=active"}
+
+---
+kind: bitfield
+name: L_PPI_PORTC
+title: "8255 PPI Port C — PSG Control, Cassette, Keyboard"
+width: 8
+fields:
+  - {name: "BDIR", msb: 7, lsb: 7, description: "PSG BDIR"}
+  - {name: "BC1", msb: 6, lsb: 6, description: "PSG BC1"}
+  - {name: "CASS_WR", msb: 5, lsb: 5, description: "Cassette write data"}
+  - {name: "CASS_MOT", msb: 4, lsb: 4, description: "Cassette motor (1=on)"}
+  - {name: "KB_LINE", msb: 3, lsb: 0, description: "Keyboard row select (0–15)"}
+---
+# --- PPI Addresses ---
+kind: code_list
+name: L_PPI_ADDRS
+title: "Recommended PPI I/O Addresses"
+width: 8
+entries:
+  - addr: "&F4xx"
+    name: "Port A"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "PSG data"}]
+  - addr: "&F5xx"
+    name: "Port B"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "VSYNC, cassette, printer"}]
+  - addr: "&F6xx"
+    name: "Port C"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "PSG control, cassette, keyboard"}]
+  - addr: "&F7xx"
+    name: "Control"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "8255 control"}]
+---
+# --- CRTC Ports ---
+kind: code_list
+name: L_CRTC_PORTS
+title: "CRTC 6845 I/O Ports"
+width: 8
+entries:
+  - addr: "0xBCXX"
+    name: "Index"
+    fields: [{name: "REG", msb: 7, lsb: 0, description: "W — Register select"}]
+  - addr: "0xBDXX"
+    name: "Data (write)"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "W — Data write"}]
+  - addr: "0xBEXX"
+    name: "Status"
+    fields: [{name: "STATUS", msb: 7, lsb: 0, description: "R — Status read"}]
+  - addr: "0xBFXX"
+    name: "Data (read)"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "R — Data read"}]
+---
+# --- FDC Ports ---
+kind: code_list
+name: L_FDC_PORTS
+title: "FDC 765 I/O Ports"
+width: 8
+entries:
+  - addr: "0xFA7E"
+    name: "Motor"
+    fields: [{name: "MOTOR", msb: 7, lsb: 0, description: "W — Floppy motor control"}]
+  - addr: "0xFB7E"
+    name: "Status"
+    fields: [{name: "STATUS", msb: 7, lsb: 0, description: "R — FDC status"}]
+  - addr: "0xFB7F"
+    name: "Data"
+    fields: [{name: "DATA", msb: 7, lsb: 0, description: "R/W — FDC data"}]
+---
+# --- RMR / MMR ---
+kind: bitfield
+name: L_RMR
+title: "RMR — Control, ROM Mapping, Graphics Mode"
+width: 8
+fields:
+  - {name: "B7", msb: 7, lsb: 7, description: "Must be 1"}
+  - {name: "B6", msb: 6, lsb: 6, description: "Must be 0"}
+  - {name: "B5", msb: 5, lsb: 5, description: "Must be 0 (Plus ASIC unlocked)"}
+  - {name: "IRQ_CTRL", msb: 4, lsb: 4, description: "Interrupt control"}
+  - {name: "UPPER_ROM", msb: 3, lsb: 3, description: "1=disabled, 0=enabled"}
+  - {name: "LOWER_ROM", msb: 2, lsb: 2, description: "1=disabled, 0=enabled"}
+  - {name: "GRAPHIC_MODE", msb: 1, lsb: 0, description: "Graphics mode"}
+
+---
+kind: bitfield
+name: L_MMR
+title: "MMR — RAM Memory Mapping"
+width: 8
+fields:
+  - {name: "B7", msb: 7, lsb: 7, description: "Must be 1"}
+  - {name: "B6", msb: 6, lsb: 6, description: "Must be 1"}
+  - {name: "BBB", msb: 5, lsb: 3, description: "Upper bank number"}
+  - {name: "CCC", msb: 2, lsb: 0, description: "Configuration"}
+---
+# --- Gate Array Mapper Ports ---
+kind: code_list
+name: L_GA_MAPPER_PORTS
+title: "Gate Array Mapper Control Ports"
+width: 8
+entries:
+  - addr: "0x7CXX"
+    name: "Page 0"
+    fields: [{name: "BANK", msb: 7, lsb: 0, description: "RAM bank for &0000-&3FFF"}]
+  - addr: "0x7DXX"
+    name: "Page 1"
+    fields: [{name: "BANK", msb: 7, lsb: 0, description: "RAM bank for &4000-&7FFF"}]
+  - addr: "0x7EXX"
+    name: "Page 2"
+    fields: [{name: "BANK", msb: 7, lsb: 0, description: "RAM bank for &8000-&BFFF"}]
+  - addr: "0x7FXX"
+    name: "Page 3"
+    fields: [{name: "BANK", msb: 7, lsb: 0, description: "RAM bank for &C000-&FFFF"}]
+---
+# --- Upper ROM Banks ---
+kind: code_list
+name: L_UPPER_ROM_BANKS
+title: "CPC 6128 Upper ROM Banks"
+width: 8
+entries:
+  - addr: "00h"
+    name: "BASIC"
+    fields: [{name: "ROM", msb: 7, lsb: 0, description: "Lower ROM (visible at 0000-3FFF)"}]
+  - addr: "07h"
+    name: "AMSDOS"
+    fields: [{name: "ROM", msb: 7, lsb: 0, description: "Disk operating system"}]
+---
+# --- 520EX EXTPORT ---
+kind: bitfield
+name: L_520EX_EXTPORT
+title: "EXTPORT (FABF) — 520EX Extension"
+width: 8
+fields:
+  - {name: "B7_6", msb: 7, lsb: 6, description: "Not used"}
+  - {name: "PPI_A", msb: 5, lsb: 4, description: "PPI Port A: 0=PSG, 1=reserved, 2=RTC, 3=8253"}
+  - {name: "BLACK", msb: 3, lsb: 3, description: "Force video to black"}
+  - {name: "MAPMOD", msb: 2, lsb: 2, description: "0=CPC-style, 1=64-colour"}
+  - {name: "HIGHX", msb: 1, lsb: 1, description: "High resolution in X"}
+  - {name: "HIZ", msb: 0, lsb: 0, description: "Not fully understood"}
+---
+# --- PSG Function Select (BDIR/BC1) ---
+kind: code_list
+name: L_PSG_SELECT
+title: "PSG Function Select"
+width: 8
+entries:
+  - addr: "BDIR=0, BC1=0"
+    name: "Inactive"
+    fields: [{name: "FUNC", msb: 7, lsb: 0, description: "No operation"}]
+  - addr: "BDIR=0, BC1=1"
+    name: "Read from PSG"
+    fields: [{name: "FUNC", msb: 7, lsb: 0, description: "Read from selected PSG register"}]
+  - addr: "BDIR=1, BC1=0"
+    name: "Write to PSG"
+    fields: [{name: "FUNC", msb: 7, lsb: 0, description: "Write to selected PSG register"}]
+  - addr: "BDIR=1, BC1=1"
+    name: "Select PSG"
+    fields: [{name: "FUNC", msb: 7, lsb: 0, description: "Select PSG register"}]
+---
+# --- Manufacturer Table ---
+kind: code_list
+name: L_PPI_MFG
+title: "PPI Manufacturer Bits"
+width: 8
+entries:
+  - addr: "0,0,0"
+    name: "Isp"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Isp"}]
+  - addr: "0,0,1"
+    name: "Triumph"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Triumph"}]
+  - addr: "0,1,0"
+    name: "Saisho"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Saisho"}]
+  - addr: "0,1,1"
+    name: "Solavox"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Solavox"}]
+  - addr: "1,0,0"
+    name: "Awa"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Awa"}]
+  - addr: "1,0,1"
+    name: "Schneider"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Schneider"}]
+  - addr: "1,1,0"
+    name: "Orion"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Orion"}]
+  - addr: "1,1,1"
+    name: "Amstrad"
+    fields: [{name: "MFG", msb: 7, lsb: 0, description: "Manufacturer Amstrad"}]
+---

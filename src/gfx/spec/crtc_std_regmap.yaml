@@ -1,0 +1,67 @@
+kind: code_list
+name: crtc_std_regmap
+output: [svg, md] 
+title: "Standard MC6845 Registers (R0–R17)"
+width: 8
+
+entries:
+  - addr: "0x00" 
+    name: "R0: H Total"
+    fields: [{name: "H_TOTAL", msb: 7, lsb: 0, description: "Characters per line - 1"}]
+  - addr: "0x01"
+    name: "R1: H Displayed"
+    fields: [{name: "H_DISP", msb: 7, lsb: 0, description: "Visible characters per line"}]
+  - addr: "0x02"
+    name: "R2: H Sync Pos"
+    fields: [{name: "H_SYNC_POS", msb: 7, lsb: 0, description: "Character position of HSYNC start"}]
+  - addr: "0x03"
+    name: "R3: Sync Widths"
+    fields: 
+      - {name: "H_WIDTH", msb: 3, lsb: 0, description: "Horizontal sync width"}
+      - {name: "V_WIDTH", msb: 7, lsb: 4, description: "Vertical sync width"}
+  - addr: "0x04"
+    name: "R4: V Total"
+    fields: [{name: "V_TOTAL", msb: 6, lsb: 0, description: "Rows per frame - 1"}]
+  - addr: "0x05"
+    name: "R5: V Adjust"
+    fields: [{name: "V_ADJ", msb: 4, lsb: 0, description: "Not implemented (legacy-compatible)"}]
+  - addr: "0x06"
+    name: "R6: V Displayed"
+    fields: [{name: "V_DISP", msb: 6, lsb: 0, description: "Visible rows"}]
+  - addr: "0x07"
+    name: "R7: V Sync Pos"
+    fields: [{name: "V_SYNC_POS", msb: 6, lsb: 0, description: "Row of VSYNC start"}]
+  - addr: "0x08"
+    name: "R8: Interlace/Skew"
+    fields: 
+      - {name: "INTERLACE", msb: 1, lsb: 0, description: "Interlace mode"}
+      - {name: "SKEW", msb: 5, lsb: 4, description: "Skew 0-3 char delays"}
+  - addr: "0x09"
+    name: "R9: Max Scan Line"
+    fields: [{name: "MAX_SCAN", msb: 4, lsb: 0, description: "Raster rows per character - 1"}]
+  - addr: "0x0A"
+    name: "R10: Cursor Start"
+    fields: 
+      - {name: "C_START", msb: 4, lsb: 0, description: "Cursor start scanline"}
+      - {name: "C_MODE", msb: 6, lsb: 5, description: "Blink mode"}
+  - addr: "0x0B"
+    name: "R11: Cursor End"
+    fields: [{name: "C_END", msb: 4, lsb: 0, description: "Cursor bottom scanline"}]
+  - addr: "0x0C"
+    name: "R12: Start Addr H"
+    fields: [{name: "ADDR_H", msb: 5, lsb: 0, description: "Bits A15:A10 of start address"}]
+  - addr: "0x0D"
+    name: "R13: Start Addr L"
+    fields: [{name: "ADDR_L", msb: 7, lsb: 0, description: "Bits A9:A2 of start address"}]
+  - addr: "0x0E"
+    name: "R14: Cursor Addr H"
+    fields: [{name: "CUR_H", msb: 5, lsb: 0, description: "High cursor address"}]
+  - addr: "0x0F"
+    name: "R15: Cursor Addr L"
+    fields: [{name: "CUR_L", msb: 7, lsb: 0, description: "Low cursor address"}]
+  - addr: "0x10"
+    name: "R16: Light Pen H"
+    fields: [{name: "LP_H", msb: 7, lsb: 0, description: "Not implemented"}]
+  - addr: "0x11"
+    name: "R17: Light Pen L"
+    fields: [{name: "LP_L", msb: 7, lsb: 0, description: "Not implemented"}]

@@ -1,10 +1,7 @@
 # LX Magic Sound 2 (rev. A)
 
-**Status:** planned baseline. Tested in simulation only (FPGA toolchain,
-module-level tests). **Never produced sound on real hardware** — there
-was no code to run it on the board.
-**See also:** `lx_magic_sound_rev_c.md` (working implementation),
-`lx_rtl_reference.md` (addresses).
+**Status:** planned baseline. Tested in simulation only (FPGA toolchain, module-level tests). **Never produced sound on real hardware** — there was no code to run it on the board.
+**See also:** `lx_magic_sound_rev_c.md` (working implementation), `lx_rtl_reference.md` (addresses).
 
 **RTL:** `magic_sound_2.sv` + 6 modules (simulation only).
 **Address:** page 7 (same as rev. C; see `lx_rtl_reference.md`).
@@ -13,13 +10,9 @@ was no code to run it on the board.
 
 ## 0. How to read this document
 
-This is the **planned baseline** (rev. A). It was designed and tested
-in simulation, but never on real hardware. It is **not** the working
-implementation.
+This is the **planned baseline** (rev. A). It was designed and tested in simulation, but never on real hardware. It is **not** the working implementation.
 
-The working implementation is **rev. C** (`lx_magic_sound_rev_c.md`).
-Where rev. A and rev. C differ, **rev. C is what exists**. Rev. A is
-the baseline that rev. C was measured against.
+The working implementation is **rev. C** (`lx_magic_sound_rev_c.md`). Where rev. A and rev. C differ, **rev. C is what exists**. Rev. A is the baseline that rev. C was measured against.
 
 ### Markers
 
@@ -35,11 +28,10 @@ the baseline that rev. C was measured against.
 
 The original Magic Sound (1990s) had four "birth defects":
 
-1. **Sample length limited to 64 KB.** The address space for samples was
-   too small.
-2. **Volume ~6 bits per channel.** Not enough resolution.
-3. **No stereo.** Mono only.
-4. **Loop restart required the CPU.** No automatic loop.
+1. **Sample length limited to 64 KB.**
+2. **Volume ~6 bits per channel.**
+3. **No stereo.**
+4. **Loop restart required the CPU.**
 
 Magic Sound 2 (rev. A) fixes all four:
 
@@ -53,132 +45,62 @@ Magic Sound 2 (rev. A) fixes all four:
 ## 2. Architecture
 
 ### 2.1 Channels
-
-- **4 channels** (`NUM_CHANNELS = 4`).
-- 8 channels would be desirable (option, not required in rev. A).
+- **4 channels** (`NUM_CHANNELS = 4`). 8 channels would be desirable (option).
 
 ### 2.2 Sample format
-
-- **16-bit samples** (`SW = 16`).
-- Signed.
+- **16-bit samples** (`SW = 16`). Signed.
 
 ### 2.3 Frequency
-
 - **96 kHz** sample rate (`SAMPLE_RATE_HZ = 96_000` in `ms2_pkg.sv`).
 
 ### 2.4 Wishbone
-
 - **Slave:** 8-bit (CPU side).
 - **Master:** **16-bit** (`SW = 16`) — for memory reads.
 
 ### 2.5 Output
-
-- **I2S** (`ms2_i2s_tx.sv`): `i2s_bclk_o`, `i2s_lrclk_o`, `i2s_data_o`.
-- Stereo (`out_l`, `out_r` internally, serialized by I2S).
+- **I2S** (`ms2_i2s_tx.sv`): `i2s_bclk_o`, `i2s_lrclk_o`, `i2s_data_o`. Stereo.
 
 ### 2.6 Loop
-
 - **Two points:** `LOOP_START` and `LOOP_END` (24 bits each).
-- Automatic loop, no CPU.
-- **Ping-pong** mode (`CH_CTRL[2]`).
+- Automatic loop, no CPU. **Ping-pong** mode (`CH_CTRL[2]`).
 
 ### 2.7 Step
-
 - **16.16 fixed-point** (32 bits).
 - `step = (desired_frequency << 16) / sample_rate`.
 
 ### 2.8 Timer
-
-- `TIMER_VAL` (16 bits) + `TIMER_CTRL` (8 bits).
-- 300 Hz music timer.
+- `TIMER_VAL` (16 bits) + `TIMER_CTRL` (8 bits). 300 Hz music timer.
 
 ### 2.9 Interrupts
-
-- IRQ on EOF (`CH_CTRL[3]`).
-- Timer IRQ (`IRQ_CTRL[0]`).
-- DMA error → NMI (`IRQ_CTRL[1]`).
+- IRQ on EOF (`CH_CTRL[3]`). Timer IRQ (`IRQ_CTRL[0]`). DMA error → NMI (`IRQ_CTRL[1]`).
 
 ### 2.10 DMA error handling
 
-When the DMA reads memory and the memory controller returns a timeout
-(watchdog), the sound card must:
+When the DMA reads memory and the memory controller returns a timeout (watchdog), the sound card must:
 
 1. Latch the error bit (`STATUS[2]` = any channel error, `STATUS[4]` = DMA error).
 2. Enter an error state.
 3. Signal the error (IRQ/NMI).
 
-**✔ By design (rev. A):** error handling is part of the status and
-interrupt design. `DMA_ERR_CLR` (global `0x05`) clears the flags.
+**✔ By design (rev. A):** error handling is part of the status and interrupt design. `DMA_ERR_CLR` (global `0x05`) clears the flags.
 
-> **⚠ Not in rev. C:** DMA error handling is **not implemented** in
-> rev. C. It is desirable to return it. See `lx_magic_sound_rev_c.md`
-> §5.
+> **⚠ Not in rev. C:** DMA error handling is **not implemented** in rev. C. It is desirable to return it. See `lx_magic_sound_rev_c.md` §5.
 
 ---
 
 ## 3. Registers
 
 ### 3.1 Global registers
+![Global Registers Map](gen/ms2a_global_map.svg)
 
-| Offset | Name | R/W | Bits |
-|---|---|---|---|
-| `0x00` | `GLOBAL_CR` | RW | `[0]` enable; `[1]` reset |
-| `0x01` | `GLOBAL_VOL_L` | RW | `[7:0]` global left volume |
-| `0x02` | `GLOBAL_VOL_R` | RW | `[7:0]` global right volume |
-| `0x03` | `STATUS` | R | `[0]` global active; `[1]` any channel active; `[2]` any error; `[3]` any EOF; `[4]` DMA error; `[5]` timer IRQ |
-| `0x04` | `IRQ_CTRL` | RW | `[0]` timer IRQ enable; `[1]` DMA error NMI enable |
-| `0x05` | `DMA_ERR_CLR` | W | write 1 to clear DMA error flags |
-| `0x10` | `TIMER_VAL` | RW | `[7:0]` timer value low |
-| `0x11` | `TIMER_VAL_H` | RW | `[7:0]` timer value high |
-| `0x12` | `TIMER_CTRL` | RW | `[7:0]` timer control |
+[include](gen/ms2a_global-table.md)
 
 ### 3.2 Channel registers
+Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
-Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 =
-`0x40`, channel 3 = `0x50`. Each channel has 16 registers.
+![Channel Registers Map](gen/ms2a_channel_map.svg)
 
-| Offset | Name | Bits |
-|---|---|---|
-| `+0` | `CH_CTRL` | `[0]` enable; `[1]` loop; `[2]` ping-pong; `[3]` IRQ on EOF; `[7:4]` vol L (4-bit, scaled `<<4`); `[3:0]` vol R (4-bit, scaled `<<4`) |
-| `+1` | `START_ADDR_0` | `[7:0]` |
-| `+2` | `START_ADDR_1` | `[15:8]` |
-| `+3` | `START_ADDR_2` | `[23:16]` (applies the full 24-bit value) |
-| `+4` | `END_ADDR_0` | `[7:0]` |
-| `+5` | `END_ADDR_1` | `[15:8]` |
-| `+6` | `END_ADDR_2` | `[23:16]` (applies) |
-| `+7` | `LOOP_START_0` | `[7:0]` |
-| `+8` | `LOOP_START_1` | `[15:8]` |
-| `+9` | `LOOP_START_2` | `[23:16]` (applies) |
-| `+A` | `LOOP_END_0` | `[7:0]` |
-| `+B` | `LOOP_END_1` | `[15:8]` |
-| `+C` | `LOOP_END_2` | `[23:16]` (applies) |
-| `+D` | `STEP_0` | `[7:0]` (16.16, low) |
-| `+E` | `STEP_1` | `[15:8]` |
-| `+F` | `STEP_2` | `[23:16]` (applies; 4th byte `+F + 1` = `[31:24]`) |
-
-**Note:** the volume in `CH_CTRL` is 4+4 bits, scaled `<<4` to 8 bits
-internally. The internal `vol_l` / `vol_r` are 8 bits.
-
-### 3.3 Bit fields (summary)
-
-| Register | Bits |
-|---|---|
-| `GLOBAL_CR[0]` | enable |
-| `GLOBAL_CR[1]` | reset |
-| `STATUS[0]` | global active |
-| `STATUS[1]` | any channel active |
-| `STATUS[2]` | any error |
-| `STATUS[3]` | any EOF |
-| `STATUS[4]` | DMA error |
-| `STATUS[5]` | timer IRQ |
-| `IRQ_CTRL[0]` | timer IRQ enable |
-| `IRQ_CTRL[1]` | DMA error NMI enable |
-| `CH_CTRL[0]` | enable |
-| `CH_CTRL[1]` | loop |
-| `CH_CTRL[2]` | ping-pong |
-| `CH_CTRL[3]` | IRQ on EOF |
-| `CH_CTRL[7:4]` | vol L (4-bit, scaled) |
-| `CH_CTRL[3:0]` | vol R (4-bit, scaled) |
+[include](gen/ms2a_channel-table.md)
 
 ---
 
@@ -237,7 +159,6 @@ ld (0x2F + 1), a
 ## 5. What differs from rev. C
 
 ### ⚠ Changed in rev. C
-
 | Aspect | Rev. A | Rev. C |
 |---|---|---|
 | Sample format | 16-bit only | 8/16-bit selectable |
@@ -252,7 +173,6 @@ ld (0x2F + 1), a
 | Status | error / DMA / EOF / timer | EOF / playing (per channel) |
 
 ### ⚠ Not in rev. C
-
 | Feature | Why desirable |
 |---|---|
 | **DMA error handling** | When DMA reads memory and the memory controller returns a timeout (watchdog), the sound card must latch the error, enter an error state, and signal it (IRQ/NMI). This is a **stability element**. |
@@ -264,8 +184,7 @@ ld (0x2F + 1), a
 
 ## 6. Open questions
 
-1. **DMA error handling** — desirable to return. This is a stability
-   element, not a feature. *TBD.*
+1. **DMA error handling** — desirable to return. This is a stability element, not a feature. *TBD.*
 2. **8 channels** — option, not required. *TBD.*
 3. **I2S** — option. *TBD.*
 4. **Ping-pong** — option. *TBD.*

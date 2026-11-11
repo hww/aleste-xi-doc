@@ -1,0 +1,33 @@
+kind: code_list
+name: pic_regmap
+title: "PIC Register Map (wb_z80_pic.sv)"
+width: 8
+
+entries:
+  - addr: "0x0"
+    name: "MASK_L"
+    fields: [{name: "IRQ_0_7", msb: 7, lsb: 0, description: "Mask, lines 0–7 (1 = enabled)"}]
+  - addr: "0x1"
+    name: "MASK_H"
+    fields: [{name: "IRQ_8_15", msb: 7, lsb: 0, description: "Mask, lines 8–15 (1 = enabled)"}]
+  - addr: "0x2"
+    name: "VECTOR"
+    fields: [{name: "VEC", msb: 7, lsb: 0, description: "Base vector for IM 2 (default 0xFF)"}]
+  - addr: "0x3"
+    name: "STATUS_L"
+    fields: [{name: "IRQ_0_7", msb: 7, lsb: 0, description: "Status, lines 0–7"}]
+  - addr: "0x4"
+    name: "STATUS_H"
+    fields: [{name: "IRQ_8_15", msb: 7, lsb: 0, description: "Status, lines 8–15"}]
+  - addr: "0x5"
+    name: "PENDING_L"
+    fields: [{name: "IRQ_0_7", msb: 7, lsb: 0, description: "Pending, lines 0–7"}]
+  - addr: "0x6"
+    name: "PENDING_H"
+    fields: [{name: "IRQ_8_15", msb: 7, lsb: 0, description: "Pending, lines 8–15"}]
+  - addr: "0x7"
+    name: "CLEAR_L"
+    fields: [{name: "CLR_0_7", msb: 7, lsb: 0, description: "Clear pending, lines 0–7"}]
+  - addr: "0x8"
+    name: "CLEAR_H"
+    fields: [{name: "CLR_8_15", msb: 7, lsb: 0, description: "Clear pending, lines 8–15"}]

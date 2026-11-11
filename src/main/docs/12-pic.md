@@ -38,17 +38,7 @@ edge-sensitive, with a priority encoder (bit 15 highest, bit 0 lowest).
 The PIC has **8 registers**, 8 bits each, at offsets `0x0`–`0x8` from
 the base address.
 
-| Offset | Register | R/W | Purpose |
-|---|---|---|---|
-| `0x0` | `MASK_L` | RW | Mask, lines 0–7 (1 = enabled) |
-| `0x1` | `MASK_H` | RW | Mask, lines 8–15 (1 = enabled) |
-| `0x2` | `VECTOR` | RW | Base vector for IM 2 |
-| `0x3` | `STATUS_L` | R | Status, lines 0–7 |
-| `0x4` | `STATUS_H` | R | Status, lines 8–15 |
-| `0x5` | `PENDING_L` | R | Pending, lines 0–7 |
-| `0x6` | `PENDING_H` | R | Pending, lines 8–15 |
-| `0x7` | `CLEAR_L` | W | Clear pending, lines 0–7 (1 = clear) |
-| `0x8` | `CLEAR_H` | W | Clear pending, lines 8–15 (1 = clear) |
+![PIC Register Map](gen/pic_regmap.svg)
 
 **✔ By design (RTL):** the register layout matches `wb_z80_pic.sv`.
 

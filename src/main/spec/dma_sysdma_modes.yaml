@@ -1,0 +1,8 @@
+kind: code_list
+name: dma_sysdma_modes
+output: [md]
+title: "SysDMA Modes"
+fields: [mode, val, desc]
+entries:
+  - {mode: "Demand", val: "0", desc: "One transfer per DRQ assertion"}
+  - {mode: "Block", val: "1", desc: "Transfer the whole block"}

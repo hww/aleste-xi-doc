@@ -1,0 +1,12 @@
+kind: code_list
+name: crtc_table_sync
+output: [md]
+title: "Sync Strobe Generation"
+fields: [code, strobe, desc]
+entries:
+  - {code: "0xF", strobe: "stb_char_o", desc: "One pulse every 16 pixel clocks"}
+  - {code: "0x3", strobe: "stb_sync1_o", desc: "Pulse at pixel 4 within a character"}
+  - {code: "0xB", strobe: "stb_sync2_o", desc: "Pulse at pixel 12 within a character"}
+notes:
+  - "Строб генерируется, когда `pix_x[3:0]` совпадает со значением `code`."
+  - "`stb_char_o` — один импульс каждые 16 пиксельных тактов."

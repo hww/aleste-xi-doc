@@ -1,0 +1,39 @@
+kind: code_list
+name: dma_sysdma_map
+title: "SysDMA Register Map (wb_dma.sv)"
+width: 8
+
+entries:
+  - addr: "0x00"
+    name: "SRC_ADDR[ch]"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Source address (24 bits)"}]
+  - addr: "0x10"
+    name: "DST_ADDR[ch]"
+    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Destination address (24 bits)"}]
+  - addr: "0x20"
+    name: "COUNT[ch]"
+    fields: [{name: "COUNT", msb: 7, lsb: 0, description: "Transfer count (24 bits)"}]
+  - addr: "0x30"
+    name: "CONTROL[ch]"
+    fields: 
+      - {name: "SRC_CTRL", msb: 1, lsb: 0, description: "Source control"}
+      - {name: "DST_CTRL", msb: 3, lsb: 2, description: "Dest control"}
+      - {name: "ENABLE", msb: 4, lsb: 4, description: "Enable channel"}
+      - {name: "MODE", msb: 5, lsb: 5, description: "0=Demand, 1=Block"}
+  - addr: "0x31"
+    name: "STATUS[ch]"
+    fields: 
+      - {name: "DONE", msb: 0, lsb: 0, description: "Transfer done"}
+      - {name: "ERROR", msb: 1, lsb: 1, description: "Transfer error"}
+  - addr: "0x40"
+    name: "IMASK"
+    fields: [{name: "MASK", msb: 3, lsb: 0, description: "Interrupt mask per channel"}]
+  - addr: "0x41"
+    name: "DONE_CLEAR"
+    fields: [{name: "CLR", msb: 3, lsb: 0, description: "Clear DONE flags"}]
+  - addr: "0x42"
+    name: "ERROR_CLEAR"
+    fields: [{name: "CLR", msb: 3, lsb: 0, description: "Clear ERROR flags"}]
+  - addr: "0x43"
+    name: "VERSION"
+    fields: [{name: "VER", msb: 7, lsb: 0, description: "Version / features"}]

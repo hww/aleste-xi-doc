@@ -1,19 +1,19 @@
-kind: table
+kind: code_list
 name: operand_map
 title: "Карта операндов микрокода"
-columns:
-  - {key: address, label: "Адрес"}
-  - {key: name, label: "Имя", bold: true}
-  - {key: read, label: "Чтение"}
-  - {key: write, label: "Запись"}
-rows:
-  - {address: "0–31", name: "R0–R31",  read: "Регистровый файл, 24 бита", write: "То же"}
-  - {address: "32",   name: "ZERO",    read: "0",                        write: "Игнорируется"}
-  - {address: "33",   name: "ACC",     read: "Результат предыдущей операции", write: "—"}
-  - {address: "34",   name: "SPIX",    read: "Пиксель источника (SW)",  write: "—"}
-  - {address: "35",   name: "DPIX",    read: "Пиксель приёмника (DW)",  write: "Запись в DW, dirty"}
-  - {address: "36",   name: "SIDX",    read: "—",                       write: "Индекс источника"}
-  - {address: "37",   name: "DIDX",    read: "—",                       write: "Индекс приёмника"}
-  - {address: "38",   name: "DPTR",    read: "—",                       write: "Индекс потока данных"}
-  - {address: "39",   name: "FLAG",    read: "Z, N, C",                 write: "—"}
-  - {address: "40",   name: "CNT",     read: "Счётчик цикла",           write: "Загрузка (LDCNT)"}
+fields: [code, name, read, write]
+entries:
+  - {code: "0–31", name: "R0–R31",       read: "Регистровый файл, 24 бита", write: "То же"}
+  - {code: 32,     name: "ZERO",          read: "0", write: "Игнорируется"}
+  - {code: 33,     name: "ACC",           read: "Результат предыдущей операции", write: "—"}
+  - {code: 34,     name: "SPIX",          read: "Через PACKER_RD (CH_SOURCE)", write: "—"}
+  - {code: 35,     name: "DPIX",          read: "Через PACKER_RD (CH_DEST)", write: "Через PACKER_WR (CH_DEST), с mask_"}
+  - {code: 36,     name: "SIDX",          read: "LDX SIDX", write: "STX SIDX"}
+  - {code: 37,     name: "DIDX",          read: "LDX DIDX", write: "STX DIDX"}
+  - {code: 38,     name: "DPTR",          read: "LDX DPTR", write: "STX DPTR / SETP"}
+  - {code: 39,     name: "FLAG",          read: "Z, N, C", write: "—"}
+  - {code: 40,     name: "CNT",           read: "LDX CNT", write: "STX CNT / LDCNT"}
+  - {code: 41,     name: "FLAG_BUSY",     read: "1 если wait_ > 0", write: "—"}
+  - {code: 42,     name: "FLAG_IRQ",      read: "1 если irq_pending_", write: "—"}
+  - {code: 43,     name: "FLAG_DMA",      read: "заглушка, 0", write: "—"}
+  - {code: 44,     name: "FLAG_CNT_ZERO", read: "1 если loop_cnt_ == 0", write: "—"}

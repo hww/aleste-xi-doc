@@ -1,0 +1,8 @@
+kind: bitfield
+name: crtc_r21
+output: [svg, md] 
+title: "R21 — Pixel Control (0x15)"
+width: 8
+fields:
+  - {name: "pixel_rate", msb: 1, lsb: 0, description: "00=2B, 01=4B, 10=8B, 11=16B per 16px"}
+  - {name: "RESERVED", msb: 7, lsb: 2, description: "Reserved"}

@@ -1,22 +1,29 @@
-kind: table
+kind: code_list
 name: microops_reg
-title: "REG_OP · Передача данных"
-columns:
-  - {key: op, label: "Микрокоманда"}
-  - {key: description, label: "Действие"}
-  - {key: cycles, label: "Тактов"}
-rows:
-  - {op: "NOP",     description: "—", cycles: "1"}
-  - {op: "PASS",    description: "ACC = OPR", cycles: "1"}
-  - {op: "LDR",     description: "OPR = R[n]", cycles: "1"}
-  - {op: "STR",     description: "R[n] = ACC", cycles: "1"}
-  - {op: "LDD",     description: "OPR = слово из канала DATA (16 бит, без знака), DPTR++", cycles: "1"}
-  - {op: "LDDS",    description: "То же, со знаком", cycles: "1"}
-  - {op: "LDSP",    description: "OPR = SPIX, SIDX++", cycles: "1"}
-  - {op: "LDDP",    description: "OPR = DPIX", cycles: "1"}
-  - {op: "STDP",    description: "DPIX = ACC, DIDX++", cycles: "1"}
-  - {op: "SETS",    description: "SIDX = ACC", cycles: "1"}
-  - {op: "SETD",    description: "DIDX = ACC", cycles: "1"}
-  - {op: "SETP",    description: "DPTR = ACC", cycles: "1"}
-  - {op: "LDCNT",   description: "Счётчик цикла = ACC", cycles: "1"}
-  - {op: "FLUSH?",  description: "Согласовать память (место — TBD на симуляторе)", cycles: "зависит"}
+title: "REG_OP — Передача данных и служебное"
+fields: [code, name, description, cycles, imm]
+entries:
+  - {code: 0,  name: "NOP",         description: "—", cycles: 1, imm: "—"}
+  - {code: 1,  name: "PASS",        description: "ACC = OPR", cycles: 1, imm: "—"}
+  - {code: 2,  name: "LDR",         description: "OPR = operand[REG_ADDR]", cycles: 1, imm: "—"}
+  - {code: 3,  name: "STR",         description: "operand[REG_ADDR] = ACC", cycles: 1, imm: "—"}
+  - {code: 4,  name: "LDD",         description: "OPR = слово из памяти по DPTR (16 бит), DPTR += 2", cycles: 1, imm: "—"}
+  - {code: 5,  name: "LDDS",        description: "То же, со знаком", cycles: 1, imm: "—"}
+  - {code: 6,  name: "SETS",        description: "SIDX = ACC", cycles: 1, imm: "—"}
+  - {code: 7,  name: "SETD",        description: "DIDX = ACC", cycles: 1, imm: "—"}
+  - {code: 8,  name: "SETP",        description: "DPTR = ACC", cycles: 1, imm: "—"}
+  - {code: 9,  name: "LDCNT",       description: "Счётчик цикла = ACC", cycles: 1, imm: "—"}
+  - {code: 10, name: "FLUSH",       description: "Сбросить dirty всех каналов в память", cycles: "зависит", imm: "—"}
+  - {code: 11, name: "LDX",         description: "OPR = operand[IMM[5:0]]", cycles: 1, imm: "opnum[5:0]"}
+  - {code: 12, name: "STX",         description: "operand[IMM[5:0]] = ACC", cycles: 1, imm: "opnum[5:0]"}
+  - {code: 13, name: "LDI",         description: "OPR = IMM со знаком", cycles: 1, imm: "константа[11:0]"}
+  - {code: 14, name: "LDH",         description: "OPR = IMM × 4096", cycles: 1, imm: "константа[11:0]"}
+  - {code: 15, name: "LDL",         description: "OPR[11:0] = IMM", cycles: 1, imm: "константа[11:0]"}
+  - {code: 16, name: "PACKER_RD",   description: "Чтение пикселя/слова", cycles: "1+miss", imm: "—"}
+  - {code: 17, name: "PACKER_WR",   description: "Запись пикселя/слова", cycles: "1+miss", imm: "—"}
+  - {code: 18, name: "SETMODE",     description: "ch_mode_[REG_ADDR].fmt = ACC[2:0]", cycles: 1, imm: "—"}
+  - {code: 19, name: "SETPAGE",     description: "set_page(REG_ADDR, ACC)", cycles: "зависит", imm: "—"}
+  - {code: 20, name: "ADDR",        description: "AddrPacker(REG_ADDR): ACC=(y<<12)|x", cycles: 1, imm: "—"}
+  - {code: 21, name: "SETMASK",     description: "mask_ = ACC[15:0]", cycles: 1, imm: "—"}
+  - {code: 22, name: "IRQ",         description: "irq_pending_=1, irq_code_=ACC[11:0]", cycles: 1, imm: "—"}
+  - {code: 23, name: "резерв",      description: "—", cycles: "—", imm: "—"}

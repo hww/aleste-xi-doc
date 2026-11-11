@@ -37,27 +37,13 @@ does not run out of samples during a long copy.
 The blitter has **17 registers**, 8 bits each, at offsets `0x00`–`0x10`
 from the base address.
 
-| Offset | Register | R/W | Purpose |
-|---|---|---|---|
-| `0x00` | `CTRL` | W | bit 0 = start; bits 2–1 = mode (0 copy, 1 fill, 2 copy-with-transparent); bit 3 = IRQ on done. R: bit 0 = busy; bits 3–1 = written |
-| `0x01` | `STATUS` | R/W | bit 0 = done pending; W 1 = clear |
-| `0x02–0x04` | `SRC` | RW | physical source address (24 bits, low first) |
-| `0x05–0x07` | `DST` | RW | physical destination address (24 bits, low first) |
-| `0x08–0x09` | `WIDTH` | RW | bytes per line (0 = 65536) |
-| `0x0A–0x0B` | `HEIGHT` | RW | lines (0 = 1) |
-| `0x0C–0x0D` | `SSTRIDE` | RW | source line stride (signed) |
-| `0x0E–0x0F` | `DSTRIDE` | RW | destination line stride (signed) |
-| `0x10` | `KEY` | RW | fill byte or transparent colour |
+![Blitter Register Map](gen/dma_blitter_map.svg)
 
 **✔ By design (RTL):** the register layout matches `lx_dma.sv`.
 
 ### 1.3 Modes
 
-| Mode | Value | Behaviour |
-|---|---|---|
-| Copy | 0 | read from `SRC`, write to `DST` |
-| Fill | 1 | write `KEY` to `DST` |
-| Copy with transparent | 2 | read from `SRC`; if byte == `KEY`, skip the write |
+[include](gen/dma_blitter_modes-table.md)
 
 ### 1.4 Interrupt
 
@@ -100,26 +86,13 @@ SysDMA is a **4-channel** DMA controller with **DRQ/DACK** handshake,
 SysDMA has per-channel registers and common registers. The layout is in
 `wb_dma.sv`; the exact byte offsets are `TBD: verify against RTL`.
 
-| Register | Purpose |
-|---|---|
-| `SRC_ADDR[ch]` | source address (24 bits) |
-| `DST_ADDR[ch]` | destination address (24 bits) |
-| `COUNT[ch]` | transfer count (24 bits) |
-| `CONTROL[ch]` | bits: `SRC_CTRL`, `DST_CTRL`, `ENABLE`, `MODE` |
-| `STATUS[ch]` | bit 0 = `DONE`, bit 1 = `ERROR` |
-| `IMASK` | interrupt mask |
-| `DONE_CLEAR` | clear `DONE` flags |
-| `ERROR_CLEAR` | clear `ERROR` flags |
-| `VERSION` | version / features |
+![SysDMA Register Map](gen/dma_sysdma_map.svg)
 
 **✔ By design (RTL):** `wb_dma.sv` implements these registers.
 
 ### 2.3 Modes
 
-| Mode | Value | Behaviour |
-|---|---|---|
-| Demand | 0 | one transfer per DRQ assertion |
-| Block | 1 | transfer the whole block |
+[include](gen/dma_sysdma_modes-table.md)
 
 ### 2.4 Arbitration
 

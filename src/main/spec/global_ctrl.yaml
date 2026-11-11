@@ -1,0 +1,30 @@
+kind: bitfield
+name: global_ctrl
+title: "GLOBAL_CTRL (F0h) Bit Map"
+width: 8
+
+fields:
+  - name: "supervisor_mode"
+    msb: 0
+    lsb: 0
+    description: "0 = User, 1 = Supervisor. In Supervisor mode, all system registers are accessible. In User mode, access is restricted."
+  - name: "native_mode"
+    msb: 1
+    lsb: 1
+    description: "0 = Legacy (CPC 6128 compatibility), 1 = Native (modern LX address space). Ignored in Supervisor mode (Native mechanism is always used)."
+  - name: "supervisor_hook"
+    msb: 2
+    lsb: 2
+    description: "0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). Allows the kernel to intercept interrupt handling."
+  - name: "reserved"
+    msb: 3
+    lsb: 3
+    description: "Must be 0."
+  - name: "mmio_userlock"
+    msb: 4
+    lsb: 4
+    description: "0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode, preventing unauthorised access. Only Supervisor can change this bit."
+  - name: "reserved"
+    msb: 7
+    lsb: 5
+    description: "Must be 0."

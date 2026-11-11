@@ -1,0 +1,40 @@
+kind: code_list
+name: palette_regmap
+output: [svg, md] 
+title: "Palette Controller Register Map"
+width: 8
+
+entries:
+  - addr: "0x00"
+    name: "Palette Index"
+    fields:
+      - {name: "INDEX", msb: 7, lsb: 0, description: "Индекс цвета (0-255)"}
+
+  - addr: "0x01"
+    name: "Palette Data Low"
+    fields:
+      - {name: "DATA_LO", msb: 7, lsb: 0, description: "Младшие 8 бит цвета"}
+
+  - addr: "0x02"
+    name: "Palette Data High"
+    fields:
+      - {name: "DATA_HI", msb: 3, lsb: 0, description: "Старшие 4 бита (только 12-bit)"}
+
+  - addr: "0x03"
+    name: "Border Color Low"
+    fields:
+      - {name: "BORD_LO", msb: 7, lsb: 0, description: "Младшие 8 бит цвета бордюра"}
+
+  - addr: "0x04"
+    name: "Border Color High"
+    fields:
+      - {name: "BORD_HI", msb: 3, lsb: 0, description: "Старшие 4 бита бордюра"}
+
+  - addr: "0x05"
+    name: "Control Register"
+    ref: palette_control  # <-- Ссылка на отдельный YAML!
+
+  - addr: "0x06"
+    name: "Palette Modifier"
+    fields:
+      - {name: "MODIFIER", msb: 7, lsb: 0, description: "Значение для OR/XOR модификации"}

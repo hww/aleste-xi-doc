@@ -1,0 +1,19 @@
+kind: code_list
+name: crtc_ext_regmap
+output: [svg, md] 
+title: "Extended Native Registers (R18–R21)"
+width: 8
+
+entries:
+  - addr: "0x12"
+    name: "R18: Video Ctrl"
+    ref: crtc_r18
+  - addr: "0x13"
+    name: "R19: High Addr"
+    fields: [{name: "A23_A16", msb: 7, lsb: 0, description: "High address byte"}]
+  - addr: "0x14"
+    name: "R20: Addr Mode"
+    ref: crtc_r20
+  - addr: "0x15"
+    name: "R21: Pixel Ctrl"
+    ref: crtc_r21

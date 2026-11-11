@@ -1,42 +1,39 @@
-kind: table
+kind: code_list
 name: registers
+output: [svg,md]
 title: "Регистровый файл · R0–R31"
-autoindex: "R{}"
-autoindex_label: "Регистр"
-columns:
-  - {key: name, label: "Имя", bold: true}
-  - {key: description, label: "Назначение"}
-  - {key: group, label: "Группа"}
-rows:
-  - {name: DX,      description: "Destination X coordinate", group: destination}
-  - {name: DY,      description: "Destination Y coordinate", group: destination}
-  - {name: DW,      description: "Destination width", group: destination}
-  - {name: DH,      description: "Destination height", group: destination}
-  - {name: SX,      description: "Source X coordinate", group: source}
-  - {name: SY,      description: "Source Y coordinate", group: source}
-  - {name: SW,      description: "Source width", group: source}
-  - {name: SH,      description: "Source height", group: source}
-  - {name: DSTRIDE, description: "Destination row stride", group: memory}
-  - {name: SSTRIDE, description: "Source row stride", group: memory}
-  - {name: DBASE,   description: "Destination base address", group: memory}
-  - {name: SBASE,   description: "Source base address", group: memory}
-  - {name: FG,      description: "Foreground colour", group: pixel}
-  - {name: BG,      description: "Background colour", group: pixel}
-  - {name: MODE,    description: "Pixel formats and combine operation", group: pixel}
-  - {name: CX0,     description: "Clip window left", group: clipping}
-  - {name: CY0,     description: "Clip window top", group: clipping}
-  - {name: CX1,     description: "Clip window right", group: clipping}
-  - {name: CY1,     description: "Clip window bottom", group: clipping}
-  - {name: SDX,     description: "Source delta X (12.12)", group: increment}
-  - {name: SDY,     description: "Source delta Y (12.12)", group: increment}
-  - {name: DDX,     description: "Destination delta X (12.12)", group: increment}
-  - {name: DDY,     description: "Destination delta Y (12.12)", group: increment}
-  - {name: T0,      description: "Временный регистр", group: temporary}
-  - {name: T1,      description: "Временный регистр", group: temporary}
-  - {name: T2,      description: "Временный регистр", group: temporary}
-  - {name: T3,      description: "Временный регистр", group: temporary}
-  - {name: T4,      description: "Временный регистр", group: temporary}
-  - {name: T5,      description: "Временный регистр", group: temporary}
-  - {name: T6,      description: "Временный регистр", group: temporary}
-  - {name: T7,      description: "Временный регистр", group: temporary}
-  - {name: T8,      description: "Временный регистр", group: temporary}
+fields: [index, name, description, group]
+width: 24
+entries:
+  - {index: "R0",  name: "DX",      description: "Destination X", group: "destination"}
+  - {index: "R1",  name: "DY",      description: "Destination Y", group: "destination"}
+  - {index: "R2",  name: "DW",      description: "Destination width", group: "destination"}
+  - {index: "R3",  name: "DH",      description: "Destination height", group: "destination"}
+  - {index: "R4",  name: "SX",      description: "Source X", group: "source"}
+  - {index: "R5",  name: "SY",      description: "Source Y", group: "source"}
+  - {index: "R6",  name: "SW",      description: "Source width", group: "source"}
+  - {index: "R7",  name: "SH",      description: "Source height", group: "source"}
+  - {index: "R8",  name: "DSTRIDE", description: "Destination row stride", group: "memory"}
+  - {index: "R9",  name: "SSTRIDE", description: "Source row stride", group: "memory"}
+  - {index: "R10", name: "DBASE",   description: "Destination base address", group: "memory"}
+  - {index: "R11", name: "SBASE",   description: "Source base address", group: "memory"}
+  - {index: "R12", name: "FG",      description: "Foreground colour", group: "pixel"}
+  - {index: "R13", name: "BG",      description: "Background colour", group: "pixel"}
+  - {index: "R14", name: "MODE",    description: "Pixel formats and combine operation", group: "pixel"}
+  - {index: "R15", name: "CX0",     description: "Clip window left", group: "clipping"}
+  - {index: "R16", name: "CY0",     description: "Clip window top", group: "clipping"}
+  - {index: "R17", name: "CX1",     description: "Clip window right", group: "clipping"}
+  - {index: "R18", name: "CY1",     description: "Clip window bottom", group: "clipping"}
+  - {index: "R19", name: "SDX",     description: "Source delta X (12.12)", group: "increment"}
+  - {index: "R20", name: "SDY",     description: "Source delta Y (12.12)", group: "increment"}
+  - {index: "R21", name: "DDX",     description: "Destination delta X (12.12)", group: "increment"}
+  - {index: "R22", name: "DDY",     description: "Destination delta Y (12.12)", group: "increment"}
+  - {index: "R23", name: "T0",      description: "Временный регистр", group: "temporary"}
+  - {index: "R24", name: "T1",      description: "Временный регистр", group: "temporary"}
+  - {index: "R25", name: "T2",      description: "Временный регистр", group: "temporary"}
+  - {index: "R26", name: "T3",      description: "Временный регистр", group: "temporary"}
+  - {index: "R27", name: "T4",      description: "Временный регистр", group: "temporary"}
+  - {index: "R28", name: "T5",      description: "Временный регистр", group: "temporary"}
+  - {index: "R29", name: "T6",      description: "Временный регистр", group: "temporary"}
+  - {index: "R30", name: "T7",      description: "Временный регистр", group: "temporary"}
+  - {index: "R31", name: "T8",      description: "Временный регистр", group: "temporary"}

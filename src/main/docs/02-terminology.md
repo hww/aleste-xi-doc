@@ -102,7 +102,7 @@ available. When 0, User mode can reach MMU ports.
 ## Devices
 
 **PIC** — interrupt controller. 16 IRQ lines, edge‑sensitive, priority
-bit 15 > bit 0. Registers: mask, status, pending, clear, vector (IM 2).
+bit 15 > bit 0. entries: mask, status, pending, clear, vector (IM 2).
 
 **NMI controller** — non‑maskable interrupt controller. 4 sources
 (wishbone error, panic button, ext board error, debug trigger).

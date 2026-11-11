@@ -1,12 +1,8 @@
-kind: table
+kind: code_list
 name: microops_mask
-title: "MASK · 3 BIT"
-autoindex: "{}"
-autoindex_label: "Код"
-columns:
-  - {key: name, label: "Маска", bold: true}
-  - {key: description, label: "Что блокирует при выполнении условия"}
-rows:
-  - {name: REG,    description: "Блокировать REG_OP"}
-  - {name: ALU,    description: "Блокировать ALU_OP"}
-  - {name: CTRL,   description: "Блокировать CTRL_OP"}
+title: "MASK"
+fields: [code, name, description]
+entries:
+  - {code: 0, name: "REG",  description: "Блокировать REG_OP"}
+  - {code: 1, name: "ALU",  description: "Блокировать ALU_OP"}
+  - {code: 2, name: "CTRL", description: "Блокировать CTRL_OP"}

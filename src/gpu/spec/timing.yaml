@@ -1,5 +1,6 @@
 kind: timing
 name: timing
+output: [svg] 
 title: "Конвейер: Fetch → Stall → Pixel"
 title: "Конвейер: Fetch → Stall → Pixel"
 subtitle: "Ожидание данных из FIFO замораживает конвейер"

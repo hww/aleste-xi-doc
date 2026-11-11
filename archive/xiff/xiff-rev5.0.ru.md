@@ -818,7 +818,7 @@ NOTE_E4:  defc 64
 ;; XIFF:struct AYState
 public _ay_state
 _ay_state:
-_registers: ds 16  ;; XIFF:field uint8_t[16] -- Тень регистров
+_entries: ds 16  ;; XIFF:field uint8_t[16] -- Тень регистров
 _volume:    db 15  ;; XIFF:field uint8_t     -- Громкость 0-15
 _muted:     db 0   ;; XIFF:field bool        -- Флаг отключения звука
 

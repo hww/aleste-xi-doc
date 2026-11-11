@@ -1,0 +1,11 @@
+kind: bitfield
+name: crtc_r18
+output: [svg, md] 
+title: "R18 — Video Control (0x12)"
+width: 8
+fields:
+  - {name: "bpp_mode", msb: 1, lsb: 0, description: "00=1bpp, 01=2bpp, 10=4bpp, 11=8bpp"}
+  - {name: "RESERVED", msb: 3, lsb: 2, description: "Reserved"}
+  - {name: "linear_pixel", msb: 4, lsb: 4, description: "0=CPC palette, 1=Linear RGB"}
+  - {name: "use_cpc_modes", msb: 5, lsb: 5, description: "1=use CPC Gate Array bpp"}
+  - {name: "RESERVED", msb: 7, lsb: 6, description: "Reserved"}
