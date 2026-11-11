@@ -26,7 +26,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 ![Формат микрослова](gen/microinstruction.svg)
 
-
 **MICROINSTRUCTION · 36 BIT**
 
 | Поле | Биты | Ширина | Описание |
@@ -40,11 +39,9 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | **IMM** | [11:0] | 12 | 12-битный аргумент. Семантика зависит от команды: константа (LDI/LDH/LDL), адрес (JMP/CALL/LOOP), код IRQ, код операнда (LDX/STX), код флага (WAIT_FLAG), код ошибки (HALT X) |
 
 
-
 **Порядок выполнения.** Три блока (REG_OP, ALU_OP, CTRL_OP) работают параллельно: все читают ACC и OPR на начало такта, запись — в конце. АЛУ считает на старом OPR, REG_OP грузит следующий OPR; `STR` сохраняет ACC после предыдущего слова.
 
 **Условие и маска.** Флаги Z, N, C — из предыдущего слова. COND (3 бита) выбирает условие; если оно выполняется, MASK (3 бита) блокирует отмеченные блоки (бит 0 — REG_OP, бит 1 — ALU_OP, бит 2 — CTRL_OP). MASK = 0 — безусловно.
-
 
 **CONDITION**
 
@@ -60,8 +57,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 7 | RES1 | Запас |
 
 
-
-
 **MASK**
 
 | Code | Name | Description |
@@ -69,7 +64,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 0 | REG | Блокировать REG_OP |
 | 1 | ALU | Блокировать ALU_OP |
 | 2 | CTRL | Блокировать CTRL_OP |
-
 
 
 **`IMM` — 12 бит, универсальный аргумент.** Семантика зависит от команды:
@@ -113,7 +107,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 ## 5. Микрокоманды
 
-
 **REG_OP — Передача данных и служебное**
 
 | Code | Name | Description | Cycles | Imm |
@@ -144,8 +137,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 23 | резерв | — | — | — |
 
 
-
-
 **ALU_OP — Арифметика и логика**
 
 | Code | Name | Description | Cycles |
@@ -168,8 +159,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 15 | резерв | — | — |
 
 
-
-
 **CTRL_OP — Управление потоком**
 
 | Code | Name | Description | Imm | Cycles |
@@ -184,7 +173,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 7 | WAIT_FLAG | Ждать флаг (IMM[5:0]), инверсия (IMM[6]) | флаг[5:0]+inv[6] | 1+ |
 
 
-
 **REG_OP** — передача данных и служебное (5 бит, 24 кода): `NOP`, `PASS`, `LDR`, `STR`, `LDD`, `LDDS`, `SETS`, `SETD`, `SETP`, `LDCNT`, `FLUSH`, `LDX`, `STX`, `LDI`, `LDH`, `LDL`, `PACKER_RD`, `PACKER_WR`, `SETMODE`, `SETPAGE`, `ADDR`, `SETMASK`, `IRQ` + резерв.
 
 **ALU_OP** — 16 кодов из 16. `COMB` **убран**, логика (`AND`/`OR`/`XOR`) — через ALU. `ADDS`/`SUBS` — ширина канала из `ch_mode_[DEST].fmt`.
@@ -194,7 +182,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 ## 6. Карта операндов
 
 ![Карта операндов](gen/operand_map.svg)
-
 
 **Карта операндов микрокода**
 
@@ -216,7 +203,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 44 | FLAG_CNT_ZERO | 1 если loop_cnt_ == 0 | — |
 
 
-
 `ZERO` — операнд; при комбинаторном взрыве на мультиплексоре OPR заменяется на `LDI 0`.
 
 `SPIX`/`DPIX` — **через `PACKER_RD/WR`**, не через `LDX`/`STX` (последние читают значение, не пиксель).
@@ -226,7 +212,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 ## 7. Регистровый файл
 
 ![Регистры](gen/registers.svg)
-
 
 **Регистровый файл · R0–R31**
 
@@ -266,13 +251,11 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | R31 | T8 | Временный регистр | temporary |
 
 
-
 `SDX`, `SDY`, `DDX`, `DDY` — соглашение микрокода (аффинный режим, 12.12), не отдельная аппаратная фича.
 
 ## 8. Форматы пикселя и MODE
 
 ![Mode Register](gen/channel_mode.svg)
-
 **CHANNEL MODE**
 
 | Fmt | Name | Description |
@@ -287,12 +270,9 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 7 | PASS16 | Слово насквозь (16 бит) |
 
 
-
 **`MODE` (R14) — только `TR`** (бит 0). Формат канала — в `ch_mode_[4]` (3 бита `fmt` на канал), ставится `SETMODE` (`REG_ADDR[1:0]` = канал, `ACC[2:0]` = fmt). **`COP` убран** (комбайнера нет).
 
-
 *[Cycle: channel_mode-table.md]*
-
 
 **Порядок пикселей:** для 4 bpp `pos=0` — старшая тетрада, `pos=3` — младшая; для 8 bpp `pos=0` — старший байт, `pos=1` — младший; для 1 bpp `pos=0` — бит 15, `pos=15` — бит 0.
 
@@ -304,7 +284,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 
 **Формат пакета:** последовательность блоков, каждый начинается 16-битным заголовком `{kind[15:12], arg[11:0]}`:
 
-
 **Заголовки пакетов загрузчика**
 
 | Code | Name | Arg | Description |
@@ -314,7 +293,6 @@ GPU → Wishbone → VideoMemoryArbiter. Работу видеоарбитра �
 | 2 | CODE | число микрослов | Загрузка микрокода; далее адрес и по 3 слова на микрослово |
 | 3 | RUN | точка входа | Запуск микропрограммы |
 | 4 | JUMP | — | Следующие 2 слова — новый DPTR |
-
 
 
 `CODE`: arg = число микрослов; следующее слово — адрес в микрокоде; дальше по 3 слова на микрослово (36 бит в трёх 16-битных словах: `w0[15:0]`, `w1[31:16]`, `w2[35:32]`, `w2[15:4]` — резерв). `RUN`: arg = точка входа; программа сама читает свои данные и возвращается к загрузчику. `JUMP`: следующие 2 слова — новый DPTR.

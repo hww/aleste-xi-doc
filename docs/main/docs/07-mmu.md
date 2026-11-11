@@ -67,7 +67,6 @@ active.
 
 ### 2.3 Mode table
 
-
 **Operating Modes**
 
 | Mode | Supervisor | Native | Description |
@@ -77,7 +76,6 @@ active.
 | Software | from GLOBAL_CTRL | from GLOBAL_CTRL | Control through port F0h |
 | User | 0 | 0 | CPC compatibility (User + Legacy) |
 | User | 0 | 1 | Extended operating mode (User + Native) |
-
 
 
 **Important:** In Supervisor mode, the `native_mode` bit has no effect.
@@ -98,7 +96,6 @@ supervisor, bit 1 = native).
 - **Logical slots:** the 64 KB logical space is divided into four
   16 KB slots:
 
-
 **Logical Slots**
 
 | Slot | Range | Purpose |
@@ -107,7 +104,6 @@ supervisor, bit 1 = native).
 | 1 | 4000-7FFF | CPC ROM (system firmware) |
 | 2 | 8000-BFFF | User extended memory |
 | 3 | C000-FFFF | Supervisor memory (privileged) |
-
 
 
 ### 3.2 Bank switching
@@ -135,7 +131,6 @@ in `mmu_native.sv`. This is a **24-bit address**: 2 (slot) + 8 (bank) +
 There are **16 internal mapper registers**, organized as 4 slots × 4
 pages:
 
-
 **Internal Mapper Registers (16 × 8-bit)**
 
 | Index | Slot | Page | Purpose |
@@ -147,7 +142,6 @@ pages:
 | 4–7 | 1 | 0–3 | Slot 1 |
 | 8–11 | 2 | 0–3 | Slot 2 |
 | 12–15 | 3 | 0–3 | Slot 3 |
-
 
 
 The index is computed as:
@@ -174,7 +168,6 @@ I/O access.
 
 All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
-
 **Control Registers (Ports F0–FF, E0–EF)**
 
 | Port | Register | Function |
@@ -187,7 +180,6 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 | FB | USER_SLOT | User slot select |
 | FC–FF | BANK_0–3 | Bank registers for current slot |
 | E0–EF | MMU_EXT | Extended mapper access (CPU only) |
-
 
 
 **✔ By design (RTL):** `CONTROL_REG_ADDR = 8'hF0`, `MMIO_PAGE_ADDR = 8'hF1`,
@@ -204,7 +196,6 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
 ### 4.2 GLOBAL_CTRL (`F0`)
 
-
 **GLOBAL_CTRL (F0h)**
 
 | Поле | Биты | Ширина | Описание |
@@ -215,7 +206,6 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 | **supervisor_hook** | [2:2] | 1 | 1 = enable hardware trap at 0038h/0066h |
 | **native_mode** | [1:1] | 1 | 1 = Native mode, 0 = Legacy mode |
 | **supervisor_mode** | [0:0] | 1 | 1 = Supervisor mode |
-
 
 
 **✔ By design (RTL):** `reg_ctrl_super_in = din[0]`,
@@ -452,7 +442,6 @@ etc.
 
 ### 6.2 Access security policy
 
-
 **Access Security Policy**
 
 | Mode | Lock | Ports |
@@ -460,7 +449,6 @@ etc.
 | User | 1 | Blocked: 00–7F, F1, F3, FA, FB–FF; allowed: F2 (syscall) |
 | User | 0 | All allowed |
 | Supervisor | — | All allowed |
-
 
 
 **✔ By design (RTL):** `port_access_grant = supervisor_mode || !reg_ctrl_user_lock`.
@@ -485,7 +473,6 @@ mechanism is). See §10.
 
 ## 7. Reset state
 
-
 **Reset State (RTL)**
 
 | Register | Address | Reset_value | Description |
@@ -496,7 +483,6 @@ mechanism is). See §10.
 | USER_SLOT | FB | 0x00 | All pages → slot 0 |
 | BANK_0–3 | FC–FF | 0x00 | All banks = 0 |
 | CLOCK_CTRL | F3 | 8'b0000_0010 | Divide by 4 |
-
 
 
 **✔ By design (RTL):** `reg_control <= 8'b0001_0011`,

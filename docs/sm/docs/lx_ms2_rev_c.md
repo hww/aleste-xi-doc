@@ -90,7 +90,6 @@ Magic Sound 2 (rev. C) fixes all four:
 
 ![Global Registers Map](gen/ms2c_global_map.svg)
 
-
 ### Rev. C: Global Registers
 
 | Offset | Name | R/W | Bits |
@@ -107,12 +106,10 @@ Magic Sound 2 (rev. C) fixes all four:
 | 0x11 | TIMER_HI | RW | [15:8] timer period high |
 
 
-
 ### 3.2 Channel registers
 Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
 ![Channel Registers Map](gen/ms2c_channel_map.svg)
-
 
 ### Rev. C: Channel Registers (Base 0x20, 0x30, 0x40, 0x50)
 
@@ -134,7 +131,6 @@ Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, chan
 | +D | STEP_1 | RW | [15:8] (fraction) |
 | +E | STEP_2 | RW | [23:16] (integer) |
 | +F | status | R | [0] playing; [1] EOF; [7:4] position |
-
 
 
 ---

@@ -19,7 +19,6 @@ The following register map shows the unified native mode interface:
 
 ![Registers](gen/palette_regmap.svg)
 
-
 **Palette Controller Register Map**
 
 | Code | Name | Description |
@@ -33,13 +32,11 @@ The following register map shows the unified native mode interface:
 | — | Palette Modifier | — |
 
 
-
 ## Control Register Details
 
 The Control Register (0x05) configures the palette behavior:
 
 ![Control Register](gen/palette_control.svg)
-
 
 **Palette Control Register (0x05)**
 
@@ -52,11 +49,9 @@ The Control Register (0x05) configures the palette behavior:
 | **write_mode** | [1:0] | 2 | 00=12-bit, 01=CPC, 10=MSX, 11=YJK |
 
 
-
 ## Color Modes
 
 The palette supports multiple color conversion modes:
-
 
 **Color Modes**
 
@@ -66,7 +61,6 @@ The palette supports multiple color conversion modes:
 | 1 | CPC Legacy | 5-bit | 16 colors + border, hardware LUT conversion |
 | 2 | MSX | 8-bit | MSX2+ compatible, perceptual mapping |
 | 3 | YJK | YJK | Advanced color space for graphic arts |
-
 
 
 ### CPC Legacy Mode
