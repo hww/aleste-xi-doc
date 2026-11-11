@@ -465,7 +465,7 @@ def deploy():
         print("❌ No out/ directory. Run build.py first.")
         return
     
-    DEPLOY = ROOT / "deploy"
+    DEPLOY = ROOT / "docs"
     
     # Очищаем deploy/ (если есть)
     if DEPLOY.exists():
