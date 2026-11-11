@@ -458,6 +458,27 @@ def build_project(project_dir):
     if check.exists():
         subprocess.run([sys.executable, str(check)], cwd=src_dir, check=False)
 
+
+def deploy():
+    """Заморозить текущее состояние out/ в deploy/"""
+    if not OUT.exists():
+        print("❌ No out/ directory. Run build.py first.")
+        return
+    
+    DEPLOY = ROOT / "deploy"
+    
+    # Очищаем deploy/ (если есть)
+    if DEPLOY.exists():
+        print(f"🧹 Cleaning {DEPLOY}...")
+        shutil.rmtree(DEPLOY)
+    
+    # Копируем out/ в deploy/
+    print(f"📦 Copying {OUT} -> {DEPLOY}...")
+    shutil.copytree(OUT, DEPLOY)
+    
+    print(f"✅ Deployed to {DEPLOY}")
+
+
 # ---------- Main ----------
 def main():
     if not SRC.exists():
@@ -467,6 +488,10 @@ def main():
         if project_dir.is_dir():
             build_project(project_dir)
     print("\nDone.")
+    
+    # Если передан флаг --deploy, замораживаем
+    if "--deploy" in sys.argv:
+        deploy()
 
 if __name__ == "__main__":
     main()
