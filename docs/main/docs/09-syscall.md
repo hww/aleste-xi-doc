@@ -34,7 +34,6 @@ Four mode-switching mechanisms of LX:
 
 ### 5.1.2 Bit descriptions
 
-<!-- table: generated -->
 
 **GLOBAL_CTRL (F0h) Bit Map**
 
@@ -46,6 +45,7 @@ Four mode-switching mechanisms of LX:
 | **supervisor_hook** | [2:2] | 1 | 0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). Allows the kernel to intercept interrupt handling. |
 | **native_mode** | [1:1] | 1 | 0 = Legacy (CPC 6128 compatibility), 1 = Native (modern LX address space). Ignored in Supervisor mode (Native mechanism is always used). |
 | **supervisor_mode** | [0:0] | 1 | 0 = User, 1 = Supervisor. In Supervisor mode, all system registers are accessible. In User mode, access is restricted. |
+
 
 
 > **✔ By design:** `mmio_userlock` blocks **all MMU ports** (`E0–FF`), not only the mode bits. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).

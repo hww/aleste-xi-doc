@@ -79,7 +79,6 @@ Components use partial address decoding. It is therefore possible to
 send the same value to different components simultaneously by carefully
 using custom I/O ports.
 
-<!-- table: procedural -->
 | Hardware device | R/W | b15 | b14 | b13 | b12 | b11 | b10 | b9 | b8 | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Gate Array | W | 0 | 1 | - | - | - | - | - | - | - | - | - | - | - | - | - | - |
@@ -102,7 +101,7 @@ Legend:
 
 ### 1.2 Official I/O ports
 
-<!-- table: procedural -->
+
 | I/O | Decoded as | Port | R/W |
 |---|---|---|---|
 | `0x7FXX` | `%01xxxxxx xxxxxxxx` | Gate Array | W |
@@ -210,7 +209,7 @@ Exception: printer‑related bits are **Optional**.
 
 ![Gate Array R0](gen/L_GA_R0.svg)
 
-<!-- table: procedural -->
+
 | Depth | Normal inks (CPC) | Secondary inks (Aleste) |
 |---|---|---|
 | 1 bit | 0..1 | 2..3 |
@@ -235,7 +234,7 @@ The number is converted by IC D62.
 
 **CPC modes:**
 
-<!-- table: procedural -->
+
 | bit 1 | bit 0 | Mode |
 |---|---|---|
 | 0 | 0 | 160×200 (16 colours) |
@@ -322,7 +321,7 @@ and the following ports:
 
 **CPC 128 memory map:**
 
-<!-- table: procedural -->
+
 | Address | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|---|
 | `C000-FFFF` | RAM_3 | RAM_7 | RAM_7 | RAM_7 | RAM_3 | RAM_3 | RAM_3 | RAM_3 |
@@ -332,7 +331,7 @@ and the following ports:
 
 **CPC 512 KB memory map:**
 
-<!-- table: procedural -->
+
 | Address | ccc=0 | ccc=1 | ccc=2 | ccc=3 | ccc=4 | ccc=5 | ccc=6 | ccc=7 |
 |---|---|---|---|---|---|---|---|---|
 | `0000-3FFF` | 0 | 0 | `bbb*4 + 0` | 0 | 0 | 0 | 0 | 0 |
@@ -438,7 +437,7 @@ MSX‑style mapper with four 6‑bit page registers.
 
 ## 3. Author's recommendation for LX (summary)
 
-<!-- table: procedural -->
+
 | Element | CPC | 520EX | LX (hww) | Comment |
 |---|---|---|---|---|
 | Z80 CPU | yes | yes | **Mandatory** | Core CPU |
@@ -466,7 +465,7 @@ MSX‑style mapper with four 6‑bit page registers.
 
 ## 4. Spec vs RTL (RTL authoritative)
 
-<!-- table: procedural -->
+
 | # | Old spec said | RTL does (gen_rtl) | Status | Comment |
 |---|---|---|---|---|
 | 1 | `7Fxx` = `A[15:8]==0x7F`, internal Gate Array | `7Fxx` = `~A[15]`, forwarded to Wishbone bus | outdated | Palette outside legacy MMU |

@@ -329,7 +329,7 @@ def process_file(filepath, gen_dir, src_dir, seen=None):
         
         if rel.endswith("-table.md"):
             content = process_file(p, gen_dir, src_dir, seen)
-            return f"<!-- table: generated -->\n\n{content}"
+            return f"\n{content}\n"
             
         return process_file(p, gen_dir, src_dir, seen)
 

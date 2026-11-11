@@ -43,7 +43,6 @@ from the base address.
 
 ### 1.3 Modes
 
-<!-- table: generated -->
 
 **Blitter Modes**
 
@@ -52,6 +51,7 @@ from the base address.
 | Copy | 0 | Read from SRC, write to DST |
 | Fill | 1 | Write KEY to DST |
 | Copy with transparent | 2 | Read from SRC; if byte == KEY, skip the write |
+
 
 
 ### 1.4 Interrupt
@@ -101,7 +101,6 @@ SysDMA has per-channel registers and common registers. The layout is in
 
 ### 2.3 Modes
 
-<!-- table: generated -->
 
 **SysDMA Modes**
 
@@ -109,6 +108,7 @@ SysDMA has per-channel registers and common registers. The layout is in
 | --- | --- | --- |
 | Demand | 0 | One transfer per DRQ assertion |
 | Block | 1 | Transfer the whole block |
+
 
 
 ### 2.4 Arbitration
