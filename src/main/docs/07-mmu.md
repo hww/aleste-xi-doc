@@ -1,4 +1,5 @@
 # LX MMU: Native and Legacy Memory Management
+
 ## 0. How to read this document
 
 This document describes the memory management unit of Aleste LX: the
@@ -66,13 +67,7 @@ active.
 
 ### 2.3 Mode table
 
-| Mode | Supervisor | Native | Effective mode | Description |
-|---|---|---|---|---|
-| Reset | 1 | 1 | Supervisor + Native | Initial state after reset |
-| Trap | 1 | unchanged | Supervisor + (Native or Legacy) | Hardware transition to Supervisor |
-| Software | from `GLOBAL_CTRL` | from `GLOBAL_CTRL` | As configured | Control through port `F0h` |
-| User | 0 | 0 | User + Legacy | CPC compatibility |
-| User | 0 | 1 | User + Native | Extended operating mode |
+[include](gen/mmu_modes-table.md)
 
 **Important:** In Supervisor mode, the `native_mode` bit has no effect.
 Native memory and device access mechanisms are always used.
@@ -92,12 +87,7 @@ supervisor, bit 1 = native).
 - **Logical slots:** the 64 KB logical space is divided into four
   16 KB slots:
 
-| Slot | Logical range | Purpose |
-|---|---|---|
-| 0 | `0000-3FFF` | CPC RAM (base memory) |
-| 1 | `4000-7FFF` | CPC ROM (system firmware) |
-| 2 | `8000-BFFF` | User extended memory |
-| 3 | `C000-FFFF` | Supervisor memory (privileged) |
+[include](gen/mmu_slots-table.md)
 
 ### 3.2 Bank switching
 
@@ -124,15 +114,7 @@ in `mmu_native.sv`. This is a **24-bit address**: 2 (slot) + 8 (bank) +
 There are **16 internal mapper registers**, organized as 4 slots × 4
 pages:
 
-| Index | Slot | Page | Purpose |
-|---|---|---|---|
-| 0 | 0 | 0 | Slot 0, page 0 |
-| 1 | 0 | 1 | Slot 0, page 1 |
-| 2 | 0 | 2 | Slot 0, page 2 |
-| 3 | 0 | 3 | Slot 0, page 3 |
-| 4–7 | 1 | 0–3 | Slot 1 |
-| 8–11 | 2 | 0–3 | Slot 2 |
-| 12–15 | 3 | 0–3 | Slot 3 |
+[include](gen/mmu_mapper_regs-table.md)
 
 The index is computed as:
 
@@ -156,18 +138,9 @@ I/O access.
 
 ### 4.1 Port map
 
-All MMU control registers are at ports `F0–FF`:
+All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
-| Port | Register | Function |
-|---|---|---|
-| `F0` | `GLOBAL_CTRL` | Mode control |
-| `F1` | `MMIO_PAGE` | 7-bit MMIO page |
-| `F2` | `SYSCALL` | Supervisor entry (write-only) |
-| `F3` | `CLOCK_CTRL` | CPU clock divider (Supervisor only) |
-| `F9` / `FA` | `SUPER_SLOT` | Supervisor slot select |
-| `FB` | `USER_SLOT` | User slot select |
-| `FC–FF` | `BANK_0–3` | Bank registers for current slot |
-| `E0–EF` | `MMU_EXT` | Extended mapper access |
+[include](gen/mmu_ports-table.md)
 
 **✔ By design (RTL):** `CONTROL_REG_ADDR = 8'hF0`, `MMIO_PAGE_ADDR = 8'hF1`,
 `SYSCALL_ADDR = 8'hF2`, `CLOCK_CTRL_ADDR = 8'hF3`,
@@ -183,14 +156,7 @@ All MMU control registers are at ports `F0–FF`:
 
 ### 4.2 GLOBAL_CTRL (`F0`)
 
-| Bit | Group | Purpose |
-|---|---|---|
-| 0 | Functional | `supervisor_mode`: 1 = Supervisor mode |
-| 1 | Functional | `native_mode`: 1 = Native mode, 0 = Legacy mode |
-| 2 | Functional | `supervisor_hook`: 1 = enable hardware trap at `0038h`/`0066h` |
-| 3 | Reserved | Future functionality |
-| 4 | Security | `mmio_userlock`: 1 = block direct MMIO access; 0 = allow |
-| 5–7 | Reserved | Future security bits |
+[include](gen/mmu_global_ctrl-table.md)
 
 **✔ By design (RTL):** `reg_ctrl_super_in = din[0]`,
 `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`,
@@ -426,11 +392,7 @@ etc.
 
 ### 6.2 Access security policy
 
-| Mode | `mmio_userlock` | Access to ports |
-|---|---|---|
-| User | 1 | Blocked: `00–7F`, `F1`, `F3`, `FA`, `FB–FF`; allowed: `F2` (syscall) |
-| User | 0 | All allowed |
-| Supervisor | — | All allowed |
+[include](gen/mmu_access_policy-table.md)
 
 **✔ By design (RTL):** `port_access_grant = supervisor_mode || !reg_ctrl_user_lock`.
 `is_mmu_access = is_io_access && addr_is_mmu_space && reg_ctrl_native_mode && port_access_grant`.
@@ -454,14 +416,7 @@ mechanism is). See §10.
 
 ## 7. Reset state
 
-| Register | Address | Reset value (RTL) | Description |
-|---|---|---|---|
-| `GLOBAL_CTRL` | `F0` | `8'b0001_0011` | supervisor=1, native=1, lock=1 |
-| `MMIO_PAGE` | `F1` | `0x00` | MMIO page 0 |
-| `SUPER_SLOT` | `FA` | `0xFF` | All pages → slot 3 |
-| `USER_SLOT` | `FB` | `0x00` | All pages → slot 0 |
-| `BANK_0–3` | `FC–FF` | `0x00` | All banks = 0 |
-| `CLOCK_CTRL` | `F3` | `8'b0000_0010` | Divide by 4 |
+[include](gen/mmu_reset_state-table.md)
 
 **✔ By design (RTL):** `reg_control <= 8'b0001_0011`,
 `reg_clock <= 8'b0000_0010`, `reg_super_slot <= 8'hFF`,
@@ -587,40 +542,3 @@ at `FF0080–FF00BF`.
 ---
 
 *End of document.*
-
-
----
-
-Готово. `lx_mmu.md` сохранён в этом виде.
-
-**Что внутри:**
-- Шапка `Author: hww`, `RTL: Carlos`, `Status: reference + RTL state`.
-- §0 — маркеры (`✔ By design` / `⚠ Spec` / `⚠ Outdated` / `⚠ Carlos`) и ярлыки.
-- §1 — принципы.
-- §2 — режимы (Privilege, Compatibility, Mode table).
-- §3 — память (slots, bank switching, 16 mapper registers), `⚠ Spec` про `{bank, offset}` → `{slot, bank, offset}`.
-- §4 — регистры `F0–FF` (GLOBAL_CTRL, MMIO_PAGE, SYSCALL, CLOCK_CTRL, SUPER_SLOT/FA, USER_SLOT/FB, BANK_0–3, MMU_EXT/E0–EF).
-- §5 — переключение режимов (software, trap, syscall, exit, active slot), `✔ By design` про syscall в `mmu_native.sv` и `F2`/`F2xx`.
-- §6 — mapper algorithm + security + SYS_MMIO_ACCESS_REQUEST.
-- §7 — reset state (RTL: `0001_0011`, `FF`, `0000_0010`).
-- §8 — state machine.
-- §9 — примеры кода (`FA` вместо `F9`, `E0–EF` вместо MMIO window).
-- §10 — open questions (9 пунктов, `TBD`).
-
-**Ключевые `⚠ Spec`** (v7 побеждён RTL):
-- `physical_address` = `{slot, bank, offset}` (а не `{bank, offset}`)
-- `SUPER_SLOT` = `FA` (а не `F9`)
-- `MMU_EXT` = `E0–EF` (а не `FF0080–FF00BF`)
-- `mmio_userlock` default = `1` (а не `0`)
-- `CLOCK_CTRL` reset = `2` (а не `7`)
-- `SUPER_SLOT` reset = `FF` (а не `00`)
-- `current_slot` = один из 4 page‑регистров по `cpu_page` (а не один slot register)
-
-**Ключевые `✔ By design`**:
-- syscall в `mmu_native.sv` только (не в `mmu_legacy.sv`)
-- `F2` в Native и `F2xx` в Legacy — намеренно
-- `mmu_legacy.sv` пропускает `F2xx` на шину, `mmu_native.sv` ловит
-
-**Что осталось `TBD`** (в §10): `SUPER_SLOT` F9/FA, MMU_EXT location, lock default, clock reset, super_slot reset, current_slot selection, SYS_MMIO_ACCESS_REQUEST, D62/MAPMOD/MSX (not recommended), physical_address form.
-
-Теперь у вас три RTL‑authoritative документа: `lx_legacy.md`, `lx_io.md`, `lx_mmu.md`. Если хотите — могу сделать **сводный `lx_ref.md`** (одна таблица `device | port | address | mode | label | RTL status`), которая будет ссылаться на все три. Это будет четвёртый и последний файл, который закрывает навигацию. Скажите, делать ли.

@@ -1,0 +1,101 @@
+# ============================================================
+# Operating Modes (Supervisor / Native)
+# ============================================================
+kind: code_list
+name: mmu_modes
+title: "Operating Modes"
+fields: [mode, supervisor, native, description]
+entries:
+  - {mode: "Reset", supervisor: "1", native: "1", description: "Initial state after reset (Supervisor + Native)"}
+  - {mode: "Trap", supervisor: "1", native: "unchanged", description: "Hardware transition to Supervisor"}
+  - {mode: "Software", supervisor: "from GLOBAL_CTRL", native: "from GLOBAL_CTRL", description: "Control through port F0h"}
+  - {mode: "User", supervisor: "0", native: "0", description: "CPC compatibility (User + Legacy)"}
+  - {mode: "User", supervisor: "0", native: "1", description: "Extended operating mode (User + Native)"}
+---
+# ============================================================
+# Logical Slots
+# ============================================================
+kind: code_list
+name: mmu_slots
+title: "Logical Slots"
+fields: [slot, range, purpose]
+entries:
+  - {slot: 0, range: "0000-3FFF", purpose: "CPC RAM (base memory)"}
+  - {slot: 1, range: "4000-7FFF", purpose: "CPC ROM (system firmware)"}
+  - {slot: 2, range: "8000-BFFF", purpose: "User extended memory"}
+  - {slot: 3, range: "C000-FFFF", purpose: "Supervisor memory (privileged)"}
+---
+# ============================================================
+# Internal Mapper Registers
+# ============================================================
+kind: code_list
+name: mmu_mapper_regs
+title: "Internal Mapper Registers (16 × 8-bit)"
+fields: [index, slot, page, purpose]
+entries:
+  - {index: 0, slot: 0, page: 0, purpose: "Slot 0, page 0"}
+  - {index: 1, slot: 0, page: 1, purpose: "Slot 0, page 1"}
+  - {index: 2, slot: 0, page: 2, purpose: "Slot 0, page 2"}
+  - {index: 3, slot: 0, page: 3, purpose: "Slot 0, page 3"}
+  - {index: "4–7", slot: 1, page: "0–3", purpose: "Slot 1"}
+  - {index: "8–11", slot: 2, page: "0–3", purpose: "Slot 2"}
+  - {index: "12–15", slot: 3, page: "0–3", purpose: "Slot 3"}
+---
+# ============================================================
+# Control Registers (Native mode)
+# ============================================================
+kind: code_list
+name: mmu_ports
+title: "Control Registers (Ports F0–FF, E0–EF)"
+fields: [port, register, function]
+entries:
+  - {port: "F0", register: "GLOBAL_CTRL", function: "Mode control"}
+  - {port: "F1", register: "MMIO_PAGE", function: "7-bit MMIO page"}
+  - {port: "F2", register: "SYSCALL", function: "Supervisor entry (write-only)"}
+  - {port: "F3", register: "CLOCK_CTRL", function: "CPU clock divider (Supervisor only)"}
+  - {port: "FA", register: "SUPER_SLOT", function: "Supervisor slot select"}
+  - {port: "FB", register: "USER_SLOT", function: "User slot select"}
+  - {port: "FC–FF", register: "BANK_0–3", function: "Bank registers for current slot"}
+  - {port: "E0–EF", register: "MMU_EXT", function: "Extended mapper access (CPU only)"}
+---
+# ============================================================
+# GLOBAL_CTRL (F0)
+# ============================================================
+kind: bitfield
+name: mmu_global_ctrl
+title: "GLOBAL_CTRL (F0h)"
+width: 8
+fields:
+  - {name: "supervisor_mode", msb: 0, lsb: 0, description: "1 = Supervisor mode"}
+  - {name: "native_mode", msb: 1, lsb: 1, description: "1 = Native mode, 0 = Legacy mode"}
+  - {name: "supervisor_hook", msb: 2, lsb: 2, description: "1 = enable hardware trap at 0038h/0066h"}
+  - {name: "reserved", msb: 3, lsb: 3, description: "Reserved"}
+  - {name: "mmio_userlock", msb: 4, lsb: 4, description: "1 = block direct MMIO access; 0 = allow"}
+  - {name: "reserved", msb: 7, lsb: 5, description: "Reserved for future security bits"}
+---
+# ============================================================
+# Reset State
+# ============================================================
+kind: code_list
+name: mmu_reset_state
+title: "Reset State (RTL)"
+fields: [register, address, reset_value, description]
+entries:
+  - {register: "GLOBAL_CTRL", address: "F0", reset_value: "8'b0001_0011", description: "supervisor=1, native=1, lock=1"}
+  - {register: "MMIO_PAGE", address: "F1", reset_value: "0x00", description: "MMIO page 0"}
+  - {register: "SUPER_SLOT", address: "FA", reset_value: "0xFF", description: "All pages → slot 3"}
+  - {register: "USER_SLOT", address: "FB", reset_value: "0x00", description: "All pages → slot 0"}
+  - {register: "BANK_0–3", address: "FC–FF", reset_value: "0x00", description: "All banks = 0"}
+  - {register: "CLOCK_CTRL", address: "F3", reset_value: "8'b0000_0010", description: "Divide by 4"}
+---
+# ============================================================
+# Access Security Policy
+# ============================================================
+kind: code_list
+name: mmu_access_policy
+title: "Access Security Policy"
+fields: [mode, lock, ports]
+entries:
+  - {mode: "User", lock: "1", ports: "Blocked: 00–7F, F1, F3, FA, FB–FF; allowed: F2 (syscall)"}
+  - {mode: "User", lock: "0", ports: "All allowed"}
+  - {mode: "Supervisor", lock: "—", ports: "All allowed"}

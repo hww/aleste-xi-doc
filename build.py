@@ -228,6 +228,27 @@ def render_memspace_md(ms, REGISTRY):
         md += f'| `{r.get("name")}` | {r.get("range")} | {r.get("width")} | {r.get("purpose")} |\n'
     return md
 
+# ---------- Валидатор ----------
+
+def verify_yaml_separators(filepath):
+    """Проверяет, что перед каждым kind: (кроме первого) стоит ---"""
+    lines = filepath.read_text(encoding="utf-8").splitlines()
+    kind_count = 0
+    sep_count = 0
+    
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("kind:"):
+            kind_count += 1
+        if stripped == "---":
+            sep_count += 1
+    
+    # Если kind больше, чем (--- + 1), значит, где-то пропущен разделитель
+    if kind_count > sep_count + 1:
+        print(f"  ❌ ERROR: {filepath.name} has {kind_count} 'kind:' but only {sep_count} '---'.")
+        print(f"     Add '---' between documents.")
+        sys.exit(1)
+
 # ---------- Препроцессор ----------
 INCLUDE_RE = re.compile(r'\[(?:include|insert)\]\(([^)]+)\)')
 
@@ -279,6 +300,7 @@ def build_project(project_dir):
     REGISTRY = {}
     if spec_dir.exists():
         for yml in sorted(spec_dir.glob("*.yaml")):
+            verify_yaml_separators(yml)
             try:
                 docs = list(yaml.safe_load_all(yml.read_text(encoding="utf-8")))
                 for data in docs:

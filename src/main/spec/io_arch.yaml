@@ -1,0 +1,158 @@
+# ============================================================
+# Memory Slots
+# ============================================================
+kind: code_list
+name: io_slots
+title: "Logical Slots"
+fields: [slot, range, purpose]
+entries:
+  - {slot: 0, range: "0000-3FFF", purpose: "CPC RAM (base memory)"}
+  - {slot: 1, range: "4000-7FFF", purpose: "CPC ROM (system firmware)"}
+  - {slot: 2, range: "8000-BFFF", purpose: "User extended memory"}
+  - {slot: 3, range: "C000-FFFF", purpose: "Supervisor memory (privileged)"}
+---
+# ============================================================
+# MMIO Regions
+# ============================================================
+kind: code_list
+name: io_mmio_regions
+title: "MMIO Regions"
+fields: [region, purpose]
+entries:
+  - {region: "MMIO_LO", purpose: "New LX devices (bank-switched)"}
+  - {region: "MMIO_HI", purpose: "Legacy CPC devices (fixed addresses)"}
+---
+# ============================================================
+# Native Mode Port Map
+# ============================================================
+kind: code_list
+name: io_native_ports
+title: "Native Mode Port Map"
+fields: [port_range, size, purpose]
+entries:
+  - {port_range: "00–7F", size: "128 bytes", purpose: "MMIO window (access to MMIO_LO)"}
+  - {port_range: "80–DF", size: "96 bytes", purpose: "External I/O (forwarded to Wishbone)"}
+  - {port_range: "E0–FF", size: "32 bytes", purpose: "MMU registers"}
+---
+# ============================================================
+# MMU Registers (Native mode)
+# ============================================================
+kind: code_list
+name: io_mmu_ports
+title: "MMU Registers (Ports E0–FF)"
+fields: [port, register, function]
+entries:
+  - {port: "E0–EF", register: "MMU_EXT", function: "Extended mapper access (16 registers, save/restore)"}
+  - {port: "F0", register: "GLOBAL_CTRL", function: "Mode control: bit 0 = supervisor, bit 1 = native, bit 2 = trap hook, bit 4 = mmio_userlock"}
+  - {port: "F1", register: "MMIO_PAGE", function: "7-bit MMIO page (0–127)"}
+  - {port: "F2", register: "SYSCALL", function: "Supervisor entry (write-only)"}
+  - {port: "F3", register: "CLOCK_CTRL", function: "CPU clock divider (Supervisor only)"}
+  - {port: "FA", register: "SUPER_SLOT", function: "Supervisor slot select (4 × 2-bit page fields)"}
+  - {port: "FB", register: "USER_SLOT", function: "User slot select (4 × 2-bit page fields)"}
+  - {port: "FC–FF", register: "BANK_0–3", function: "Bank registers for current slot"}
+---
+# ============================================================
+# Legacy Mode Capabilities
+# ============================================================
+kind: code_list
+name: io_legacy_can
+title: "Legacy Software CAN"
+fields: [capability, how]
+entries:
+  - {capability: "Native CPC ports", how: "7Fxx, BCXX, BDXX, DFXX, F4XX–F7XX, FA7E, FB7E, FB7F"}
+  - {capability: "Enter Supervisor", how: "SYSCALL (in Legacy, the syscall port is F2xx)"}
+  - {capability: "IPC mailbox", how: "via the Supervisor"}
+
+---
+kind: code_list
+name: io_legacy_cannot
+title: "Legacy Software CANNOT"
+fields: [capability, why]
+entries:
+  - {capability: "Direct MMIO_LO access", why: "No D0XX/D300 window"}
+  - {capability: "Direct access to PIC, Timer, RTC, Blitter, Sound", why: "Not mapped in Legacy"}
+  - {capability: "Any modern LX device", why: "Only via syscall"}
+---
+# ============================================================
+# MMIO_LO Page Map
+# ============================================================
+kind: code_list
+name: io_mmio_pages
+title: "MMIO_LO Page Map"
+fields: [page, device, notes]
+entries:
+  - {page: 0, device: "(verify against RTL)", notes: "—"}
+  - {page: 2, device: "Legacy emulation", notes: "—"}
+  - {page: 4, device: "(verify against RTL)", notes: "—"}
+  - {page: 6, device: "Blitter", notes: "1 channel, 8-bit, copy/fill/transparent"}
+  - {page: 8, device: "Sound chip", notes: "—"}
+---
+# ============================================================
+# Legacy Device Sub-registers
+# ============================================================
+kind: code_list
+name: io_legacy_devices
+title: "Legacy Device Sub-registers"
+fields: [device, cpc_port, rtl_status, lx]
+entries:
+  - {device: "Gate Array", cpc_port: "7Fxx (D7/D6)", rtl_status: "implemented", lx: "Mandatory"}
+  - {device: "CRTC 6845", cpc_port: "BCXX/BDXX", rtl_status: "implemented", lx: "Mandatory"}
+  - {device: "PPI 8255", cpc_port: "F4XX–F7XX", rtl_status: "implemented", lx: "Mandatory"}
+  - {device: "FDC 765", cpc_port: "FA7E/FB7E/FB7F", rtl_status: "implemented", lx: "Mandatory"}
+  - {device: "Upper ROM Select", cpc_port: "DFXX", rtl_status: "implemented", lx: "Mandatory"}
+  - {device: "Printer port", cpc_port: "EFXX", rtl_status: "(via PPI)", lx: "Optional"}
+  - {device: "Cassette tape", cpc_port: "(via PPI)", rtl_status: "(via PPI)", lx: "Optional"}
+  - {device: "Joysticks", cpc_port: "(via PPI/keyboard)", rtl_status: "(via PPI)", lx: "Optional"}
+  - {device: "SIO/DART", cpc_port: "FADC–FADF", rtl_status: "not implemented", lx: "Optional"}
+  - {device: "8253 Timer", cpc_port: "FBDC–FBDF", rtl_status: "not implemented", lx: "Optional"}
+---
+# ============================================================
+# Gate Array Register Select
+# ============================================================
+kind: code_list
+name: io_ga_regs
+title: "Gate Array Register Select (7Fxx)"
+fields: [d7, d6, register, function]
+entries:
+  - {d7: 0, d6: 0, register: "R0", function: "Palette index"}
+  - {d7: 0, d6: 1, register: "R1", function: "Palette data"}
+  - {d7: 1, d6: 0, register: "R2", function: "Mode, ROM enable, LEDs"}
+  - {d7: 1, d6: 1, register: "R3", function: "RAM banking"}
+---
+# ============================================================
+# CRTC Ports
+# ============================================================
+kind: code_list
+name: io_crtc_ports
+title: "CRTC 6845 Ports"
+fields: [port, function, rw]
+entries:
+  - {port: "BCXX", function: "Index register", rw: "W"}
+  - {port: "BDXX", function: "Data register", rw: "W"}
+  - {port: "BEXX", function: "Status register", rw: "R"}
+  - {port: "BFXX", function: "Data register (read)", rw: "R"}
+---
+# ============================================================
+# PPI Ports
+# ============================================================
+kind: code_list
+name: io_ppi_ports
+title: "PPI 8255 Ports"
+fields: [port, function, rw]
+entries:
+  - {port: "F4XX", function: "Port A (PSG data)", rw: "RW"}
+  - {port: "F5XX", function: "Port B (Vsync, PrnBusy, Tape)", rw: "R"}
+  - {port: "F6XX", function: "Port C (KeybRow, Tape, PSG Control)", rw: "W"}
+  - {port: "F7XX", function: "Control register", rw: "W"}
+---
+# ============================================================
+# FDC Ports
+# ============================================================
+kind: code_list
+name: io_fdc_ports
+title: "FDC 765 Ports"
+fields: [port, function, rw]
+entries:
+  - {port: "FA7E", function: "Floppy motor control", rw: "W"}
+  - {port: "FB7E", function: "FDC status register", rw: "R"}
+  - {port: "FB7F", function: "FDC data register", rw: "R/W"}
