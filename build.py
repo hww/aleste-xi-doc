@@ -267,7 +267,7 @@ def render_code_list_md(cl, REGISTRY):
     # Вывод notes (если есть)
     notes = cl.get("notes", [])
     if notes:
-        md += "\n**Примечания:**\n\n"
+        md += "\n**Notes:**\n\n"
         for n in notes:
             md += f"- {n}\n"
     
@@ -279,7 +279,7 @@ def render_memspace_md(ms, REGISTRY):
     title = ms.get("title", name)
     regions = ms.get("regions", [])
     md = f"**{title}**\n\n"
-    md += "| Имя | Диапазон | Ширина | Назначение |\n| --- | --- | --- | --- |\n"
+    md += "| Name | Range | Width | Purpose |\n| --- | --- | --- | --- |\n"
     for r in regions:
         md += f'| `{r.get("name")}` | {r.get("range")} | {r.get("width")} | {r.get("purpose")} |\n'
     return md

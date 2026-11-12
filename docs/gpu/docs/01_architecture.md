@@ -128,7 +128,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | 14 | LE | Z=1 or N!=V |
 | 15 | reserved | - |
 
-**Примечания:**
+**Notes:**
 
 - Decoded into a register during the operand-read phase from flags of the previous instruction.
 
@@ -155,7 +155,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | 13 | MULH | d = (d x s)[35:12], multi-cycle | Z N |
 | 14..31 | reserved | - | - |
 
-**Примечания:**
+**Notes:**
 
 - Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
 - Flags are written only if F=1 (CMP/TST always).
@@ -182,7 +182,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | 6 | IRQ | Raise IRQ, code = ADDR |
 | 7..31 | reserved | - |
 
-**Примечания:**
+**Notes:**
 
 - Only CALL writes SHADOW. Nested calls: save SHADOW to a register first.
 - L bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false. L is allowed with any class, including control words.
@@ -226,7 +226,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | 57 | FLUSH | 0 | Any value: flush all dirty words |
 | 58 | STM.PIX | Unpacked pixel (fmt applied); PTR += STEP | - |
 
-**Примечания:**
+**Notes:**
 
 - Operands that are not readable or not writable are rejected by the assembler.
 - Source advances on read, destination on write. Transparency: write the old pixel back.
@@ -279,7 +279,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | R30 | T7 | Temporary register | temporary |
 | R31 | T8 | Temporary register | temporary |
 
-**Примечания:**
+**Notes:**
 
 - SDX, SDY, DDX, DDY are a microcode convention (affine mode, 12.12), not a hardware feature.
 
@@ -320,7 +320,7 @@ BRAM 0–31 holds the loader; writing there → `HALT 1`.
 | 3 | RUN | entry point | Start microprogram |
 | 4 | JUMP | - | Next 2 words = new stream pointer |
 
-**Примечания:**
+**Notes:**
 
 - End of task: MOV FLUSH, ZERO ; MOV IRQ, Rcode ; HALT 0.
 
