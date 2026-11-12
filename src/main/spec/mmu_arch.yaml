@@ -69,7 +69,7 @@ fields:
   - {name: "supervisor_mode", msb: 0, lsb: 0, description: "1 = Supervisor mode"}
   - {name: "native_mode", msb: 1, lsb: 1, description: "1 = Native mode, 0 = Legacy mode"}
   - {name: "supervisor_hook", msb: 2, lsb: 2, description: "1 = enable hardware trap at 0038h/0066h"}
-  - {name: "reserved", msb: 3, lsb: 3, description: "Reserved"}
+  - {name: "interrupt_hold", msb: 3, lsb: 3, description: "1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET)"}
   - {name: "mmio_userlock", msb: 4, lsb: 4, description: "1 = block direct MMIO access; 0 = allow"}
   - {name: "reserved", msb: 7, lsb: 5, description: "Reserved for future security bits"}
 ---

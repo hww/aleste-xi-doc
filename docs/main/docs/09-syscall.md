@@ -30,7 +30,7 @@ Four mode-switching mechanisms of LX:
 
 ![GLOBAL_CTRL bit map](gen/global_ctrl.svg)
 
-**✔ By design:** `reg_ctrl_super_in = din[0]`, `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`, `reg_ctrl_user_lock = reg_control[4]`.
+**✔ By design:** `reg_ctrl_super_in = din[0]`, `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`, `reg_ctrl_interrupt_hold = reg_control[3]`, `reg_ctrl_user_lock = reg_control[4]`.
 
 ### 5.1.2 Bit descriptions
 
@@ -48,6 +48,8 @@ Four mode-switching mechanisms of LX:
 
 > **✔ By design:** `mmio_userlock` blocks **all MMU ports** (`E0–FF`), not only the mode bits. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).
 
+> **✔ By design:** bit 3 (`interrupt_hold`) blocks the INT line to the CPU while set. It is set on `OUT (F2h)` entry and on arming the exit (`OUT (F0h)` with supervisor=0), and released either by the kernel (one write once the stack has been switched) or automatically on the M1 that performs the exit. It lives in the MMU, not in the PIC, because the MMU sees both events. Interrupts stay pending in the PIC and are delivered as soon as the hold is released.
+
 ### 5.1.3 Constants
 
 ```asm
@@ -55,6 +57,7 @@ Four mode-switching mechanisms of LX:
 GCTRL_SUPERVISOR  equ 0b00000001
 GCTRL_NATIVE      equ 0b00000010
 GCTRL_HOOK        equ 0b00000100
+GCTRL_INT_HOLD    equ 0b00001000
 GCTRL_USER_LOCK   equ 0b00010000
 ```
 
@@ -81,7 +84,7 @@ LD A, GCTRL_SUPERVISOR | GCTRL_NATIVE | GCTRL_HOOK  ; 00000111b
 OUT (F0h), A
 ```
 
-### 5.1.5 Hardware logic for `mmio_userlock`
+### 5.1.5 Hardware logic for `mmio_userlock` and `interrupt_hold`
 
 **✔ By design:**
 
@@ -89,6 +92,10 @@ OUT (F0h), A
 wire port_access_grant = supervisor_mode || !reg_ctrl_user_lock;
 wire is_mmu_access = is_io_access && addr_is_mmu_space &&
                      reg_ctrl_native_mode && port_access_grant;
+
+// Interrupt hold (MMU gates the INT line to the CPU)
+wire int_hold = reg_ctrl_interrupt_hold;
+// int_to_cpu = int_from_pic && !int_hold;   (interrupts stay pending in the PIC)
 ```
 
 When `mmio_userlock = 1` and the CPU is in User mode, `port_access_grant = 0`, and all MMU ports (`E0–FF`) are blocked. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).
@@ -105,7 +112,7 @@ When `mmio_userlock = 1` and the CPU is in User mode, `port_access_grant = 0`, a
     OUT (F0h), A     ; ignored! still in User mode
 
 ; Scenario 2: trusted syscall
-    OUT (F2h), A     ; enters Supervisor
+    OUT (F2h), A     ; enters Supervisor; interrupt_hold is set by hardware
                      ; kernel handles the call
                      ; returns with Lock set
 
@@ -230,6 +237,7 @@ CALL syscall_wrapper   ; invoke the wrapper
 syscall_wrapper:
     ; This wrapper MUST always be used to invoke a syscall
     OUT (F2h), A    ; 1. Pass the function code + enter Supervisor
+                    ;    (hardware also sets interrupt_hold)
     RET             ; 2. Execution returns here after handling
 ```
 
@@ -311,15 +319,15 @@ syscall_return:
 
     ; A contains the return code
     PUSH AF          ; save the return code
-    LD A, 00000000b  ; supervisor=0 (prepare exit)
-    OUT (F0h), A     ; set the exit flag (EXIT_PENDING)
+    LD A, 00000000b  ; supervisor=0 (prepare exit); hardware sets interrupt_hold
+    OUT (F0h), A     ; set the exit flag (EXIT_PENDING) and interrupt_hold
     POP AF           ; restore the return code
-    EI
+    ; No EI needed: the hold is released automatically on the M1 of RET
     RET              ; ordinary RET: its M1 completes the switch to User,
                      ; then RET reads the return address from the User stack
 ```
 
-> **✔ By design:** the exit is synchronized with the **next M1 cycle** (`supervisor_exit_pending && m1_detected`). `RET` is used, not `RETN`/`RETI`. `RET` is an ordinary Z80 instruction; the hardware switches to User on its M1, and `RET` then reads the return address from the stack in the User map. See §5.4.
+> **✔ By design:** the exit is synchronized with the **next M1 cycle** (`supervisor_exit_pending && m1_detected`). `RET` is used, not `RETN`/`RETI`. The hardware releases `interrupt_hold` on that M1, so pending interrupts in the PIC can be delivered after the switch. See §5.4.
 
 ---
 
@@ -333,15 +341,15 @@ syscall_return:
 | 4 | `0x8102…` | — | `…` (dispatcher body) | supervisor |
 | 5 | `0x8100` | — | `syscall_return: OUT (F0h), A` | supervisor |
 | 6 | `0x8101` | — | `POP AF` | supervisor |
-| 7 | `0x8102` | — | `EI` | supervisor |
-| 8 | `0x8103` | — | `RET` → return to user | supervisor → user |
+| 7 | `0x8102` | — | `RET` (M1 releases interrupt_hold) | supervisor → user |
+| 8 | `0x8103` | — | — | user (return address from user stack) |
 
 **The key idea the table shows:**
 
 - The addresses `0x8100`, `0x8101`, etc. exist **in both maps**.
 - In the user map, `0x8100` holds the stub (`OUT (F2h),A`), and `0x8101` holds a `RET` that is never executed.
 - In the supervisor map, `0x8101` (the next address after `OUT`) already holds the dispatcher.
-- The switch back is done by `OUT (F0h),A` with a deferred effect, and the actual map switch happens on `RET`.
+- The switch back is done by `OUT (F0h),A` with a deferred effect, and the actual map switch happens on `RET`; the same M1 releases `interrupt_hold`.
 
 *Addresses are illustrative.*
 
@@ -382,9 +390,9 @@ syscall_return:
 
 ```asm
 ; 1. INITIATE EXIT (in kernel code)
-LD A, 00000000b  ; supervisor=0 (other bits as needed)
-OUT (F0h), A     ; set EXIT_PENDING
-; Hardware: EXIT_SUPERVISOR_PENDING = 1
+LD A, 00000000b  ; supervisor=0 (other bits as needed); hardware sets interrupt_hold
+OUT (F0h), A     ; set EXIT_PENDING and interrupt_hold
+; Hardware: EXIT_SUPERVISOR_PENDING = 1, INT_HOLD = 1
 
 ; 2. NEXT INSTRUCTION
 RET              ; executes in Supervisor mode; its M1 is the switch point
@@ -397,6 +405,7 @@ RET              ; executes in Supervisor mode; its M1 is the switch point
 ; 4. SWITCH (hardware, on M1)
 ; supervisor_mode = 0
 ; Banks switch to user
+; interrupt_hold = 0
 ; PC points to the return address in User mode
 
 ; 5. EXECUTION IN USER MODE
@@ -411,12 +420,14 @@ if (cpu_write_stb &&
     cpu_address_reg == CONTROL_REG_ADDR[4:0] &&
     !cpu_write_data_reg[0]) begin
     supervisor_exit_pending <= 1'b1;
+    reg_ctrl_interrupt_hold  <= 1'b1;   // set hold while exiting
 end
 
 // Synchronization with M1
 if (supervisor_exit_pending && m1_detected) begin
-    supervisor_mode_reg <= 1'b0;
+    supervisor_mode_reg     <= 1'b0;
     supervisor_exit_pending <= 1'b0;
+    reg_ctrl_interrupt_hold <= 1'b0;    // release hold on the switch M1
 end
 ```
 
@@ -438,6 +449,8 @@ end
 1. The interrupt is handled normally (in Supervisor mode).
 2. After handling, the exit continues.
 3. **No race condition.**
+
+While `interrupt_hold` is set (between `OUT (F0h)` and the M1 of `RET`), INT is gated at the MMU. The interrupt stays pending in the PIC and is delivered after the hold is released.
 
 ---
 
@@ -517,6 +530,7 @@ Interrupt_Handler_38h:
 2. Validate syscall parameters carefully.
 3. Save and restore all registers.
 4. Use ordinary `RET` for syscall return (not `RETN`/`RETI`).
+5. Do not issue `EI` in the syscall exit path: `interrupt_hold` is released by hardware on the `RET` M1.
 
 ### 5.6.2 For application developers
 
@@ -552,6 +566,9 @@ Interrupt_Handler_38h:
 
 **Q: What happens if a syscall occurs during exit from Supervisor?**
 **A:** The syscall has priority, is handled, then the exit continues.
+
+**Q: Why is `interrupt_hold` in the MMU and not in the PIC?**
+**A:** The MMU sees both events that need to set and clear it — the `OUT (F2h)` entry and the `RET` exit. Putting it in the PIC would require the PIC to decode port writes and track the exit M1, duplicating MMU logic. Interrupts stay pending in the PIC and are delivered when the hold is released.
 
 ---
 

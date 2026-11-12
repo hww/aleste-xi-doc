@@ -5,7 +5,7 @@ rationale**
 
 |         |                                                                                              |
 |:--------|:---------------------------------------------------------------------------------------------|
-| Date    | 2026-11-07 (rev. 2026-11-10: syscall reverted to `OUT (F2h)`; `RST 6` and `RETN` rejected)   |
+| Date    | 2026-11-07 (rev. 2026-11-10: syscall reverted to `OUT (F2h)`; `RST 6` and `RETN` rejected; 2026-11-12: bit 3 = `interrupt_hold`) |
 | Basis   | Discussion of the IPC/syscall/asynchrony article; `aleste-lx_spec_rev2.md` specification     |
 | Purpose | Record the decisions, explain how the system works, and document why these choices were made |
 
@@ -57,7 +57,7 @@ on a real implementation.
 |  18 | Asynchronous completion is communicated through a request control block (RCB) in a shared memory region.                                                                                           | RECOMMENDATION |
 |  19 | Hardware should expose read-only status indicating entry from User and the interrupt-enable state captured at the trap. The exact semantics of the latter must follow the Z80 interrupt mechanism. | RECOMMENDATION |
 |  20 | Use one numbering scheme for syscall functions and driver-table entries.                                                                                                                           | RECOMMENDATION |
-|  21 | `mmio_userlock` (bit 4 of `GLOBAL_CTRL`) blocks the MMU port range in User mode; `F2` remains reachable through the separate syscall path. The old `rst6_hook` bit is not part of the retained design. | ACCEPTED (revised) |
+|  21 | `mmio_userlock` (bit 4 of `GLOBAL_CTRL`) blocks the MMU port range in User mode; `F2` remains reachable through the separate syscall path. Bit 3 is `interrupt_hold`: the MMU gates INT to the CPU while it is set, on entry to syscall and on arming the exit, and releases it on the M1 of `RET`. The old `rst6_hook` bit is not part of the retained design. | ACCEPTED (revised) |
 |  22 | Syscalls are available via `F2h`; `mmio_userlock` controls User access to the MMU port range, with `F2` reachable through the separate `is_syscall_access` path.                                  | ACCEPTED (restored) |
 |  23 | `RST n` is **rejected** as a syscall mechanism: it solves entry but not exit; the only exit is `GLOBAL_CTRL` + next-M1; MSX-style immediates after the `RST` live in User memory and must be fetched across a mode switch. | ACCEPTED |
 |  24 | `RETN`/`RETI` are **rejected** for exit; ordinary `RET` is used. The exit is synchronized with the next M1 cycle, and `RET` reads the return address from the stack in the User map.              | ACCEPTED |
@@ -404,8 +404,10 @@ separate preemption mechanism is required (question O5).
 
 `mmio_userlock` (bit 4 of `GLOBAL_CTRL`) blocks the MMU port range
 (`E0–FF`) in User mode; `F2` remains reachable through the separate
-`is_syscall_access` path. The old `rst6_hook` bit (bit 3) is **not**
-part of the retained design; bit 3 is reserved.
+`is_syscall_access` path. Bit 3 is `interrupt_hold`: the MMU gates the
+INT line to the CPU while it is set. It is set on `OUT (F2h)` and on
+arming the exit, and released by the kernel or automatically on the M1
+of `RET`.
 
 ### 5.4 Kernel entry: hardware transition
 
@@ -433,11 +435,12 @@ Sequence:
     top of the stack.
 2.  The kernel writes a value to `GLOBAL_CTRL` with
     `supervisor_mode = 0`. This only **arms** the exit; it does not
-    itself change the active mode.
+    itself change the active mode. The hardware also sets
+    `interrupt_hold` at this point.
 3.  The kernel restores registers (including `A`) and executes ordinary
     `RET`.
 4.  On the next M1 cycle, the hardware switches to User and activates
-    `USER_SLOT`.
+    `USER_SLOT`; the same M1 releases `interrupt_hold`.
 5.  `RET` reads the return address **in the User map** and loads it into
     `PC`.
 6.  The next instruction executes in User at the return address.
@@ -452,6 +455,9 @@ Sequence:
 - The return address is read from the User stack under the User map.
 - `RETN`’s `IFF2→IFF1` copy is unnecessary and was one of the reasons
   `RST`-based syscalls were rejected (§5.2).
+- No `EI` is needed in the kernel exit path: `interrupt_hold` is
+  released by hardware on the `RET` M1, so pending interrupts in the PIC
+  can be delivered after the switch.
 
 **If `RET` reads a corrupted return address** (for example, because the
 application has corrupted its stack), the result is a crash or a jump to
@@ -763,10 +769,10 @@ Documentation wording: this is protection against **mistakes** and
 
 | Section                | Change                                                                                                                                             |
 |:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------|
-| §2.2 `GLOBAL_CTRL`     | Bit 4 = `mmio_userlock`. Bit 3 is reserved (the old `rst6_hook` is not part of the retained design). Define status bits for “entry from User” and any captured interrupt state precisely. |
+| §2.2 `GLOBAL_CTRL`     | Bit 3 = `interrupt_hold` (MMU gates INT to the CPU; set on syscall entry and on arming the exit; released by the kernel or on the M1 of `RET`). Bit 4 = `mmio_userlock`. Define status bits for “entry from User” and any captured interrupt state precisely. |
 | §7.2 Trap              | Clarify that the slot-set transition occurs on the vector fetch. The `0030h` comparator is not required.                                          |
 | §7.3 Syscall           | Retain `OUT (F2h)`/`F2xxh`. `RST 6` is rejected (decision 23). `RETN` is rejected (decision 24).                                                 |
-| §7.4 Exit              | Exit is synchronized with the next M1 cycle after the `GLOBAL_CTRL` write; ordinary `RET` is the final instruction.                              |
+| §7.4 Exit              | Exit is synchronized with the next M1 cycle after the `GLOBAL_CTRL` write; ordinary `RET` is the final instruction; the same M1 releases `interrupt_hold`. |
 | §8 Security            | Document User and takeover modes; W0 remains permanent; W3 is virtualized. Reassess the role of unlock/`0xFE`.                                     |
 | §9 IPC Mailbox         | Mark optional or remove.                                                                                                                           |
 | Memory map / slot sets | Specify permanent W0, working W1/W2, and virtualized W3; define the stable W3 public table ABI and kernel-only safe switching.                     |
@@ -795,7 +801,8 @@ changes:
 |:-------------------------------------|:--------------------------------------------------------------------------------------------------------|
 | ISR in W0 Supervisor after interrupt | Trap on `0038h`/`0066h`, i.e. resolve D09.                                                              |
 | `OUT (F2h)` as syscall               | `F2h`/`F2xxh` syscall decode and `mmio_userlock`. The `0030h` comparator is not required.               |
-| Exit via M1                          | Synchronize the switch with the next M1 cycle after the `GLOBAL_CTRL` write.                           |
+| Exit via M1                          | Synchronize the switch with the next M1 cycle after the `GLOBAL_CTRL` write; release `interrupt_hold` on that M1. |
+| `interrupt_hold` (bit 3)             | Gate `int_to_cpu` with `int_hold`; set it on the `F2h`/`F2xxh` write and on arming the exit; clear it on the M1 of `RET`. |
 | Takeover                             | Slot sets and Supervisor mode on request; an interrupt trap is not required once already in Supervisor. |
 | W3 virtualization                    | Kernel-controlled selection of the W3 bank, with safe-point rules.                                      |
 | IPC                                  | Not required (it is not implemented in the current implementation either, D06).                         |
@@ -849,3 +856,5 @@ baseline architecture. If `mmio_userlock` is set, User-mode MMU port
 access is blocked; `F2` remains reachable through the separate syscall
 path. If `RET` reads a corrupted return address, the result is a crash;
 recovery is not guaranteed.
+
+

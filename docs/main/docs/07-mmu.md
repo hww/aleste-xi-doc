@@ -202,7 +202,7 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 | --- | --- | --- | --- |
 | **reserved** | [7:5] | 3 | Reserved for future security bits |
 | **mmio_userlock** | [4:4] | 1 | 1 = block direct MMIO access; 0 = allow |
-| **reserved** | [3:3] | 1 | Reserved |
+| **interrupt_hold** | [3:3] | 1 | 1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET) |
 | **supervisor_hook** | [2:2] | 1 | 1 = enable hardware trap at 0038h/0066h |
 | **native_mode** | [1:1] | 1 | 1 = Native mode, 0 = Legacy mode |
 | **supervisor_mode** | [0:0] | 1 | 1 = Supervisor mode |
