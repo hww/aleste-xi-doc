@@ -17,6 +17,8 @@ images/*/
 # Разблокировать gen в /docs/
 !/docs/gen/
 !/docs/gen/**
+!/docs/*/gen/**
+!/docs/*/*/gen/**
 
 # Python
 .venv/
