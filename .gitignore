@@ -9,16 +9,14 @@
 *.bbl
 
 # Generated
-gen/
+gen/*
 out/
 images/*/
 !images/*/.gitkeep
 
-# Разблокировать gen в /docs/
-!/docs/gen/
-!/docs/gen/**
-!/docs/*/gen/**
-!/docs/*/*/gen/**
+# Разблокировать gen внутри docs/ (на любой глубине)
+!/docs/**/gen/
+!/docs/**/gen/**
 
 # Python
 .venv/
