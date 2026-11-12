@@ -27,7 +27,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 ## 3. Microinstruction (32 bit)
 
-![reg-reg](gen/insn_reg.svg)
+![reg-reg](./gen/insn_reg.svg)
 
 **INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)**
 
@@ -45,7 +45,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | **RSV** | [6:0] | 7 | Reserved, must be 0 |
 
 
-![reg-imm12](gen/insn_imm12.svg)
+![reg-imm12](./gen/insn_imm12.svg)
 
 **INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)**
 
@@ -63,7 +63,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | **IMM** | [11:0] | 12 | 12-bit immediate, operand B |
 
 
-![ldi24](gen/insn_ldi24.svg)
+![ldi24](./gen/insn_ldi24.svg)
 
 **INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)**
 
@@ -76,7 +76,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | **IMM24** | [23:0] | 24 | 24-bit constant; unconditional, flags untouched |
 
 
-![ctrl](gen/insn_ctrl.svg)
+![ctrl](./gen/insn_ctrl.svg)
 
 **INSTRUCTION · 32 BIT · J=1 I=0 CONTROL**
 

@@ -27,19 +27,19 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 ## 3. Microinstruction (32 bit)
 
-![reg-reg](gen/insn_reg.svg)
+![reg-reg](./gen/insn_reg.svg)
 
 [include](insn_reg-table.md)
 
-![reg-imm12](gen/insn_imm12.svg)
+![reg-imm12](./gen/insn_imm12.svg)
 
 [include](insn_imm12-table.md)
 
-![ldi24](gen/insn_ldi24.svg)
+![ldi24](./gen/insn_ldi24.svg)
 
 [include](insn_ldi24-table.md)
 
-![ctrl](gen/insn_ctrl.svg)
+![ctrl](./gen/insn_ctrl.svg)
 
 [include](insn_ctrl-table.md)
 
