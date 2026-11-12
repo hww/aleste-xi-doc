@@ -28,13 +28,13 @@ Four mode-switching mechanisms of LX:
 
 ### 5.1.1 `GLOBAL_CTRL` bit map
 
-![GLOBAL_CTRL bit map](gen/global_ctrl.svg)
+![GLOBAL_CTRL bit map](gen/mmu_global_ctrl.svg)
 
 **✔ By design:** `reg_ctrl_super_in = din[0]`, `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`, `reg_ctrl_interrupt_hold = reg_control[3]`, `reg_ctrl_user_lock = reg_control[4]`.
 
 ### 5.1.2 Bit descriptions
 
-[include](gen/global_ctrl-table.md)
+[include](gen/mmu_global_ctrl-table.md)
 
 > **✔ By design:** `mmio_userlock` blocks **all MMU ports** (`E0–FF`), not only the mode bits. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).
 
