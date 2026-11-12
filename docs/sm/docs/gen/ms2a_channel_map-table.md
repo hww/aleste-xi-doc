@@ -1,0 +1,20 @@
+**Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
+
+| Code | Name | Description |
+| --- | --- | --- |
+| — | CH_CTRL | — |
+| — | START_ADDR_0 | — |
+| — | START_ADDR_1 | — |
+| — | START_ADDR_2 | — |
+| — | END_ADDR_0 | — |
+| — | END_ADDR_1 | — |
+| — | END_ADDR_2 | — |
+| — | LOOP_START_0 | — |
+| — | LOOP_START_1 | — |
+| — | LOOP_START_2 | — |
+| — | LOOP_END_0 | — |
+| — | LOOP_END_1 | — |
+| — | LOOP_END_2 | — |
+| — | STEP_0 | — |
+| — | STEP_1 | — |
+| — | STEP_2 | — |

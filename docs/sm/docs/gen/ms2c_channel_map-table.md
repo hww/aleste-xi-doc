@@ -1,0 +1,20 @@
+**Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
+
+| Code | Name | Description |
+| --- | --- | --- |
+| — | CTRL | — |
+| — | START_0 | — |
+| — | START_1 | — |
+| — | START_2 | — |
+| — | END_0 | — |
+| — | END_1 | — |
+| — | END_2 | — |
+| — | LOOP_0 | — |
+| — | LOOP_1 | — |
+| — | LOOP_2 | — |
+| — | VOL_L | — |
+| — | VOL_R | — |
+| — | STEP_0 | — |
+| — | STEP_1 | — |
+| — | STEP_2 | — |
+| — | Status | — |
