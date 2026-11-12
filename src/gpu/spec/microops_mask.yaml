@@ -1,8 +1,0 @@
-kind: code_list
-name: microops_mask
-title: "MASK"
-fields: [code, name, description]
-entries:
-  - {code: 0, name: "REG",  description: "Блокировать REG_OP"}
-  - {code: 1, name: "ALU",  description: "Блокировать ALU_OP"}
-  - {code: 2, name: "CTRL", description: "Блокировать CTRL_OP"}

@@ -453,10 +453,18 @@ def build_project(project_dir):
                 rel = f.relative_to(doc_images_dir)
                 smart_copy(f, out_docs_dir / "images" / rel)
 
-    # 5) check.py
+    # 5) check.py (optional; must not fail the build)
     check = src_dir / "check.py"
     if check.exists():
-        subprocess.run([sys.executable, str(check)], cwd=src_dir, check=False)
+        try:
+            r = subprocess.run([sys.executable, str(check)], cwd=src_dir, check=False,
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"  ⚠️  check.py returned {r.returncode} (ignored)")
+                if r.stderr.strip():
+                    print(f"     {r.stderr.strip().splitlines()[-1]}")
+        except Exception as e:
+            print(f"  ⚠️  check.py failed: {e} (ignored)")
 
 
 def deploy():

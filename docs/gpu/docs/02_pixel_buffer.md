@@ -8,55 +8,60 @@ A single shared buffer module with four logical entries:
 
 | Number | Purpose |
 |---|---|
-| 0 | SOURCE — read source pixels |
-| 1 | DESTINATION — read-modify-write destination pixels |
-| 2 | DATA — plain 16-bit words |
-| 3 | RESERVED |
+| 0 | SRC — source pixels |
+| 1 | DST — read-modify-write destination pixels |
+| 2 | STM — plain 16-bit words (microcode stream) |
+| 3 | RSV — reserved |
 
 **Implementation:** `PixelBuffer` — one class, `BufferEntry e_[4]`:
 
 ```cpp
 struct BufferEntry {
-    uint16_t tag;      // low 16 bits of the word address
+    uint16_t tag;      // word address within the page (addr24 >> 1)
     uint16_t data;     // 16-bit content
-    uint8_t  page;     // high 8 bits of the address (page)
+    uint8_t  page;     // high 8 bits of the address
     bool     valid;
-    bool     dirty;    // for DEST; always false for SOURCE/DATA
+    bool     dirty;    // for DST; always false for SRC/STM
 };
 ```
 
-Not "BRAM with 4 entries" — four C++ structs. BRAM width is not fixed (deferred to RTL). `page` (8 bits) is not part of TAG (16 bits): `page_of(addr24) = addr24 >> 16`, `tag_of(addr24) = addr24 & 0xFFFF`.
+Not "BRAM with 4 entries" — four C++ structs. BRAM width is not fixed (deferred to RTL). `page` (8 bits) is not part of TAG (16 bits): `page_of(addr24) = addr24 >> 16`, `tag_of(addr24) = (addr24 >> 1) & 0xFFFF`.
 
 ## 2. Pixel formats
 
-The buffer works with 16-bit words. `fmt` lives in `PixelPacker`, not in the buffer. 8 codes:
+The buffer works with 16-bit words. `fmt` lives in `PixelPacker`, not in the buffer.
 
-| Code | Format | Pixels per word |
-|---|---|---|
-| 0 | 1 bpp | 16 |
-| 1 | reserved | — |
-| 2 | 4 bpp | 4 |
-| 3 | 8 bpp | 2 |
-| 4 | 16 bpp | 1 |
-| 5 | PASS_LO8 | — |
-| 6 | PASS_HI8 | — |
-| 7 | PASS16 | — |
+**CHANNEL FORMAT (fmt, 3 bits)**
+
+| Fmt | Name | Description |
+| --- | --- | --- |
+| 0 | 1 bpp | 16 pixels per word; SOURCE ONLY, unpacked to 4/8 bpp colours; writes forbidden |
+| 1 | reserved | - |
+| 2 | 4 bpp | 4 pixels per word; pos 0 = high nibble |
+| 3 | 8 bpp | 2 pixels per word; pos 0 = high byte |
+| 4 | 16 bpp | 1 pixel per word |
+| 5 | PASS_LO8 | Low byte |
+| 6 | PASS_HI8 | High byte |
+| 7 | PASS16 | Whole word |
+
 
 1 bpp is a source format (masks, fonts); `AddrPacker` and `PixelPacker` support it as a destination too (16 pixels per word).
 
 ## 3. Addressing
 
-Address arithmetic does not belong in the buffer. `AddrPacker` (a separate class) produces `addr24` + `pos` from `x_int`/`y_int` (in A), `base`/`stride` (in registers), and `fmt` (`ch_mode_[ch]`). The buffer receives a ready `addr24` (24 bits) and `pos` (0..15).
+Address arithmetic does not belong in the buffer. `AddrPacker` produces `addr24` + `pos` from `idx` (pixel index inside the page), `page` (8 bits) and `fmt`. The buffer receives a ready `addr24` (24 bits) and `pos` (0..15).
 
-The video controller addresses 64 KB pages. TAG is 16 bits (low), `page` is 8 bits (high). A page change uses `set_page(ch, page)` (write back dirty, reset the channel).
+`addr24 = (page << 16) | ((idx >> shift) << 1)`. The `base` (low 16 bits) is optional: in FPGA only the high 8 bits are used; the simulator keeps all 24 bits.
+
+The video controller addresses 64 KB pages. TAG is 16 bits (word address), `page` is 8 bits. A page change uses `set_page(ch, page)` (write back dirty, reset the channel).
 
 ## 4. Channel purposes
 
-**SOURCE** — read source pixels. `PACKER_RD ch=SOURCE`, `pos` from `AddrPacker`, `fmt` from `ch_mode_[SOURCE]`.
+**SRC** — read source pixels. `SRC.PIX` reads, `SRC.W16` reads a word, `SRC.IDX` sets the pixel index, `SRC.STEP` sets the signed step.
 
-**DESTINATION** — read + write. `PACKER_RD ch=DEST` (read), `PACKER_WR ch=DEST` (write). Dirty is a **single flag per entry** (not a byte mask): the whole word is written with `write16`.
+**DST** — read + write. `DST.PIX` reads/writes with fmt packing; `DST.W16` reads/writes a word; dirty is a single flag per entry (not a byte mask): the whole word is written with `write16`.
 
-**DATA** — plain 16-bit words, no pixel logic. `PACKER_RD/WR ch=DATA` goes through `DPTR` (not `AddrPacker`); `fmt` from `ch_mode_[DATA]` (`PASS16`/`PASS_LO8`/`PASS_HI8`).
+**STM** — read-only. `STM.W16` reads a raw word, `STM.W24` reads two words into a 24-bit value, `STM.PIX` reads a pixel with fmt. `STM.PTR` is the stream pointer.
 
 **RSV** — reserved, unused.
 
@@ -66,10 +71,12 @@ The video controller addresses 64 KB pages. TAG is 16 bits (low), `page` is 8 bi
 
 On access:
 1. Check `valid` and `tag == tag_of(addr)` and `page == page_of(addr)`.
-2. HIT → return `data`, `hits++`, 1 cycle.
-3. MISS → if dirty, `write16(page<<16 | tag, data)`, `writebacks++`, `MISS_CYCLES`; then `data = read16(addr)`, `valid=true`, `dirty=false`, `misses++`, `MISS_CYCLES`.
+2. HIT → return `data`, `hits++`.
+3. MISS → if dirty, `write16(page<<16 | tag<<1, data)`, `writebacks++`; then `data = read16(addr)`, `valid=true`, `dirty=false`, `misses++`.
 
-`MISS_CYCLES = 6` — a model constant, not RTL.
+Under `#ifdef SIMULATE_CACHE`, a read/write to a valid entry with a different page sets `error_` (microcode forgot `set_page`).
+
+`MISS_CYCLES = 6` — a model constant, not counted in execution time (mathematical model).
 
 ## 6. Memory access
 
@@ -80,11 +87,11 @@ Wishbone is the shared interface. Four logical entries are not four parallel por
 ## 7. Implementation principles
 
 - One buffer, not three caches. `PixelBuffer` is a single class with a `ch` enum (0..3).
-- `AddrPacker` lives outside the buffer, inside `GPU`.
-- `DATA` uses `DPTR` (no dedicated incrementer).
+- `AddrPacker` lives inside the port, not the buffer.
+- `STM` is read-only.
 - `set_page` is per-channel (write back that channel's dirty entry, reset it).
 - `flush` is global (write back all dirty entries, invalidate all).
-- `MISS_CYCLES = 6` — model constant, not RTL.
+- `MISS_CYCLES` is a model constant, not RTL.
 
 ## 8. What the model must demonstrate
 
@@ -92,17 +99,17 @@ Implemented:
 - four entries (`BufferEntry e_[4]`);
 - `TAG` / `VALID` / `DIRTY`;
 - `HIT` / `MISS`;
-- dirty DEST writeback before eviction;
+- dirty DST writeback before eviction;
 - fill on MISS;
 - `set_page` (channel writeback, reset);
 - `flush` (all writebacks, invalidate);
-- `buffer_error()` — the model surfaces the error (write to a foreign page without `set_page`);
+- `buffer_error()` under `SIMULATE_CACHE` (write/read to a foreign page without `set_page`);
 - counters `hits`, `misses`, `writebacks`.
 
-Tests: `test_fill`, `test_sprite`, `test_sprite8`, `test_loop`, `test_setpage`, `test_page_error`, `test_1bpp`, `test_pass`, `test_affine`, `test_comb_alu`, `test_mmio` — all passing.
+Tests: `test_addr`, `test_fill`, `test_sprite`, `test_sprite8`, `test_loop`, `test_setpage`, `test_page_error`, `test_pass`, `test_1bpp`, `test_affine`, `test_flags`, `test_cond`, `test_mul`, `test_shadow`, `test_jmpr`, `test_mov_special`, `test_mmio` — all passing.
 
 **`test_page_error`** demonstrates the error (`buffer_error()`) instead of hiding it. That matters more than convenience: if the microcode forgets `set_page`, the GPU must not silently write to a foreign page.
 
 **Note:** exact BRAM width, dirty structure (flag vs byte mask), FSM, and ready/wait interface are deferred to RTL. The model uses a single flag and writes the whole word.
 
-**Removed in this revision:** `SETMASK`, pixel mask, bit-plane layers, `mask_` in the GPU. Partial updates and layer-like effects are done by microcode (per-pixel writes plus `COND`/`MASK`).
+**Removed in this revision:** `SETMASK`, pixel mask, bit-plane layers, `mask_` in the GPU. Partial updates and layer-like effects are done by microcode (per-pixel writes plus `COND`).

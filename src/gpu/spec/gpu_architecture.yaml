@@ -1,0 +1,241 @@
+# 32-битная микроинструкция.
+# Классы (J, I):
+#   00 reg-reg   : SRC[5:0] в [12:7]
+#   11 reg-imm12 : SX[12], IMM[11:0] в [11:0]
+#   01 LDI24     : IMM24[23:0] в [23:0]; только R0..R31; без COND/F
+#   10 control   : REG[5:0] в [12:7], ADDR[11:0] в [11:0]; OP = CTRL
+
+kind: bitfield
+name: insn_reg
+output: [svg, md]
+title: "INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)"
+width: 32
+fields:
+  - {name: L,    msb: 31, lsb: 31, description: "Loop flag"}
+  - {name: J,    msb: 30, lsb: 30, description: "= 0"}
+  - {name: I,    msb: 29, lsb: 29, description: "= 0"}
+  - {name: DST,  msb: 28, lsb: 24, description: "Destination operand, low 5 bits"}
+  - {name: DS,   msb: 23, lsb: 23, description: "DST bank: 0 = R0..R31, 1 = special operand"}
+  - {name: COND, msb: 22, lsb: 19, description: "Condition; false = no register write, no port access"}
+  - {name: F,    msb: 18, lsb: 18, description: "1 = update flags"}
+  - {name: OP,   msb: 17, lsb: 13, description: "ALU operation"}
+  - {name: SRC,  msb: 12, lsb: 7,  description: "Second operand {S, n[4:0]}"}
+  - {name: RSV,  msb: 6,  lsb: 0,  description: "Reserved, must be 0"}
+---
+kind: bitfield
+name: insn_imm12
+output: [svg, md]
+title: "INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)"
+width: 32
+fields:
+  - {name: L,    msb: 31, lsb: 31, description: "Loop flag"}
+  - {name: J,    msb: 30, lsb: 30, description: "= 1"}
+  - {name: I,    msb: 29, lsb: 29, description: "= 1"}
+  - {name: DST,  msb: 28, lsb: 24, description: "Destination operand, low 5 bits"}
+  - {name: DS,   msb: 23, lsb: 23, description: "DST bank"}
+  - {name: COND, msb: 22, lsb: 19, description: "Condition"}
+  - {name: F,    msb: 18, lsb: 18, description: "Update flags"}
+  - {name: OP,   msb: 17, lsb: 13, description: "ALU operation"}
+  - {name: SX,   msb: 12, lsb: 12, description: "1 = sign-extend IMM, 0 = zero-extend"}
+  - {name: IMM,  msb: 11, lsb: 0,  description: "12-bit immediate, operand B"}
+---
+kind: bitfield
+name: insn_ldi24
+output: [svg, md]
+title: "INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)"
+width: 32
+fields:
+  - {name: L,     msb: 31, lsb: 31, description: "Loop flag"}
+  - {name: J,     msb: 30, lsb: 30, description: "= 0"}
+  - {name: I,     msb: 29, lsb: 29, description: "= 1"}
+  - {name: DST,   msb: 28, lsb: 24, description: "R0..R31 only"}
+  - {name: IMM24, msb: 23, lsb: 0,  description: "24-bit constant; unconditional, flags untouched"}
+---
+kind: bitfield
+name: insn_ctrl
+output: [svg, md]
+title: "INSTRUCTION · 32 BIT · J=1 I=0 CONTROL"
+width: 32
+fields:
+  - {name: L,    msb: 31, lsb: 31, description: "Loop flag"}
+  - {name: J,    msb: 30, lsb: 30, description: "= 1"}
+  - {name: I,    msb: 29, lsb: 29, description: "= 0"}
+  - {name: DST,  msb: 28, lsb: 24, description: "Unused"}
+  - {name: DS,   msb: 23, lsb: 23, description: "Unused"}
+  - {name: COND, msb: 22, lsb: 19, description: "Condition"}
+  - {name: F,    msb: 18, lsb: 18, description: "Unused"}
+  - {name: OP,   msb: 17, lsb: 13, description: "Control operation"}
+  - {name: REG,  msb: 12, lsb: 7,  description: "Operand for JMPR (any operand, including special)"}
+  - {name: ADDR, msb: 11, lsb: 0,  description: "Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ)"}
+---
+kind: code_list
+name: alu_ops
+title: "ALU OP (5 bits)"
+fields: [code, name, description, flags]
+entries:
+  - {code: 0,  name: "MOV",  description: "d = s", flags: "Z N"}
+  - {code: 1,  name: "AND",  description: "d = d & s", flags: "Z N"}
+  - {code: 2,  name: "OR",   description: "d = d | s", flags: "Z N"}
+  - {code: 3,  name: "XOR",  description: "d = d ^ s (NOT = XOR with -1)", flags: "Z N"}
+  - {code: 4,  name: "ANDN", description: "d = d & ~s", flags: "Z N"}
+  - {code: 5,  name: "ADD",  description: "d = d + s", flags: "Z N C V"}
+  - {code: 6,  name: "SUB",  description: "d = d - s; C = not borrow", flags: "Z N C V"}
+  - {code: 7,  name: "CMP",  description: "SUB, result discarded, flags always written", flags: "Z N C V"}
+  - {code: 8,  name: "TST",  description: "AND, result discarded, flags always written", flags: "Z N"}
+  - {code: 9,  name: "ROR",  description: "24-bit rotate right by s[4:0] mod 24", flags: "Z N"}
+  - {code: 10, name: "SHR",  description: "ROR with zero fill", flags: "Z N"}
+  - {code: 11, name: "SAR",  description: "ROR with bit 23 fill", flags: "Z N"}
+  - {code: 12, name: "MUL",  description: "d = (d x s)[23:0], signed, multi-cycle (DSP)", flags: "Z N"}
+  - {code: 13, name: "MULH", description: "d = (d x s)[35:12], multi-cycle", flags: "Z N"}
+  - {code: "14..31", name: "reserved", description: "-", flags: "-"}
+notes:
+  - "Writing to ZERO discards the result. NOP = MOV ZERO, ZERO."
+  - "Flags are written only if F=1 (CMP/TST always)."
+---
+kind: code_list
+name: conditions
+title: "COND (4 bits, ARM-style)"
+fields: [code, name, description]
+entries:
+  - {code: 0,  name: "AL", description: "Always"}
+  - {code: 1,  name: "EQ", description: "Z=1"}
+  - {code: 2,  name: "NE", description: "Z=0"}
+  - {code: 3,  name: "CS", description: "C=1 (unsigned >=)"}
+  - {code: 4,  name: "CC", description: "C=0 (unsigned <)"}
+  - {code: 5,  name: "MI", description: "N=1"}
+  - {code: 6,  name: "PL", description: "N=0"}
+  - {code: 7,  name: "VS", description: "V=1"}
+  - {code: 8,  name: "VC", description: "V=0"}
+  - {code: 9,  name: "HI", description: "C=1 and Z=0"}
+  - {code: 10, name: "LS", description: "C=0 or Z=1"}
+  - {code: 11, name: "GE", description: "N=V"}
+  - {code: 12, name: "LT", description: "N!=V"}
+  - {code: 13, name: "GT", description: "Z=0 and N=V"}
+  - {code: 14, name: "LE", description: "Z=1 or N!=V"}
+  - {code: 15, name: "reserved", description: "-"}
+notes:
+  - "Decoded into a register during the operand-read phase from flags of the previous instruction."
+---
+kind: code_list
+name: ctrl_ops
+title: "CTRL OP (J=1, I=0)"
+fields: [code, name, description]
+entries:
+  - {code: 0, name: "NOP",  description: "Nothing"}
+  - {code: 1, name: "JMP",  description: "PC = ADDR"}
+  - {code: 2, name: "CALL", description: "SHADOW[11:0] = PC+1, SHADOW[15:12] = flags; PC = ADDR"}
+  - {code: 3, name: "RET",  description: "PC = SHADOW[11:0]; flags not restored"}
+  - {code: 4, name: "JMPR", description: "PC = operand[REG][11:0] (any operand, including special)"}
+  - {code: 5, name: "HALT", description: "ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code)"}
+  - {code: 6, name: "IRQ",  description: "Raise IRQ, code = ADDR"}
+  - {code: "7..31", name: "reserved", description: "-"}
+notes:
+  - "Only CALL writes SHADOW. Nested calls: save SHADOW to a register first."
+  - "L bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false. L is allowed with any class, including control words."
+---
+kind: code_list
+name: operand_map
+title: "Operand map ({S, n[4:0]}; S=0 -> R0..R31)"
+fields: [code, name, read, write]
+entries:
+  - {code: 32, name: "ZERO",      read: "0", write: "Ignored"}
+  - {code: 33, name: "FLAGS",     read: "[3:0] = V C N Z", write: "Same"}
+  - {code: 34, name: "SHADOW",    read: "[11:0] PC, [15:12] flags", write: "[11:0] PC"}
+  - {code: 35, name: "LOOP",      read: "[23:12] count, [11:0] target", write: "Same"}
+  - {code: 36, name: "BUSY_SRC",  read: "1 if SRC port busy", write: "-"}
+  - {code: 37, name: "BUSY_DST",  read: "1 if DST port busy", write: "-"}
+  - {code: 38, name: "BUSY_STM",  read: "1 if STM port busy", write: "-"}
+  - {code: 39, name: "SRC.IDX",   read: "Pixel index", write: "Set index, start prefetch"}
+  - {code: 40, name: "SRC.PIX",   read: "Unpacked pixel (fmt applied); IDX += STEP", write: "Pack pixel (fmt applied)"}
+  - {code: 41, name: "SRC.W16",   read: "Raw 16-bit word (fmt not applied); IDX += 1 word", write: "Write raw word"}
+  - {code: 42, name: "SRC.STEP",  read: "Signed step", write: "Same"}
+  - {code: 43, name: "SRC.MODE",  read: "fmt", write: "Set format"}
+  - {code: 44, name: "SRC.PAGE",  read: "Page", write: "set_page; writeback"}
+  - {code: 45, name: "DST.IDX",   read: "Pixel index", write: "Set index, start prefetch"}
+  - {code: 46, name: "DST.PIX",   read: "Unpacked pixel (fmt applied); no IDX change", write: "Pack pixel (fmt applied), set dirty; IDX += STEP"}
+  - {code: 47, name: "DST.W16",   read: "Raw 16-bit word (fmt not applied)", write: "Write raw word, set dirty"}
+  - {code: 48, name: "DST.STEP",  read: "Signed step", write: "Same"}
+  - {code: 49, name: "DST.MODE",  read: "fmt", write: "Set format"}
+  - {code: 50, name: "DST.PAGE",  read: "Page", write: "set_page; writeback"}
+  - {code: 51, name: "STM.PTR",   read: "Stream pointer", write: "Same"}
+  - {code: 52, name: "STM.W16",   read: "Raw 16-bit word at PTR (fmt not applied); PTR += 1 word", write: "-"}
+  - {code: 53, name: "STM.W24",   read: "Two words: w0[15:0], w1[7:0] -> [23:16]; PTR += 2 words", write: "-"}
+  - {code: 54, name: "STM.STEP",  read: "Signed step", write: "Same"}
+  - {code: 55, name: "STM.MODE",  read: "fmt", write: "Set format"}
+  - {code: 56, name: "STM.PAGE",  read: "Page", write: "set_page"}
+  - {code: 57, name: "FLUSH",     read: "0", write: "Any value: flush all dirty words"}
+  - {code: 58, name: "STM.PIX",   read: "Unpacked pixel (fmt applied); PTR += STEP", write: "-"}
+notes:
+  - "Operands that are not readable or not writable are rejected by the assembler."
+  - "Source advances on read, destination on write. Transparency: write the old pixel back."
+  - "STM is read-only."
+  - "W16 accesses a raw word (fmt not applied); PIX accesses a pixel (fmt applied). Both go through the same channel buffer."
+  - "JMPR reads any operand via the operand mux; special operands are allowed."
+---
+kind: code_list
+name: channel_mode
+title: "CHANNEL FORMAT (fmt, 3 bits)"
+fields: [fmt, name, description]
+entries:
+  - {fmt: 0, name: "1 bpp",    description: "16 pixels per word; SOURCE ONLY, unpacked to 4/8 bpp colours; writes forbidden"}
+  - {fmt: 1, name: "reserved", description: "-"}
+  - {fmt: 2, name: "4 bpp",    description: "4 pixels per word; pos 0 = high nibble"}
+  - {fmt: 3, name: "8 bpp",    description: "2 pixels per word; pos 0 = high byte"}
+  - {fmt: 4, name: "16 bpp",   description: "1 pixel per word"}
+  - {fmt: 5, name: "PASS_LO8", description: "Low byte"}
+  - {fmt: 6, name: "PASS_HI8", description: "High byte"}
+  - {fmt: 7, name: "PASS16",   description: "Whole word"}
+---
+kind: code_list
+name: commands
+title: "Loader packet headers"
+fields: [code, name, arg, description]
+entries:
+  - {code: 0, name: "END",  arg: "-",            description: "End, IDLE"}
+  - {code: 1, name: "ENDI", arg: "IRQ code",     description: "End with interrupt"}
+  - {code: 2, name: "CODE", arg: "word count",   description: "Load microcode: start address, then 2 packet words per instruction"}
+  - {code: 3, name: "RUN",  arg: "entry point",  description: "Start microprogram"}
+  - {code: 4, name: "JUMP", arg: "-",            description: "Next 2 words = new stream pointer"}
+notes:
+  - "End of task: MOV FLUSH, ZERO ; MOV IRQ, Rcode ; HALT 0."
+---
+kind: code_list
+name: registers
+output: [md]
+title: "Register file · R0–R31 (24 bit)"
+fields: [index, name, description, group]
+entries:
+  - {index: R0,  name: DX,  description: "Destination X", group: destination}
+  - {index: R1,  name: DY,  description: "Destination Y", group: destination}
+  - {index: R2,  name: DW,  description: "Destination width", group: destination}
+  - {index: R3,  name: DH,  description: "Destination height", group: destination}
+  - {index: R4,  name: SX,  description: "Source X", group: source}
+  - {index: R5,  name: SY,  description: "Source Y", group: source}
+  - {index: R6,  name: SW,  description: "Source width", group: source}
+  - {index: R7,  name: SH,  description: "Source height", group: source}
+  - {index: R8,  name: DSTRIDE, description: "Destination row stride", group: memory}
+  - {index: R9,  name: SSTRIDE, description: "Source row stride", group: memory}
+  - {index: R10, name: DBASE, description: "Destination base address", group: memory}
+  - {index: R11, name: SBASE, description: "Source base address", group: memory}
+  - {index: R12, name: FG,    description: "Foreground colour", group: pixel}
+  - {index: R13, name: BG,    description: "Background colour", group: pixel}
+  - {index: R14, name: MODE,  description: "Pixel formats and combine operation", group: pixel}
+  - {index: R15, name: CX0,   description: "Clip window left", group: clipping}
+  - {index: R16, name: CY0,   description: "Clip window top", group: clipping}
+  - {index: R17, name: CX1,   description: "Clip window right", group: clipping}
+  - {index: R18, name: CY1,   description: "Clip window bottom", group: clipping}
+  - {index: R19, name: SDX,   description: "Source delta X (12.12)", group: increment}
+  - {index: R20, name: SDY,   description: "Source delta Y (12.12)", group: increment}
+  - {index: R21, name: DDX,   description: "Destination delta X (12.12)", group: increment}
+  - {index: R22, name: DDY,   description: "Destination delta Y (12.12)", group: increment}
+  - {index: R23, name: T0,    description: "Temporary register", group: temporary}
+  - {index: R24, name: T1,    description: "Temporary register", group: temporary}
+  - {index: R25, name: T2,    description: "Temporary register", group: temporary}
+  - {index: R26, name: T3,    description: "Temporary register", group: temporary}
+  - {index: R27, name: T4,    description: "Temporary register", group: temporary}
+  - {index: R28, name: T5,    description: "Temporary register", group: temporary}
+  - {index: R29, name: T6,    description: "Temporary register", group: temporary}
+  - {index: R30, name: T7,    description: "Temporary register", group: temporary}
+  - {index: R31, name: T8,    description: "Temporary register", group: temporary}
+notes:
+  - "SDX, SDY, DDX, DDY are a microcode convention (affine mode, 12.12), not a hardware feature."

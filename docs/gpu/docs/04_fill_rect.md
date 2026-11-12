@@ -1,162 +1,96 @@
 # Example: filling a rectangle with a solid colour
 
-Destination is a normal rectangle `(DX, DY, DW, DH)`. No source is read. The colour comes from `FG` (foreground register R12). Clipping is done before the loop.
+Destination is a normal rectangle `(DX, DY, DW, DH)`. No source is read. Colour comes from `FG` (R12). Clipping is done before the loop.
 
 Before calling the microprogram, Z80 fills:
 
-- `DX, DY, DW, DH` — destination rectangle;
-- `DSTRIDE, DBASE` — destination layout;
-- `FG` — fill colour;
-- `MODE` — destination format (`DFMT`).
-
-## Pseudocode
+- `R0..R3` (`DX, DY, DW, DH`);
+- `R8` (`DSTRIDE`), `R10` (`DBASE`);
+- `R12` (`FG`) — fill colour;
+- `DST.PAGE`, `DST.MODE` — channel setup.
 
 ```
 FILL_RECT:
-    ; --- clip X ---
-    ; x0 = MAX(DX, CX0)
-    ; x1 = MIN(DX + DW, CX1)
-    ; W' = x1 - x0
-    ; if W' == 0: JMP DONE
-    ; (same as DRAW_SPRITE, omitted here)
+    ; --- clip X: x0 = MAX(DX, CX0), x1 = MIN(DX+DW, CX1) ---
+    MOV T0, R0
+    MOV T1, R15
+    CMP T0, T1
+    MOV T0, T1              ; COND CC — x0 = CX0
+    MOV T2, R0
+    ADD T2, R2              ; x1 = DX + DW
+    MOV T3, R17
+    CMP T2, T3
+    MOV T2, T3              ; COND CS — x1 = CX1
+    SUB T2, T0              ; W' = x1 - x0
+    TST T2, T2
+    JMP DONE                ; COND EQ
 
-    ; --- clip Y ---
-    ; y0 = MAX(DY, CY0)
-    ; y1 = MIN(DY + DH, CY1)
-    ; H' = y1 - y0
-    ; if H' == 0: JMP DONE
+    ; --- clip Y: y0 = MAX(DY, CY0), y1 = MIN(DY+DH, CY1) ---
+    MOV T3, R1
+    MOV T4, R16
+    CMP T3, T4
+    MOV T3, T4              ; COND CC — y0 = CY0
+    MOV T5, R1
+    ADD T5, R3              ; y1 = DY + DH
+    MOV T6, R18
+    CMP T5, T6
+    MOV T5, T6              ; COND CS — y1 = CY1
+    SUB T5, T3              ; H' = y1 - y0
+    TST T5, T5
+    JMP DONE                ; COND EQ
 
-    ; T0 = y0 * DSTRIDE + x0   (word address of the first pixel)
-    ; T1 = W'
-    ; T2 = H'
+    ; --- destination IDX = y0 * DSTRIDE/2 + x0 ---
+    MOV T6, T3
+    MUL T6, R8
+    SHR T6, 1
+    ADD T6, T0
+    MOV DST.IDX, T6
 
-    LDX T1
-    LDCNT                   ; loop counter = W' (single row)
+    ; --- LOOP: count = W', target = PIX ---
+    ; LOOP = (W' << 12) | PIX
+    MOV T7, T2
+    SHL T7, 12
+    LDI24 T8, PIX
+    OR  T7, T8
+    MOV LOOP, T7
+
+    MOV R2, T5              ; R2 = H' (rows left)
 
 ROW:
-    ; --- inner loop, W' pixels ---
-PIX:
-    ; A = (y << 12) | x   (current source-less coordinate)
-    ; ... build A from T0 (word address) → need x, y separately
-    ; Simpler: keep x and y as counters and use ADDR ch
-    LDX XREG
-    STR T6                  ; save x
-    LDX YREG
-    SHR 12
-    ; A[23:12] = y, A[11:0] = x  (via LDH/LDL from T6/XREG)
-    ; ADDR DEST
-    ; LDR FG
-    ; PACKER_WR DEST
-    ; XREG++ ; T1--
-    ; if T1 != 0: JMP PIX
+    MOV DST.PIX, R12        ; write FG; DST.IDX += DST.STEP (1)
+    ; L=1 above; LOOP decrements count, jumps to PIX until 0.
 
-    ; T1 = W' (reload)
-    ; YREG++ ; T2--
-    ; if T2 != 0: JMP ROW
+    ; --- next row ---
+    ; DST.IDX = DST.IDX + DSTRIDE/2 - W'  (rewind to row start + stride)
+    MOV T0, R8
+    SHR T0, 1
+    SUB T0, T2
+    MOV T1, DST.IDX
+    ADD T1, T0
+    MOV DST.IDX, T1
+
+    ; --- restore LOOP for next row ---
+    MOV T7, T2
+    SHL T7, 12
+    LDI24 T8, PIX
+    OR  T7, T8
+    MOV LOOP, T7
+
+    MOV R2, R2
+    SUB R2, 1
+    TST R2, R2
+    JMP ROW                 ; COND NE
 
 DONE:
-    FLUSH
-    IRQ
+    MOV FLUSH, ZERO
+    IRQ 0
     HALT 0
 ```
 
-## Revised, microcode-accurate version
+**Notes**
 
-```
-; registers used:
-;   R0 = X (current destination x)
-;   R1 = Y (current destination y)
-;   R2 = W' (remaining pixels in row)
-;   R3 = H' (remaining rows)
-;   R12 = FG (fill colour)
-;   R8 = DSTRIDE, R10 = DBASE
+1. **`LOOP` register** — `count | target`. The instruction with `L=1` (here `MOV DST.PIX, R12`) runs, then `LOOP` decrements `count` and jumps to `target` if `count > 1`, else falls through.
+2. **`MOV ch.PIX, R`** writes one pixel, advances `ch.IDX` by `ch.STEP`.
+3. **`MUL`** — 24×24 → low 24 bits. Stride is in bytes; `SHR 1` converts to words. For 4 bpp, `DST.IDX` is a pixel index, so `DSTRIDE` is used as pixels-per-row, not bytes — adjust the test setup accordingly.
+4. **`LDI24 T8, PIX`** — load a 24-bit constant (the loop target). `PIX` is a microcode label; the assembler resolves it.
 
-FILL_RECT:
-    ; --- clip X ---
-    ; x0 = MAX(DX, CX0); x1 = MIN(DX + DW, CX1)
-    ; W' = x1 - x0
-    LDX T0                  ; A = W'
-    CMP 0                   ; flags from A - 0
-    ; COND Z, MASK CTRL
-    JMP DONE
-
-    ; --- clip Y ---
-    ; y0 = MAX(DY, CY0); y1 = MIN(DY + DH, CY1)
-    ; H' = y1 - y0
-    LDX T1                  ; A = H'
-    CMP 0
-    JMP DONE                ; COND Z, MASK CTRL
-
-    LDX x0
-    STR R0                  ; X = x0
-    LDX y0
-    STR R1                  ; Y = y0
-
-ROW:
-    LDX W'
-    STR R2                  ; R2 = W'
-    LDX R0
-    STR R4                  ; R4 = X (working x)
-
-PIX:
-    ; A = (Y << 12) | X   (coordinate for AddrPacker)
-    LDX R4
-    STR T6                  ; T6 = X
-    LDX R1
-    SHR 12
-    ; LDH: A[23:12] = Y_int; A[11:0] = X (from T6)
-    ; In the simulator: LDI X; LDH Y_int
-    LDX T6
-    STR A                   ; A = X (low 12)
-    LDX R1
-    SHR 12                  ; A = Y_int
-    LDH A                   ; A[23:12] = Y_int, A[11:0] unchanged
-
-    ; ADDR DEST: AddrPacker computes ADDR_ = addr24, pos
-    ; PACKER_WR DEST: write FG at ADDR_
-    LDR FG
-    PACKER_WR DEST
-
-    ; R4++ ; R2--
-    LDX R4
-    LDI_PUSH 1
-    ADD                     ; A = X + 1
-    STR R4
-
-    LDX R2
-    LDI_PUSH 1
-    SUB                     ; A = R2 - 1
-    STR R2
-    CMP 0
-    JMP PIX                 ; COND NZ, MASK CTRL
-
-    ; R1++ ; R3--
-    LDX R1
-    LDI_PUSH 1
-    ADD
-    STR R1
-
-    LDX R3
-    LDI_PUSH 1
-    SUB
-    STR R3
-    CMP 0
-    JMP ROW                 ; COND NZ, MASK CTRL
-
-DONE:
-    FLUSH
-    IRQ
-    HALT 0
-```
-
-## Notes
-
-1. **`COND`/`MASK` on `JMP`.** The condition is encoded in the `COND`/`MASK` fields of the `JMP` micro-word. `MASK CTRL` blocks the jump when the condition is false, so execution falls through. This is the standard pattern: `CMP 0; JMP target` with `COND NZ, MASK CTRL` means "jump if non-zero".
-
-2. **No `IMM 12` as an operand.** `LD SRCk, IMM` is not a microcode instruction; use `LDI` (replaces A) or `LDL`/`LDH` (partial writes). The assembler may add a pseudo-op that expands `LD SRCk, IMM` into `LDI` + `LDH` depending on the value.
-
-3. **Coordinates and `AddrPacker`.** The destination is addressed by `x`/`y` in 12.12. `AddrPacker` takes `(x_int << 12) | y_int` from A (built with `LDI x_int; LDH y_int`), `base`/`stride` from `R10`/`R8`, and `fmt` from `ch_mode_[DEST]`. The resulting `addr24` and `pos` go into `ADDR_`.
-
-4. **No `MUL` in microcode.** The multiplication `Y * DSTRIDE` is done by the DSP **inside `AddrPacker`**, not by the ALU. Microcode never issues `MUL`.
-
-5. **Loop counter.** `LDCNT` loads `CNT` with A. `LOOP X` decrements `CNT` and jumps if non-zero. This is the cleanest loop construct. `CMP 0` + `JMP` is used when the loop count is not needed after the loop.

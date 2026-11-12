@@ -1,19 +1,21 @@
 # Graphics coprocessor for Z80: architecture
 
-*Source for the documentation generator. YAML declarations in `gen/` produce SVG and MD tables; `[include]` inserts them here. Numbers are approximate; details are refined on the simulator.*
+*Source for the documentation generator. YAML declarations in `spec/` produce SVG and MD tables; `[include]` inserts them here. Numbers are approximate; details are refined on the simulator.*
 
 ## 1. Principles
 
 1. **Simplicity over peak speed.** The bottleneck is memory, so the core can be simple.
 2. **Programmable core, not a hardwired state machine.** Microcode lives in BRAM; a new algorithm means new microcode, not new logic.
-3. **Only the hot path goes into hardware:** word buffers, address generators, pixel packing.
-4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)".
-5. **Two pixel formats: 4 and 8 bpp.** 1 bpp is source only (fonts, masks). 16 bpp via `PASS16` (word pass-through).
+3. **Only the hot path goes into hardware:** word buffers, pixel packing, address computation inside ports.
+4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)"; the port turns a pixel index into a word address.
+5. **Pixel formats: 1, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.**
 6. **No hardware scrolling.** Replaced by fast block copying.
-7. **Commands are a consequence of the microcode layout.** Fields first, commands follow.
-8. **`REG_ADDR` — resource select.** The field has no single meaning: `LDR`/`STR` — a register; `LDX`/`STX` — a device; `PACKER_*`/`SETPAGE`/`SETMODE`/`ADDR` — a channel.
-9. **`IMM` — universal argument.** Consumers: `LDI`/`LDH`/`LDL` (constant), `JMP`/`CALL`/`LOOP` (address), `HALT` (error code). In one word — one consumer, enforced by the assembler.
-10. **Stack A/B/C.** Three registers, push/pop. A is the only write port; B and C are stack-internal. C is zeroed on pop.
+7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm12, LDI24, control.
+8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`.
+9. **`SHADOW` — return address + flags**; `CALL` writes it, `RET` uses PC only, `JMPR` for indirect return.
+10. **`LOOP` register** — count + target, `L` bit drives it.
+11. **Ports stall the sequencer in hardware**; the model does not simulate cycle counts (mathematical model, execution order identical).
+12. **Three channels: SRC, DST, STM.** `STM` is read-only (microcode loader).
 
 ## 2. Overall picture
 
@@ -23,163 +25,130 @@
 
 GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster scan has top priority.
 
-## 3. Microinstruction
+## 3. Microinstruction (32 bit)
 
-![Microinstruction format](gen/microinstruction.svg)
+![reg-reg](gen/insn_reg.svg)
 
-[include](gen/microinstruction-table.md)
+[include](insn_reg-table.md)
 
-**Execution order.** The three blocks (`REG_OP`, `ALU_OP`, `CTRL_OP`) run in parallel: all read A/B/C at the start of the cycle, writes happen at the end. ALU computes on the old operands; `REG_OP` loads the next value; `STR` saves A after the previous word.
+![reg-imm12](gen/insn_imm12.svg)
 
-**Condition and mask.** Flags Z, N, C come from the previous word. `COND` (3 bits) selects the condition; if it holds, `MASK` (3 bits) blocks the marked blocks (bit 0 — `REG_OP`, bit 1 — `ALU_OP`, bit 2 — `CTRL_OP`). `MASK = 0` — unconditional.
+[include](insn_imm12-table.md)
 
-[include](gen/microops_cond-table.md)
+![ldi24](gen/insn_ldi24.svg)
 
-[include](gen/microops_mask-table.md)
+[include](insn_ldi24-table.md)
 
-**`IMM` — 12-bit universal argument.** Its meaning depends on the command:
+![ctrl](gen/insn_ctrl.svg)
 
-| Command | `IMM` contents |
-|---|---|
-| `LDI`/`LDH`/`LDL` | constant (12 bits) |
-| `JMP`/`CALL`/`LOOP` | address (12 bits) |
-| `HALT X` | error code (12 bits) |
-| everything else | not used |
+[include](insn_ctrl-table.md)
 
-**Rule:** one consumer of `IMM` per micro-word. `LDI` + `JMP` — OK. `LDI` + another `IMM` consumer — forbidden. Enforced by the assembler.
+**Classes (J, I):**
 
-## 4. Stack A/B/C and the ALU
+| J | I | Class | Layout of low bits |
+|---|---|---|---|
+| 0 | 0 | reg-reg | `SRC[5:0]` in [12:7], `RSV[6:0]` in [6:0] |
+| 1 | 1 | reg-imm12 | `SX` in [12], `IMM[11:0]` in [11:0] |
+| 0 | 1 | LDI24 | `IMM24[23:0]` in [23:0]; only R0..R31; no COND/F; unconditional |
+| 1 | 0 | control | `REG[5:0]` in [12:7], `ADDR[11:0]` in [11:0]; `OP` = CTRL |
 
-![ALU internal structure](images/lx-gpu-alu-architecture.webp)
+**Execution order.** One instruction per cycle (model). ALU reads A/B/C at start, writes at end. Flags from the previous instruction.
 
-**A inputs (4:1):** result R (ALU), B (pop/swap), IN_ (external stage), IMM (constant).
-**B inputs:** A (push/swap) or C (pop). **C input:** B (push) or zero (pop).
-**ALU** has no input muxes: operands are always A and B (plus C for `BLEND`, currently not implemented).
-**C is zeroed on pop** — 100% by design.
+**Condition and flags.** Z, N, C, V from the previous flag-writing instruction. `COND` selects; false = no register write, no port access.
 
-**External (slow) devices** all go through `IN_` (a pipeline stage register in hardware; a single register in the model). A device read always lands in A — never B, never C. A device write takes A (some devices may also read B or C).
+[include](conditions-table.md)
 
-**AddrPacker** — a separate class. `ADDR ch` pops A (x, 12.12) and B (y, 12.12), passes them to `AddrPacker` (DSP inside: `y_int × stride`), which produces `addr24` + `pos` into a dedicated `ADDR_` register inside the GPU. `PACKER_RD/WR` then use `ADDR_` (and A as data). `CH_DATA` bypasses `AddrPacker` and uses `DPTR` directly, with `fmt` from `ch_mode_[DATA]` (`PASS16`/`PASS_LO8`/`PASS_HI8`).
+## 4. ALU
 
-**No MUL in the ALU.** Multiplication lives in `AddrPacker` (DSP). Pixel blending is done with shifts (power-of-two alpha).
+[include](alu_ops-table.md)
 
-## 5. Micro-commands
+**Notes:**
+- Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
+- Flags are written only if F=1 (CMP/TST always).
+- `ROR`/`SHR`/`SAR` do not update C.
+- `MUL`/`MULH` are multi-cycle in RTL (DSP); 1 cycle in the model.
 
-[include](gen/microops_reg-table.md)
+## 5. Control
 
-[include](gen/microops_alu-table.md)
+[include](ctrl_ops-table.md)
 
-[include](gen/microops_ctrl-table.md)
+**Notes:**
+- `CALL` writes SHADOW. Nested calls: save SHADOW to a register first.
+- `L` bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false. `L` with control words is forbidden.
 
-**REG_OP** — stack A/B/C and data (5 bits, 32 codes): `NOP`, `LDR`, `LDR_PUSH`, `STR`, `STR_POP`, `CLR_A`, `CLR_AB`, `CLR_C`, `LDD`, `LDD_PUSH`, `LDDS`, `LDDS_PUSH`, `SETS`, `SETD`, `SETP`, `LDCNT`, `FLUSH`, `LDX`, `LDX_PUSH`, `STX`, `STX_POP`, `LDI`, `LDI_PUSH`, `LDH`, `LDL`, `PACKER_RD`, `PACKER_RD_PUSH`, `PACKER_WR`, `PACKER_WR_POP`, `SETMODE`, `SETPAGE`, `ADDR`, `IRQ`.
+## 6. Operand map
 
-**ALU_OP** — 32 codes (5 bits): 0..15 — 16 `LOGIC` LUT functions (AND=8, OR=14, XOR=6, PASS A=12, PASS B=10, NOT A=3, NOT B=5, ZERO=0, ONE=15); 16 — `ADD`; 17 — `SUB`; 18 — `CMP` (SUB without writing A, flags only); 19 — `SHL`; 20 — `SHR`; 21 — `SAR`; 22..31 reserved.
+[include](operand_map-table.md)
 
-**CTRL_OP** — 3 bits, 8 commands: `NOP`, `JMP`, `CALL`, `RET`, `LOOP`, `JMPA`, `HALT X`, `WAIT_FLAG`.
-
-## 6. Operand / device map
-
-![Device map](gen/device_map.svg)
-
-[include](gen/device_map-table.md)
-
-`R0..R31` are separate from `DeviceMap`: `LDR`/`STR` address the register file via `REG_ADDR` (0..31); `LDX`/`STX`/`WAIT_FLAG` address devices via `REG_ADDR` (0..31).
-
-`SPIX`/`DPIX` are accessed through `PACKER_RD/WR`, not `LDX`/`STX`.
-
-Device flags (`FLAG_BUSY`, `FLAG_IRQ`, `FLAG_DMA`, `FLAG_CNT_ZERO`) and their inverses (`FLAG_*_NOT`) are one-bit devices. `WAIT_FLAG` waits until the chosen device reads as 1; the inverse device is used for "wait until 0".
+**Notes:**
+- Ports that are not readable/writable are rejected by the assembler.
+- Source advances on read, destination on write. Transparency: write the old pixel back.
+- `STM` is read-only.
 
 ## 7. Register file
 
-![Registers](gen/registers.svg)
-
-[include](gen/registers-table.md)
+[include](registers-table.md)
 
 `SDX`, `SDY`, `DDX`, `DDY` are a microcode convention (affine mode, 12.12), not a hardware feature.
 
-## 8. Pixel formats and MODE
+## 8. Pixel formats and channel mode
 
-![Channel mode](gen/channel_mode.svg)
-[include](gen/channel_mode-table.md)
+[include](channel_mode-table.md)
 
-**`MODE` (R14) — only `TR` bit** (bit 0). Channel format lives in `ch_mode_[4]` (3-bit `fmt` per channel), set by `SETMODE` (`REG_ADDR[1:0]` = channel, `A[2:0]` = fmt). `COP` removed (no combiner).
-
-[include](gen/channel_mode-table.md)
-
-**Pixel order:** for 4 bpp `pos=0` — high nibble, `pos=3` — low nibble; for 8 bpp `pos=0` — high byte, `pos=1` — low byte; for 1 bpp `pos=0` — bit 15, `pos=15` — bit 0.
+`MODE` is set via `MOV x.MODE, R`; read via `MOV R, x.MODE`. No `COP` bit.
 
 ## 9. Loader and packets
 
-**The loader is a full replacement for the old exchange protocol.** BRAM 0–31 holds the loader; writing there → `HALT 1`. "Microcode loading" and "protected area" are new concepts; this is a new architecture, not a retrofit.
-
-Three address channels: `S` (`SIDX → SPIX`), `D` (`DIDX → DPIX`), `DATA` (`DPTR → data word`).
+BRAM 0–31 holds the loader; writing there → `HALT 1`.
 
 **Packet format:** sequence of blocks, each starts with a 16-bit header `{kind[15:12], arg[11:0]}`:
 
-[include](gen/commands-table.md)
+[include](commands-table.md)
 
-`CODE`: arg = number of micro-words; next word is the microcode address; then 3 words per micro-word (36 bits in three 16-bit words: `w0[15:0]`, `w1[31:16]`, `w2[35:32]`, `w2[15:4]` reserved). `RUN`: arg = entry point. `JUMP`: next 2 words = new `DPTR`.
+`CODE`: 32-bit microinstruction = 2 words. `RUN`: entry point. `JUMP`: new `STM.PTR`.
 
-The end of a packet is assembled from commands:
-
+End of a task:
 ```
-END:   FLUSH               ; REG_OP: memory is coherent
-       IRQ                 ; REG_OP: A = 1 → IRQ code
-       HALT 0              ; CTRL_OP: IDLE (success)
+MOV FLUSH, ZERO     ; flush all dirty words
+MOV IRQ, Rcode      ; optional: raise IRQ with code
+HALT 0              ; IDLE
 ```
-
-Order matters: an interrupt before `FLUSH` would announce a picture not yet in memory. `FLUSH` is synchronous. `END` (no IRQ) and `ENDI` (with IRQ) are distinct header kinds.
 
 ## 10. System commands
 
 | Command | Single function | What it does not do |
 |---|---|---|
-| `JMP`, `CALL`, `RET`, `LOOP`, `JMPA` | control flow | |
-| `LDI`, `LDH`, `LDL` | load constant from `IMM` into A | |
-| `WAIT_FLAG` | wait until the device selected by `REG_ADDR` reads 1 | does not wait for cycles, only for flags |
-| `FLUSH` | make memory coherent | does not interrupt the CPU, does not stop the core |
+| `JMP`, `CALL`, `RET`, `JMPR` | control flow | |
+| `LDI24` | load 24-bit constant into R0..R31 | does not touch flags |
+| `FLUSH` (via MOV) | make memory coherent | does not interrupt CPU |
 | `IRQ` | raise an event | does not flush memory, does not stop the core |
-| `HALT X` | `X=0` → IDLE (success); `X!=0` → ERROR | does not interrupt the CPU |
+| `HALT X` | `X=0` → IDLE; `X!=0` → ERROR(code) | does not interrupt CPU |
 
-`SYNC` removed: its three functions split into `FLUSH` / `IRQ` / `HALT`. `STOP`/`CONTINUE` are CPU commands through a port. `ERROR` is cleared only by a new `START` (or `reset()`).
-
-**`LDH` and `LDL`:** `LDI` loads a sign-extended 12-bit constant into A (replaces A entirely). `LDH` writes `IMM` into `A[23:12]` without touching the lower 12 bits. `LDL` writes `IMM` into `A[11:0]` without touching the upper 12 bits. To build a 24-bit address: `LDL low12; LDH high12`.
+`ERROR` is cleared only by a new `START` (or `reset()`).
 
 ## 11. Reference loops
 
-**Solid fill** (before the loop `DIDX` is set via `SETD`, the counter is loaded via `LDCNT`):
-
+**Solid fill:**
 ```
-;        REG_OP          ALU        CTRL
-PIX:     PACKER_RD DEST  -          -           ; A = destination pixel
-         LDR FG          -          -           ; A = FG
-         -               AND/OR/XOR/...          ; A = A op B (B = dest pixel)
-         PACKER_WR DEST  -          LOOP PIX
+; setup: DST.PAGE, DST.MODE, DST.STEP, DST.IDX, LOOP=(N<<12)|PIX
+PIX:  MOV DST.PIX, FG      ; write pixel; IDX += STEP; L=1
 ```
 
 **Sprite copy:**
-
 ```
-PIX:     PACKER_RD SRC   -          -
-         STR T0          -          -           ; T0 = source pixel
-         PACKER_RD DEST  -          -
-         LDR_PUSH T0     -          -           ; push A(dest); A = T0 (src)
-         -               AND/OR/XOR/...          ; A = A op B
-         PACKER_WR DEST  -          LOOP PIX
+PIX:  MOV T0, SRC.PIX      ; read source pixel
+      MOV DST.PIX, T0      ; write destination pixel; IDX += STEP
 ```
 
 **Affine mode** — source sampled per pixel:
-
 ```
-    ; A = (SY >> 12) << 12 | (SX >> 12)
-    LDX SX
-    STR T0
-    LDX SY
-    SHR 12
-    LDH (no — LDH takes IMM) ...
+      LDI24 T0, sidx
+      MOV SRC.IDX, T0
+      MOV T0, SRC.PIX
+      LDI24 T1, didx
+      MOV DST.IDX, T1
+      MOV DST.PIX, T0
 ```
-
-See `03_draw_sprite.md` for a complete affine example.
 
 ## 12. Clipping and affine mode
 
@@ -193,22 +162,24 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 - Third source (replaced by two passes through a hidden page).
 - Fast whole-word fill (solved in software).
 - Palette (not part of the processor).
-- **Combiner (`COMB`)** — removed; logic via ALU (`LOGIC` LUT).
-- **`SKIP_IF_Z`** — removed; transparency via `COND Z` + `MASK CTRL` on `PACKER_WR`.
-- **`LDSP`/`LDDP`/`STDP`** — removed (replaced by `PACKER_RD/WR`).
-- **`FAULT`** — removed (`HALT X` with `X != 0`).
-- **Saturation (`ADDS`, `SUBS`), `MIN`, `MAX`, `MUL`, `COMB`** — removed from ALU.
-- **`SETMASK` / pixel mask / bit-plane layers** — removed. Layers and partial updates are done by the microcode (per-pixel writes, `COND`/`MASK`).
+- Combiner (`COMB`) — removed; logic via ALU.
+- `SKIP_IF_Z` — removed; transparency via `COND Z` + `MASK` on write.
+- `LDSP`/`LDDP`/`STDP` — replaced by `SRC.PIX`/`DST.PIX`/`STM.W16`.
+- `FAULT` — removed (`HALT X` with `X != 0`).
+- Saturation, `MIN`, `MAX` — removed from ALU.
+- `SETMASK` / pixel mask / bit-plane layers — removed. Layers and partial updates are done by microcode.
 
 ## 14. Open questions
 
-1. **`WAIT_FLAG`** — implemented.
-2. **Exact microinstruction packing** — 36 bits, `MicroWord::pack/unpack`.
-3. **`FLUSH`** — in `REG_OP` (`R_FLUSH`).
+1. **`WAIT_FLAG`** — removed; ports stall in hardware.
+2. **Exact microinstruction packing** — 32 bits, `MicroWord::pack/unpack`.
+3. **`FLUSH`** — via `MOV FLUSH, ZERO`.
 4. **Hardware detectors for `HALT 1`** — open.
 5. **`kind` 4 bits** — sufficient.
-6. **36 bits vs 16** — chosen: 36 bits, 3×16.
+6. **32 bits vs 36** — chosen: 32 bits.
 7. **Affine mode** — `SDX`/`SDY` (12.12), microcode not written.
 8. **Clipping** — `CX0..CY1`, microcode not written.
 9. **Blending** — shift-based (`SHR`/`ADD`), not a dedicated command.
 10. **Integration with `machine.cpp`** — `gpu_mmio` (page 3), `set_line(5)`, `tick(t)` — in progress.
+11. **`PAGE`** — 8 bits; low 16 bits of `base` optional (FPGA: 8 bits, simulator: 24 bits).
+12. **`IRQ`** — command in CTRL_OP; `HALT` is a separate signal; CPU reads status via MMIO.
