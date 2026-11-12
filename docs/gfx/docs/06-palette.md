@@ -40,7 +40,7 @@ The Control Register (0x05) configures the palette behavior:
 
 **Palette Control Register (0x05)**
 
-| Поле | Биты | Ширина | Описание |
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | **mod_en** | [7:7] | 1 | 1=Включить модификацию индекса |
 | **mod_type** | [6:6] | 1 | 0=OR, 1=XOR |

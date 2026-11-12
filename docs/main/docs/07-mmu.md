@@ -198,7 +198,7 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
 **GLOBAL_CTRL (F0h)**
 
-| Поле | Биты | Ширина | Описание |
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | **reserved** | [7:5] | 3 | Must be 0. |
 | **mmio_userlock** | [4:4] | 1 | 0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode, preventing unauthorised access. Only Supervisor can change this bit. |

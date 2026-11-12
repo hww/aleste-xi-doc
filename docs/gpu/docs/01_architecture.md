@@ -29,7 +29,7 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 **MICROINSTRUCTION · 36 BIT**
 
-| Поле | Биты | Ширина | Описание |
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | **REG_OP** | [35:31] | 5 | Операция передачи данных (5 бит) |
 | **ALU_OP** | [30:26] | 5 | Арифметическая или логическая операция (5 бит) |

@@ -240,7 +240,7 @@ def render_bitfield_md(bf, REGISTRY):
         return None
         
     md = f"**{title}**\n\n"
-    md += "| Поле | Биты | Ширина | Описание |\n| --- | --- | --- | --- |\n"
+    md += "| Field | Bits | Width | Description |\n| --- | --- | --- | --- |\n"
     for f in sorted(fields, key=lambda x: -int(x.get("msb", 0))):
         n = int(f.get("msb", 0)) - int(f.get("lsb", 0)) + 1
         md += f'| **{f.get("name")}** | [{f.get("msb")}:{f.get("lsb")}] | {n} | {f.get("description", "")} |\n'
