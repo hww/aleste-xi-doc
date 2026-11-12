@@ -14,6 +14,10 @@ out/
 images/*/
 !images/*/.gitkeep
 
+# Разблокировать gen в /docs/
+!/docs/gen/
+!/docs/gen/**
+
 # Python
 .venv/
 __pycache__
