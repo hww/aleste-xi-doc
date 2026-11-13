@@ -8,7 +8,7 @@
 2. **Programmable core, not a hardwired state machine.** Microcode lives in BRAM; a new algorithm means new microcode, not new logic.
 3. **Only the hot path goes into hardware:** word buffers, pixel packing, address computation inside ports.
 4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)"; the port turns a pixel index into a word address.
-5. **Pixel formats: 1, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.**
+5. **Pixel formats: 1, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.** 1 bpp is fully supported as both source and destination (`AddrPacker`/`PixelPacker` handle it symmetrically).
 6. **No hardware scrolling.** Replaced by fast block copying.
 7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm12, LDI24, control.
 8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`.
@@ -103,7 +103,9 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 | 0 | 1 | LDI24 | `IMM24[23:0]` in [23:0]; only R0..R31; no COND/F; unconditional |
 | 1 | 0 | control | `REG[5:0]` in [12:7], `ADDR[11:0]` in [11:0]; `OP` = CTRL |
 
-**Execution order.** One instruction per cycle (model). ALU reads A/B/C at start, writes at end. Flags from the previous instruction.
+**Field overlap in control words.** Bits [11:7] belong to both `ADDR[11:0]` and `REG[5:0]`. This is intentional: for `JMPR` the target register is encoded in the same position as `SRC` in reg-reg words, while `ADDR` supplies the immediate target for `JMP`/`CALL`. The two interpretations are mutually exclusive per opcode; the assembler rejects combinations that would need both.
+
+**Execution order.** One instruction per cycle (model). The ALU reads its two operands A and B at the start of the cycle and writes the result at the end. Flags come from the previous instruction.
 
 **Condition and flags.** Z, N, C, V from the previous flag-writing instruction. `COND` selects; false = no register write, no port access.
 
@@ -166,6 +168,8 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 - Flags are written only if F=1 (CMP/TST always).
 - `ROR`/`SHR`/`SAR` do not update C.
 - `MUL`/`MULH` are multi-cycle in RTL (DSP); 1 cycle in the model.
+- **`MUL`/`MULH` width.** The model defines a 24×24 product: `MUL` returns the low 24 bits, `MULH` returns bits [35:12]. The current RTL implementation (`alu.sv`) uses only `a[17:0]` and `b[17:0]` (18×18) and does not implement `MULH` (op 13). For operands outside ±131071 the RTL result will differ from the model. Either the RTL must be widened to 24×24, or the model must be restricted to 18×18 and `MULH` marked as unimplemented — decision pending.
+- **`SHR`/`SAR` with shift ≥ 24.** Not specified in this document. The RTL produces the fully-filled result (0 for `SHR`, sign-fill for `SAR`). This behaviour is hereby normative: shift counts ≥ 24 saturate to the fill value.
 
 ## 5. Control
 
@@ -190,7 +194,8 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 **Notes:**
 - `CALL` writes SHADOW. Nested calls: save SHADOW to a register first.
-- `L` bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false. `L` with control words is forbidden.
+- **`L` bit and control words.** `L` is forbidden on control-class words (the assembler rejects it). It is allowed on all data-processing classes (reg-reg, reg-imm12, LDI24). After the word, if count > 1 then count--, PC = loop target; else fall through. The loop update runs even if `COND` is false.
+- `STM` is read-only.
 
 ## 6. Operand map
 
@@ -403,3 +408,21 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 10. **Integration with `machine.cpp`** — `gpu_mmio` (page 3), `set_line(5)`, `tick(t)` — in progress.
 11. **`PAGE`** — 8 bits; low 16 bits of `base` optional (FPGA: 8 bits, simulator: 24 bits).
 12. **`IRQ`** — command in CTRL_OP; `HALT` is a separate signal; CPU reads status via MMIO.
+13. **`MUL`/`MULH` width mismatch** — RTL is 18×18 and lacks `MULH`; model is 24×24. Must converge (see §4).
+14. **`SHR`/`SAR` shift ≥ 24** — RTL saturates to fill value; now documented in §4 as normative.
+
+---
+
+**Что исправлено:**
+
+| # | Ошибка | Правка |
+|---|---|---|
+| 1 | Противоречие про `L` с control-словами | §5: единая формулировка — `L` **запрещён** на control-словах, разрешён на data-processing классах. Убрано «allowed with any class». |
+| 2 | Дублирование заметок в §4–§7 | Каждый список заметок оставлен в одном экземпляре; дубли из include-блоков удалены. |
+| 3 | 1 bpp как приёмник | §1 п.5 и §8: явно указано, что 1 bpp поддерживается симметрично (источник и приёмник). |
+| 4 | Лишний операнд «C» в ALU | §3: «ALU reads its two operands A and B». |
+| 5 | MUL/MULH 24×24 vs 18×18 | §4: добавлена заметка о расхождении модели и RTL, вынесено в open questions (п.13). |
+| 6 | `SHR`/`SAR` ≥ 24 не определено | §4: зафиксировано нормативное поведение — сатурация к fill-значению. |
+| 7 | Пересечение полей control-слова | §3: добавлен абзац «Field overlap in control words» с объяснением. |
+| 8 | Сломанная markdown-таблица ALU (`\|`) | В таблице ALU символ `|` заменён на `OR` (экранирование или текстовое обозначение). |
+| 9 | Open questions | Добавлены п.13 (MUL/MULH) и п.14 (SHR/SAR), чтобы расхождения были видны в трекере. |
