@@ -28,22 +28,38 @@ Four mode-switching mechanisms of LX:
 
 ### 5.1.1 `GLOBAL_CTRL` bit map
 
-![GLOBAL_CTRL bit map](gen/mmu_global_ctrl.svg)
+![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
+
+*Figure 2 — GLOBAL_CTRL (F0h)*
+
+**Table 2 — GLOBAL_CTRL (F0h)**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="RSV"></a>**RSV** | [7:5] | 3 | Reserved |
+| <a id="mmio_userlock"></a>**mmio_userlock** | [4] | 1 | 0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode. Only Supervisor can change this bit. |
+| <a id="interrupt_hold"></a>**interrupt_hold** | [3] | 1 | 1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET) |
+| <a id="supervisor_hook"></a>**supervisor_hook** | [2] | 1 | 0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). |
+| <a id="native_mode"></a>**native_mode** | [1] | 1 | 0 = Legacy (CPC 6128), 1 = Native (LX). Ignored in Supervisor mode. [`native_mode_vals`](gen/native_mode_vals.md) |
+| <a id="supervisor_mode"></a>**supervisor_mode** | [0] | 1 | 0 = User, 1 = Supervisor. Hardware trap entry on 0038h/0066h. [`supervisor_mode_vals`](gen/supervisor_mode_vals.md) |
+
 
 **✔ By design:** `reg_ctrl_super_in = din[0]`, `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`, `reg_ctrl_interrupt_hold = reg_control[3]`, `reg_ctrl_user_lock = reg_control[4]`.
 
 ### 5.1.2 Bit descriptions
 
-**GLOBAL_CTRL (F0h)**
+# GLOBAL_CTRL (F0h)
+
+![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| **reserved** | [7:5] | 3 | Must be 0. |
-| **mmio_userlock** | [4:4] | 1 | 0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode, preventing unauthorised access. Only Supervisor can change this bit. |
-| **interrupt_hold** | [3:3] | 1 | 1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET) |
-| **supervisor_hook** | [2:2] | 1 | 0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). Allows the kernel to intercept interrupt handling. |
-| **native_mode** | [1:1] | 1 | 0 = Legacy (CPC 6128 compatibility), 1 = Native (modern LX address space). Ignored in Supervisor mode (Native mechanism is always used). |
-| **supervisor_mode** | [0:0] | 1 | 0 = User, 1 = Supervisor. In Supervisor mode, all system registers are accessible. In User mode, access is restricted. |
+| <a id="RSV"></a>**RSV** | [7:5] | 3 | Reserved |
+| <a id="mmio_userlock"></a>**mmio_userlock** | [4] | 1 | 0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode. Only Supervisor can change this bit. |
+| <a id="interrupt_hold"></a>**interrupt_hold** | [3] | 1 | 1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET) |
+| <a id="supervisor_hook"></a>**supervisor_hook** | [2] | 1 | 0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). |
+| <a id="native_mode"></a>**native_mode** | [1] | 1 | 0 = Legacy (CPC 6128), 1 = Native (LX). Ignored in Supervisor mode. [`native_mode_vals`](gen/native_mode_vals.md) |
+| <a id="supervisor_mode"></a>**supervisor_mode** | [0] | 1 | 0 = User, 1 = Supervisor. Hardware trap entry on 0038h/0066h. [`supervisor_mode_vals`](gen/supervisor_mode_vals.md) |
 
 
 > **✔ By design:** `mmio_userlock` blocks **all MMU ports** (`E0–FF`), not only the mode bits. Only `F2` (syscall) is reachable, because syscall is handled in a separate path (`is_syscall_access`, not `is_mmu_access`).

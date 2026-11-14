@@ -88,49 +88,397 @@ Magic Sound 2 (rev. C) fixes all four:
 
 ### 3.1 Global registers
 
-![Global Registers Map](gen/ms2c_global_map.svg)
+![Rev. C: Global Registers Map](gen/ms2c_global_map.svg)
 
-### Rev. C: Global Registers
+*Figure 3 — Rev. C: Global Registers Map*
 
-| Offset | Name | R/W | Bits |
+**Table 3 — Rev. C: Global Registers Map**
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="CTRL"></a>**CTRL** | — |
+| `0x01` | <a id="VOL_L"></a>**VOL_L** | — |
+| `0x02` | <a id="VOL_R"></a>**VOL_R** | — |
+| `0x03` | <a id="STATUS"></a>**STATUS** | — |
+| `0x04` | <a id="IRQ_CTRL"></a>**IRQ_CTRL** | — |
+| `0x05` | <a id="IRQ_STAT__R_"></a>**IRQ_STAT (R)** | — |
+| `0x10` | <a id="TIMER_LO"></a>**TIMER_LO** | — |
+| `0x11` | <a id="TIMER_HI"></a>**TIMER_HI** | — |
+
+**CTRL** (`0x00`)
+
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| 0x00 | CTRL | RW | [0] enable MS2 |
-| 0x01 | VOL_L | RW | [7:0] global left volume |
-| 0x02 | VOL_R | RW | [7:0] global right volume |
-| 0x03 | STATUS | R | [3:0] EOF per channel; [7:4] playing per channel |
-| 0x03 | STATUS (write) | W | [3:0] 1 = clear EOF |
-| 0x04 | IRQ_CTRL | RW | [0] EOF IRQ enable; [1] timer IRQ enable |
-| 0x05 | IRQ_STAT | R | [0] EOF pending; [1] timer pending |
-| 0x05 | IRQ_STAT (write) | W | [1:0] 1 = clear |
-| 0x10 | TIMER_LO | RW | [7:0] timer period low |
-| 0x11 | TIMER_HI | RW | [15:8] timer period high |
+| <a id="ENABLE"></a>**ENABLE** | [0] | 1 | Enable MS2 |
+
+**VOL_L** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:0] | 8 | Global left volume |
+
+**VOL_R** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_R"></a>**VOL_R** | [7:0] | 8 | Global right volume |
+
+**STATUS** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="PLAYING_CH"></a>**PLAYING_CH** | [7:4] | 4 | Playing per channel (read) |
+| <a id="EOF_CH"></a>**EOF_CH** | [3:0] | 4 | EOF per channel (read) |
+| <a id="CLR_EOF"></a>**CLR_EOF** | [3:0] | 4 | Clear EOF (write) |
+
+**IRQ_CTRL** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_IRQ"></a>**TMR_IRQ** | [1] | 1 | Timer IRQ enable |
+| <a id="EOF_IRQ"></a>**EOF_IRQ** | [0] | 1 | EOF IRQ enable |
+
+**IRQ_STAT (R)** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_PEND"></a>**TMR_PEND** | [1] | 1 | Timer pending |
+| <a id="EOF_PEND"></a>**EOF_PEND** | [0] | 1 | EOF pending |
+
+**TIMER_LO** (`0x10`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_LO"></a>**TMR_LO** | [7:0] | 8 | Timer period low |
+
+**TIMER_HI** (`0x11`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_HI"></a>**TMR_HI** | [7:0] | 8 | Timer period high |
+
+
+# Rev. C: Global Registers Map
+
+![Rev. C: Global Registers Map](gen/ms2c_global_map.svg)
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="CTRL"></a>**CTRL** | — |
+| `0x01` | <a id="VOL_L"></a>**VOL_L** | — |
+| `0x02` | <a id="VOL_R"></a>**VOL_R** | — |
+| `0x03` | <a id="STATUS"></a>**STATUS** | — |
+| `0x04` | <a id="IRQ_CTRL"></a>**IRQ_CTRL** | — |
+| `0x05` | <a id="IRQ_STAT__R_"></a>**IRQ_STAT (R)** | — |
+| `0x10` | <a id="TIMER_LO"></a>**TIMER_LO** | — |
+| `0x11` | <a id="TIMER_HI"></a>**TIMER_HI** | — |
+
+**CTRL** (`0x00`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ENABLE"></a>**ENABLE** | [0] | 1 | Enable MS2 |
+
+**VOL_L** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:0] | 8 | Global left volume |
+
+**VOL_R** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_R"></a>**VOL_R** | [7:0] | 8 | Global right volume |
+
+**STATUS** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="PLAYING_CH"></a>**PLAYING_CH** | [7:4] | 4 | Playing per channel (read) |
+| <a id="EOF_CH"></a>**EOF_CH** | [3:0] | 4 | EOF per channel (read) |
+| <a id="CLR_EOF"></a>**CLR_EOF** | [3:0] | 4 | Clear EOF (write) |
+
+**IRQ_CTRL** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_IRQ"></a>**TMR_IRQ** | [1] | 1 | Timer IRQ enable |
+| <a id="EOF_IRQ"></a>**EOF_IRQ** | [0] | 1 | EOF IRQ enable |
+
+**IRQ_STAT (R)** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_PEND"></a>**TMR_PEND** | [1] | 1 | Timer pending |
+| <a id="EOF_PEND"></a>**EOF_PEND** | [0] | 1 | EOF pending |
+
+**TIMER_LO** (`0x10`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_LO"></a>**TMR_LO** | [7:0] | 8 | Timer period low |
+
+**TIMER_HI** (`0x11`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_HI"></a>**TMR_HI** | [7:0] | 8 | Timer period high |
 
 
 ### 3.2 Channel registers
 Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
-![Channel Registers Map](gen/ms2c_channel_map.svg)
+![Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2c_channel_map.svg)
 
-### Rev. C: Channel Registers (Base 0x20, 0x30, 0x40, 0x50)
+*Figure 4 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
 
-| Offset | Name | R/W | Bits |
+**Table 4 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="CTRL"></a>**CTRL** | — |
+| `0x01` | <a id="START_0"></a>**START_0** | — |
+| `0x02` | <a id="START_1"></a>**START_1** | — |
+| `0x03` | <a id="START_2"></a>**START_2** | — |
+| `0x04` | <a id="END_0"></a>**END_0** | — |
+| `0x05` | <a id="END_1"></a>**END_1** | — |
+| `0x06` | <a id="END_2"></a>**END_2** | — |
+| `0x07` | <a id="LOOP_0"></a>**LOOP_0** | — |
+| `0x08` | <a id="LOOP_1"></a>**LOOP_1** | — |
+| `0x09` | <a id="LOOP_2"></a>**LOOP_2** | — |
+| `0x0A` | <a id="VOL_L"></a>**VOL_L** | — |
+| `0x0B` | <a id="VOL_R"></a>**VOL_R** | — |
+| `0x0C` | <a id="STEP_0"></a>**STEP_0** | — |
+| `0x0D` | <a id="STEP_1"></a>**STEP_1** | — |
+| `0x0E` | <a id="STEP_2"></a>**STEP_2** | — |
+| `0x0F` | <a id="Status"></a>**Status** | — |
+
+**CTRL** (`0x00`)
+
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| +0 | CTRL | RW | [0] play; [1] loop; [2] 16-bit samples; [3] IRQ on EOF |
-| +1 | START_0 | RW | [7:0] |
-| +2 | START_1 | RW | [15:8] |
-| +3 | START_2 | RW | [23:16] (applies) |
-| +4 | END_0 | RW | [7:0] |
-| +5 | END_1 | RW | [15:8] |
-| +6 | END_2 | RW | [23:16] (applies) |
-| +7 | LOOP_0 | RW | [7:0] |
-| +8 | LOOP_1 | RW | [15:8] |
-| +9 | LOOP_2 | RW | [23:16] (applies) |
-| +A | VOL_L | RW | [7:0] channel left volume |
-| +B | VOL_R | RW | [7:0] channel right volume |
-| +C | STEP_0 | RW | [7:0] (fraction) |
-| +D | STEP_1 | RW | [15:8] (fraction) |
-| +E | STEP_2 | RW | [23:16] (integer) |
-| +F | status | R | [0] playing; [1] EOF; [7:4] position |
+| <a id="IRQ"></a>**IRQ** | [3] | 1 | IRQ on EOF |
+| <a id="16BIT"></a>**16BIT** | [2] | 1 | 16-bit samples |
+| <a id="LOOP"></a>**LOOP** | [1] | 1 | Loop |
+| <a id="PLAY"></a>**PLAY** | [0] | 1 | Play |
+
+**START_0** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_0"></a>**ADDR_0** | [7:0] | 8 | Start address [7:0] |
+
+**START_1** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_1"></a>**ADDR_1** | [7:0] | 8 | Start address [15:8] |
+
+**START_2** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_2"></a>**ADDR_2** | [7:0] | 8 | Start address [23:16] |
+
+**END_0** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_0"></a>**ADDR_0** | [7:0] | 8 | End address [7:0] |
+
+**END_1** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_1"></a>**ADDR_1** | [7:0] | 8 | End address [15:8] |
+
+**END_2** (`0x06`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_2"></a>**ADDR_2** | [7:0] | 8 | End address [23:16] |
+
+**LOOP_0** (`0x07`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_0"></a>**ADDR_0** | [7:0] | 8 | Loop address [7:0] |
+
+**LOOP_1** (`0x08`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_1"></a>**ADDR_1** | [7:0] | 8 | Loop address [15:8] |
+
+**LOOP_2** (`0x09`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_2"></a>**ADDR_2** | [7:0] | 8 | Loop address [23:16] |
+
+**VOL_L** (`0x0A`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:0] | 8 | Channel left volume |
+
+**VOL_R** (`0x0B`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_R"></a>**VOL_R** | [7:0] | 8 | Channel right volume |
+
+**STEP_0** (`0x0C`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="FRAC_0"></a>**FRAC_0** | [7:0] | 8 | Step fraction [7:0] |
+
+**STEP_1** (`0x0D`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="FRAC_1"></a>**FRAC_1** | [7:0] | 8 | Step fraction [15:8] |
+
+**STEP_2** (`0x0E`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="INT"></a>**INT** | [7:0] | 8 | Step integer |
+
+**Status** (`0x0F`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="POS_HI"></a>**POS_HI** | [7:4] | 4 | Position high byte |
+| <a id="EOF"></a>**EOF** | [1] | 1 | EOF |
+| <a id="PLAYING"></a>**PLAYING** | [0] | 1 | Playing |
+
+
+# Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)
+
+![Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2c_channel_map.svg)
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="CTRL"></a>**CTRL** | — |
+| `0x01` | <a id="START_0"></a>**START_0** | — |
+| `0x02` | <a id="START_1"></a>**START_1** | — |
+| `0x03` | <a id="START_2"></a>**START_2** | — |
+| `0x04` | <a id="END_0"></a>**END_0** | — |
+| `0x05` | <a id="END_1"></a>**END_1** | — |
+| `0x06` | <a id="END_2"></a>**END_2** | — |
+| `0x07` | <a id="LOOP_0"></a>**LOOP_0** | — |
+| `0x08` | <a id="LOOP_1"></a>**LOOP_1** | — |
+| `0x09` | <a id="LOOP_2"></a>**LOOP_2** | — |
+| `0x0A` | <a id="VOL_L"></a>**VOL_L** | — |
+| `0x0B` | <a id="VOL_R"></a>**VOL_R** | — |
+| `0x0C` | <a id="STEP_0"></a>**STEP_0** | — |
+| `0x0D` | <a id="STEP_1"></a>**STEP_1** | — |
+| `0x0E` | <a id="STEP_2"></a>**STEP_2** | — |
+| `0x0F` | <a id="Status"></a>**Status** | — |
+
+**CTRL** (`0x00`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="IRQ"></a>**IRQ** | [3] | 1 | IRQ on EOF |
+| <a id="16BIT"></a>**16BIT** | [2] | 1 | 16-bit samples |
+| <a id="LOOP"></a>**LOOP** | [1] | 1 | Loop |
+| <a id="PLAY"></a>**PLAY** | [0] | 1 | Play |
+
+**START_0** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_0"></a>**ADDR_0** | [7:0] | 8 | Start address [7:0] |
+
+**START_1** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_1"></a>**ADDR_1** | [7:0] | 8 | Start address [15:8] |
+
+**START_2** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_2"></a>**ADDR_2** | [7:0] | 8 | Start address [23:16] |
+
+**END_0** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_0"></a>**ADDR_0** | [7:0] | 8 | End address [7:0] |
+
+**END_1** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_1"></a>**ADDR_1** | [7:0] | 8 | End address [15:8] |
+
+**END_2** (`0x06`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_2"></a>**ADDR_2** | [7:0] | 8 | End address [23:16] |
+
+**LOOP_0** (`0x07`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_0"></a>**ADDR_0** | [7:0] | 8 | Loop address [7:0] |
+
+**LOOP_1** (`0x08`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_1"></a>**ADDR_1** | [7:0] | 8 | Loop address [15:8] |
+
+**LOOP_2** (`0x09`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR_2"></a>**ADDR_2** | [7:0] | 8 | Loop address [23:16] |
+
+**VOL_L** (`0x0A`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:0] | 8 | Channel left volume |
+
+**VOL_R** (`0x0B`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_R"></a>**VOL_R** | [7:0] | 8 | Channel right volume |
+
+**STEP_0** (`0x0C`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="FRAC_0"></a>**FRAC_0** | [7:0] | 8 | Step fraction [7:0] |
+
+**STEP_1** (`0x0D`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="FRAC_1"></a>**FRAC_1** | [7:0] | 8 | Step fraction [15:8] |
+
+**STEP_2** (`0x0E`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="INT"></a>**INT** | [7:0] | 8 | Step integer |
+
+**Status** (`0x0F`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="POS_HI"></a>**POS_HI** | [7:4] | 4 | Position high byte |
+| <a id="EOF"></a>**EOF** | [1] | 1 | EOF |
+| <a id="PLAYING"></a>**PLAYING** | [0] | 1 | Playing |
 
 
 ---

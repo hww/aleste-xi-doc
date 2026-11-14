@@ -1,10 +1,9 @@
-kind: code_list
+kind: enum
 name: crtc_table_pixel
-output: [md]
 title: "Pixel Strobe Generation"
-fields: [vram, bpp1, bpp2, bpp4, bpp8]
+width: 8
 entries:
-  - {vram: "16 KB (00)", bpp1: "16x", bpp2: "8x", bpp4: "4x", bpp8: "2x"}
-  - {vram: "32 KB (01)", bpp1: "off", bpp2: "16x", bpp4: "8x", bpp8: "4x"}
-  - {vram: "64 KB (10)", bpp1: "off", bpp2: "off", bpp4: "16x", bpp8: "8x"}
-  - {vram: "128 KB (11)", bpp1: "off", bpp2: "off", bpp4: "off", bpp8: "16x"}
+  - {value: "0b00", name: "16 KB", description: "bpp1: 16x, bpp2: 8x, bpp4: 4x, bpp8: 2x"}
+  - {value: "0b01", name: "32 KB", description: "bpp1: off, bpp2: 16x, bpp4: 8x, bpp8: 4x"}
+  - {value: "0b10", name: "64 KB", description: "bpp1: off, bpp2: off, bpp4: 16x, bpp8: 8x"}
+  - {value: "0b11", name: "128 KB", description: "bpp1: off, bpp2: off, bpp4: off, bpp8: 16x"}

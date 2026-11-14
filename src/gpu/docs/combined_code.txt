@@ -1,0 +1,435 @@
+
+// === FILE: 01_architecture.md ===
+# Graphics coprocessor for Z80: architecture
+
+*Source for the documentation generator. YAML declarations in `spec/` produce SVG and MD tables; `[include]` inserts them here. Numbers are approximate; details are refined on the simulator.*
+
+## 1. Principles
+
+1. **Simplicity over peak speed.** The bottleneck is memory, so the core can be simple.
+2. **Programmable core, not a hardwired state machine.** Microcode lives in BRAM; a new algorithm means new microcode, not new logic.
+3. **Only the hot path goes into hardware:** word buffers, pixel packing, address computation inside ports.
+4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)"; the port turns a pixel index into a word address.
+5. **Pixel formats: 1, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.** 1 bpp is fully supported as both source and destination (`AddrPacker`/`PixelPacker` handle it symmetrically).
+6. **No hardware scrolling.** Replaced by fast block copying.
+7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm12, LDI24, control.
+8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`.
+9. **`SHADOW` — return address + flags**; `CALL` writes it, `RET` uses PC only, `JMPR` for indirect return.
+10. **`LOOP` register** — count + target, `L` bit drives it.
+11. **Ports stall the sequencer in hardware**; the model does not simulate cycle counts (mathematical model, execution order identical).
+12. **Three channels: SRC, DST, STM.** `STM` is read-only (microcode loader).
+
+## 2. Overall picture
+
+![Microcore architecture](images/lx-gpu-architecture.webp)
+
+*Domain boundary: command and register logic in the 8-bit domain; the core, word buffers, and video controller on 16-bit memory. They meet at the core's registers.*
+
+GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster scan has top priority.
+
+## 3. Microinstruction (32 bit)
+
+{{auto:insn_reg}}
+
+{{auto:insn_reg}}
+
+{{auto:insn_imm12}}
+
+{{auto:insn_imm12}}
+
+{{auto:insn_ldi24}}
+
+{{auto:insn_ldi24}}
+
+{{auto:insn_ctrl}}
+
+{{auto:insn_ctrl}}
+
+**Classes (J, I):**
+
+| J | I | Class | Layout of low bits |
+|---|---|---|---|
+| 0 | 0 | reg-reg | `SRC[5:0]` in [12:7], `RSV[6:0]` in [6:0] |
+| 1 | 1 | reg-imm12 | `SX` in [12], `IMM[11:0]` in [11:0] |
+| 0 | 1 | LDI24 | `IMM24[23:0]` in [23:0]; only R0..R31; no COND/F; unconditional |
+| 1 | 0 | control | `REG[5:0]` in [12:7], `ADDR[11:0]` in [11:0]; `OP` = CTRL |
+
+**Field overlap in control words.** Bits [11:7] belong to both `ADDR[11:0]` and `REG[5:0]`. This is intentional: for `JMPR` the target register is encoded in the same position as `SRC` in reg-reg words, while `ADDR` supplies the immediate target for `JMP`/`CALL`. The two interpretations are mutually exclusive per opcode; the assembler rejects combinations that would need both.
+
+**Execution order.** One instruction per cycle (model). The ALU reads its two operands A and B at the start of the cycle and writes the result at the end. Flags come from the previous instruction.
+
+**Condition and flags.** Z, N, C, V from the previous flag-writing instruction. `COND` selects; false = no register write, no port access.
+
+{{table:conditions}}
+
+## 4. ALU
+
+{{table:alu_ops}}
+
+**Notes:**
+- Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
+- Flags are written only if F=1 (CMP/TST always).
+- `ROR`/`SHR`/`SAR` do not update C.
+- `MUL`/`MULH` are multi-cycle in RTL (DSP); 1 cycle in the model.
+- **`MUL`/`MULH` width.** The model defines a 24×24 product: `MUL` returns the low 24 bits, `MULH` returns bits [35:12]. The current RTL implementation (`alu.sv`) uses only `a[17:0]` and `b[17:0]` (18×18) and does not implement `MULH` (op 13). For operands outside ±131071 the RTL result will differ from the model. Either the RTL must be widened to 24×24, or the model must be restricted to 18×18 and `MULH` marked as unimplemented — decision pending.
+- **`SHR`/`SAR` with shift ≥ 24.** Not specified in this document. The RTL produces the fully-filled result (0 for `SHR`, sign-fill for `SAR`). This behaviour is hereby normative: shift counts ≥ 24 saturate to the fill value.
+
+## 5. Control
+
+{{table:ctrl_ops}}
+
+**Notes:**
+- `CALL` writes SHADOW. Nested calls: save SHADOW to a register first.
+- **`L` bit and control words.** `L` is forbidden on control-class words (the assembler rejects it). It is allowed on all data-processing classes (reg-reg, reg-imm12, LDI24). After the word, if count > 1 then count--, PC = loop target; else fall through. The loop update runs even if `COND` is false.
+- `STM` is read-only.
+
+## 6. Operand map
+
+{{table:operand_map}}
+
+**Notes:**
+- Ports that are not readable/writable are rejected by the assembler.
+- Source advances on read, destination on write. Transparency: write the old pixel back.
+- `STM` is read-only.
+
+## 7. Register file
+
+{{table:registers}}
+
+`SDX`, `SDY`, `DDX`, `DDY` are a microcode convention (affine mode, 12.12), not a hardware feature.
+
+## 8. Pixel formats and channel mode
+
+{{table:channel_mode}}
+
+`MODE` is set via `MOV x.MODE, R`; read via `MOV R, x.MODE`. No `COP` bit.
+
+## 9. Loader and packets
+
+BRAM 0–31 holds the loader; writing there → `HALT 1`.
+
+**Packet format:** sequence of blocks, each starts with a 16-bit header `{kind[15:12], arg[11:0]}`:
+
+{{table:commands}}
+
+`CODE`: 32-bit microinstruction = 2 words. `RUN`: entry point. `JUMP`: new `STM.PTR`.
+
+End of a task:
+```
+MOV FLUSH, ZERO     ; flush all dirty words
+MOV IRQ, Rcode      ; optional: raise IRQ with code
+HALT 0              ; IDLE
+```
+
+## 10. System commands
+
+| Command | Single function | What it does not do |
+|---|---|---|
+| `JMP`, `CALL`, `RET`, `JMPR` | control flow | |
+| `LDI24` | load 24-bit constant into R0..R31 | does not touch flags |
+| `FLUSH` (via MOV) | make memory coherent | does not interrupt CPU |
+| `IRQ` | raise an event | does not flush memory, does not stop the core |
+| `HALT X` | `X=0` → IDLE; `X!=0` → ERROR(code) | does not interrupt CPU |
+
+`ERROR` is cleared only by a new `START` (or `reset()`).
+
+## 11. Reference loops
+
+**Solid fill:**
+```
+; setup: DST.PAGE, DST.MODE, DST.STEP, DST.IDX, LOOP=(N<<12)|PIX
+PIX:  MOV DST.PIX, FG      ; write pixel; IDX += STEP; L=1
+```
+
+**Sprite copy:**
+```
+PIX:  MOV T0, SRC.PIX      ; read source pixel
+      MOV DST.PIX, T0      ; write destination pixel; IDX += STEP
+```
+
+**Affine mode** — source sampled per pixel:
+```
+      LDI24 T0, sidx
+      MOV SRC.IDX, T0
+      MOV T0, SRC.PIX
+      LDI24 T1, didx
+      MOV DST.IDX, T1
+      MOV DST.PIX, T0
+```
+
+## 12. Clipping and affine mode
+
+Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `SDY`, `DDX`, `DDY`) are specified. **Microcode is not written yet** — it is a microcode convention, not a hardware feature.
+
+## 13. Deliberately not done
+
+- Hardware scrolling and page flip.
+- Color × color LUT.
+- 2 and 3 bpp formats (`fmt=1`, reserved).
+- Third source (replaced by two passes through a hidden page).
+- Fast whole-word fill (solved in software).
+- Palette (not part of the processor).
+- Combiner (`COMB`) — removed; logic via ALU.
+- `SKIP_IF_Z` — removed; transparency via `COND Z` + `MASK` on write.
+- `LDSP`/`LDDP`/`STDP` — replaced by `SRC.PIX`/`DST.PIX`/`STM.W16`.
+- `FAULT` — removed (`HALT X` with `X != 0`).
+- Saturation, `MIN`, `MAX` — removed from ALU.
+- `SETMASK` / pixel mask / bit-plane layers — removed. Layers and partial updates are done by microcode.
+
+## 14. Open questions
+
+1. **`WAIT_FLAG`** — removed; ports stall in hardware.
+2. **Exact microinstruction packing** — 32 bits, `MicroWord::pack/unpack`.
+3. **`FLUSH`** — via `MOV FLUSH, ZERO`.
+4. **Hardware detectors for `HALT 1`** — open.
+5. **`kind` 4 bits** — sufficient.
+6. **32 bits vs 36** — chosen: 32 bits.
+7. **Affine mode** — `SDX`/`SDY` (12.12), microcode not written.
+8. **Clipping** — `CX0..CY1`, microcode not written.
+9. **Blending** — shift-based (`SHR`/`ADD`), not a dedicated command.
+10. **Integration with `machine.cpp`** — `gpu_mmio` (page 3), `set_line(5)`, `tick(t)` — in progress.
+11. **`PAGE`** — 8 bits; low 16 bits of `base` optional (FPGA: 8 bits, simulator: 24 bits).
+12. **`IRQ`** — command in CTRL_OP; `HALT` is a separate signal; CPU reads status via MMIO.
+13. **`MUL`/`MULH` width mismatch** — RTL is 18×18 and lacks `MULH`; model is 24×24. Must converge (see §4).
+14. **`SHR`/`SAR` shift ≥ 24** — RTL saturates to fill value; now documented in §4 as normative.
+
+---
+
+**Что исправлено:**
+
+| # | Ошибка | Правка |
+|---|---|---|
+| 1 | Противоречие про `L` с control-словами | §5: единая формулировка — `L` **запрещён** на control-словах, разрешён на data-processing классах. Убрано «allowed with any class». |
+| 2 | Дублирование заметок в §4–§7 | Каждый список заметок оставлен в одном экземпляре; дубли из include-блоков удалены. |
+| 3 | 1 bpp как приёмник | §1 п.5 и §8: явно указано, что 1 bpp поддерживается симметрично (источник и приёмник). |
+| 4 | Лишний операнд «C» в ALU | §3: «ALU reads its two operands A and B». |
+| 5 | MUL/MULH 24×24 vs 18×18 | §4: добавлена заметка о расхождении модели и RTL, вынесено в open questions (п.13). |
+| 6 | `SHR`/`SAR` ≥ 24 не определено | §4: зафиксировано нормативное поведение — сатурация к fill-значению. |
+| 7 | Пересечение полей control-слова | §3: добавлен абзац «Field overlap in control words» с объяснением. |
+| 8 | Сломанная markdown-таблица ALU (`\|`) | В таблице ALU символ `|` заменён на `OR` (экранирование или текстовое обозначение). |
+| 9 | Open questions | Добавлены п.13 (MUL/MULH) и п.14 (SHR/SAR), чтобы расхождения были видны в трекере. |
+
+// === FILE: 02_registers.md ===
+# Register Map
+
+There are 64 operand slots (6 bits) in total. Slots 0..31 are general-purpose registers (R0..R31), 32..39 are system registers, 40..43 are DATA[0..3], 48..63 are pixel engine channels.
+
+## General-Purpose Registers
+
+Registers R0..R31 serve as source and destination in most instructions. R0 is always 0; writes are ignored.
+
+{{table:registers}}
+{{auto:registers}}
+*Fig. 5. GPRs (6-bit operand field).*
+
+## System Registers
+
+System registers (32..39) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, and cache status.
+
+{{table:sysregs}}
+{{auto:sysregs}}
+*Fig. 6. System registers.*
+
+## Pixel Engine Channels
+
+Channels (48..63) are 4 sets of 4 registers each: IDX, IDXH, STEP, MODE_PAGE. They are write-only via `MOV`.
+
+{{table:channels}}
+{{auto:channels}}
+*Fig. 7. Pixel engine channels.*
+
+## DATA[0..3]
+
+DATA[0..3] (40..43) are pixel engine temporary registers. Reading triggers a pixel read operation; writing triggers a pixel write operation.
+
+{{table:data_regs}}
+{{auto:data_regs}}
+*Fig. 8. DATA registers.*
+
+// === FILE: 03_isa.md ===
+# Instruction Set Architecture (ISA)
+
+Instructions are 32-bit, fixed-format. The instruction class is determined by field `I` (imm_class). Within a class, field `REG_OP` (ALU / CTRL op) determines the operation.
+
+## Instruction Format
+
+The format is fixed; all fields have strict positions. This simplifies decoding: all fields are available combinationally from `insn`.
+
+{{auto:insn_reg}}
+{{auto:insn}}
+*Fig. 9. Instruction format.*
+
+## ALU Instructions
+
+ALU instructions (class `00` and `01`) perform logical and arithmetic operations. The result is written to `DST` if `nowrite = 0`. Flags (`Z`, `N`, `C`, `V`) are always updated.
+
+[include](gen/alu_ops.md)
+{{auto:alu_ops}}
+*Fig. 10. ALU opcode map.*
+
+## CTRL Instructions
+
+CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JMPR` change `PC`. `HALT` stops the processor. `IRQ` sets the interrupt flag. `FLUSH` starts a background cache flush.
+
+[include](gen/ctrl_ops.md)
+{{auto:ctrl_ops}}
+*Fig. 11. CTRL opcode map.*
+
+## Conditions
+
+Conditions (`COND`) determine whether an instruction executes. If the condition is false, the instruction does not change state (except `PC`).
+
+[include](gen/conditions.md)
+{{auto:conditions}}
+*Fig. 12. Condition code map.*
+
+// === FILE: 04_memory.md ===
+# Memory
+
+The processor has three memory levels: ROM (program memory), cache (4 channels), and external SDRAM via Wishbone.
+
+## Memory Map
+
+The address space is split between ROM, pixel data (via cache), and external SDRAM.
+
+{{auto:memory_map}}
+
+## ROM
+
+ROM stores the program. Synchronous, 1-cycle latency. The output register latches the instruction on `ack` — this is the instruction register (IR).
+
+## Cache
+
+The cache is 4-channel, one per pixel engine channel. It stores TAG (15 bits), DATA (16 bits), PAGE (8 bits). States and transitions are described in the GPU cache section.
+
+## Wishbone
+
+The cache is a Wishbone master. It drives `wb_cyc`, `wb_stb`, `wb_we`, `wb_adr`, `wb_dat_o` and waits for `wb_ack`. Dirty writeback is `C_WB_REQ`, read is `C_FILL_REQ`.
+
+// === FILE: 05_pixel_engine.md ===
+# Pixel Engine
+
+The pixel engine (`pixel_engine`) holds a pixel index (19 bits: 15 integer, 4 fractional) and a step (19 bits). The index defines the word (integer part) and position (fractional part). The format (`MODE`) defines how many pixels per word.
+
+## Formats
+
+Five formats are supported: 1, 2, 4, 8, and 16 bpp. The format defines `k` (shift) and `mask` (position mask). Each format has its own pixels-per-word count.
+
+{{table:channel_mode}}
+{{auto:channel_mode}}
+*Fig. 13. Pixel format modes.*
+
+## Index and Step
+
+The index (`idx_stored`) is 19 bits. The upper 15 bits are the word, the lower 4 bits are the position. The step (`step_stored`) is 19 bits, added to the index after each read. Increment occurs on `pb_ack` (from the blender), not on `gc_access_done`.
+
+## Pixel Path
+
+The pixel path goes through several stages, from index to destination register.
+
+{{table:pixel_path_stages}}
+
+## Timing
+
+The timing diagram below shows a single pixel read operation.
+
+{{auto:pixel_read_timing}}
+*Fig. 14. Pixel read timing.*
+
+// === FILE: 06_gpu_cache.md ===
+# GPU Cache
+
+The cache (`gpu_cache`) is 4-channel, one per pixel engine channel. Each channel stores TAG (15 bits), DATA (16 bits), PAGE (8 bits), VALID, DIRTY.
+
+## Structure
+
+Each channel consists of EBR (TAG, DATA, PAGE) and two bits (VALID, DIRTY). The address is 24-bit: `{PAGE[7:0], WORD[14:0], 1'b0}`.
+
+## FSM States
+
+The cache has three states: `C_IDLE`, `C_FILL_REQ`, `C_WB_REQ`. Each state has a specific purpose.
+
+
+
+## FSM Transitions
+
+Transitions between states occur on `wb_ack_i` and conditions (`access`, `flush_req`, `hit`, `dirty`).
+
+{{auto:cache_fsm}}
+
+## `ack`
+
+`access_done` is a one-cycle strobe. It is asserted when data is ready (hit or fill complete). It does not stick: it clears on the next cycle regardless of `access`.
+
+// === FILE: 07_fpga_top.md ===
+# Architecture Overview
+
+LX-GPU is a 16-bit processor with a pixel engine, a cache, and a Wishbone interface for external memory. Instructions execute one at a time, stalling on data wait (`ack`). All devices (registers, ALU, cache, pixel engine) use the `ack` protocol — a one-cycle strobe.
+
+## Block Diagram
+
+The processor consists of several interconnected blocks: PC, ROM, Decode, RegFile, ALU, Cache, PixelEngine, Blender, and Writeback. Each block has its own `ack`; a top-level `ack` collects them. The architecture is modular: blocks know nothing about each other, only the protocol.
+
+![LX-GPU architecture](images/lx-gpu-architecture.drawio.svg)
+*Fig. 1. LX-GPU block diagram.*
+
+## Execution Protocol
+
+Each instruction executes on `ack`. When an instruction is latched into the instruction register (IR), it is decoded and devices start working. If a device needs time (e.g. cache fill), it does not assert `ack`, and `pc` stalls. When all devices assert `ack`, the instruction is complete: `pc` advances, IR loads the next instruction.
+
+## Registers and Operands
+
+Processor registers are split into three groups: general (R0..R31), system (32..39), and pixel engine channels (48..63). The register map is shown below.
+
+{{table:registers}}
+{{auto:registers}}
+*Fig. 2. General-purpose registers.*
+
+{{table:sysregs}}
+{{auto:sysregs}}
+*Fig. 3. System registers.*
+
+## Instruction Format
+
+All instructions are 32-bit. Fields are fixed: `L`, `I`, `DST`, `DS`, `COND`, `F`, `REG_OP`, `SRC`, `IMM12`. See the ISA section for details.
+
+{{auto:insn_reg}}
+{{auto:insn}}
+*Fig. 4. Instruction format.*
+
+// === FILE: README.md ===
+# LX-GPU
+
+A programmable 2D graphics coprocessor for the Z80, with a behavioural C++ simulator used to validate the architecture before writing RTL.
+
+The core is a stack-based (A/B/C) machine with 36-bit microcode, four logical pixel channels (SOURCE, DEST, DATA, RSV), a word-level pixel buffer, an address generator with an embedded DSP, and four pixel formats (1/4/8/16 bpp). It is designed to be simple, programmable, and cheap in FPGA resources — not fast. Memory is the bottleneck; everything else is kept small.
+
+See the documents below for the full architecture, the pixel buffer, and worked examples.
+
+## Architecture
+
+- [`01_architecture.md`](01_architecture.md) — microinstruction format, stack A/B/C, ALU, addressing, device map, loader, reference loops.
+- [`02_pixel_buffer.md`](02_pixel_buffer.md) — four-entry word buffer, TAG/VALID/DIRTY, hit/miss, page switching.
+
+## Worked examples
+
+- [`03_draw_sprite.md`](03_draw_sprite.md) — sprite with affine transform (rotation, scale).
+- [`04_fill_rect.md`](04_fill_rect.md) — rectangle fill.
+- [`05_copy_transparent.md`](05_copy_transparent.md) — sprite copy with colour-key transparency.
+
+## What is intentionally not done
+
+- Hardware scrolling, page flip.
+- Colour × colour LUT.
+- 2 bpp / 3 bpp formats.
+- A third source channel.
+- Saturation (`ADDS`/`SUBS`), `MIN`/`MAX`, `MUL` in the ALU.
+- The combiner (`COMB`), `SKIP_IF_Z`, `SETMASK`, pixel mask.
+- Bit-plane layers.
+
+Blending and proportional mixing are done with shifts. Multiplication lives in the address generator, not in the ALU.
+
+## Status
+
+Architecture stable; 12 behavioural tests passing. Next steps: clipping microcode, affine microcode, YAML consistency, integration with the host emulator (`machine.cpp`), then RTL.
+

@@ -1,158 +1,161 @@
 # ============================================================
 # Memory Slots
 # ============================================================
-kind: code_list
+kind: memmap
 name: io_slots
 title: "Logical Slots"
-fields: [slot, range, purpose]
-entries:
-  - {slot: 0, range: "0000-3FFF", purpose: "CPC RAM (base memory)"}
-  - {slot: 1, range: "4000-7FFF", purpose: "CPC ROM (system firmware)"}
-  - {slot: 2, range: "8000-BFFF", purpose: "User extended memory"}
-  - {slot: 3, range: "C000-FFFF", purpose: "Supervisor memory (privileged)"}
+width: 16
+regions:
+  - {name: "Slot 0 — CPC RAM",           start: 0x0000, end: 0x3FFF, purpose: "Base memory"}
+  - {name: "Slot 1 — CPC ROM",           start: 0x4000, end: 0x7FFF, purpose: "System firmware"}
+  - {name: "Slot 2 — User extended",     start: 0x8000, end: 0xBFFF, purpose: "User extended memory"}
+  - {name: "Slot 3 — Supervisor memory", start: 0xC000, end: 0xFFFF, purpose: "Privileged memory"}
 ---
 # ============================================================
 # MMIO Regions
 # ============================================================
-kind: code_list
+kind: enum
 name: io_mmio_regions
 title: "MMIO Regions"
-fields: [region, purpose]
+width: 1
 entries:
-  - {region: "MMIO_LO", purpose: "New LX devices (bank-switched)"}
-  - {region: "MMIO_HI", purpose: "Legacy CPC devices (fixed addresses)"}
+  - {value: 0, name: "MMIO_LO", description: "New LX devices (bank-switched)"}
+  - {value: 1, name: "MMIO_HI", description: "Legacy CPC devices (fixed addresses)"}
 ---
 # ============================================================
 # Native Mode Port Map
 # ============================================================
-kind: code_list
+kind: enum
 name: io_native_ports
 title: "Native Mode Port Map"
-fields: [port_range, size, purpose]
+width: 8
 entries:
-  - {port_range: "00–7F", size: "128 bytes", purpose: "MMIO window (access to MMIO_LO)"}
-  - {port_range: "80–DF", size: "96 bytes", purpose: "External I/O (forwarded to Wishbone)"}
-  - {port_range: "E0–FF", size: "32 bytes", purpose: "MMU registers"}
+  - {value: "0x00..0x7F", name: "MMIO window",   description: "128 bytes: access to MMIO_LO"}
+  - {value: "0x80..0xDF", name: "External I/O",  description: "96 bytes: forwarded to Wishbone"}
+  - {value: "0xE0..0xFF", name: "MMU registers", description: "32 bytes: MMU control"}
 ---
 # ============================================================
 # MMU Registers (Native mode)
 # ============================================================
-kind: code_list
+kind: regmap
 name: io_mmu_ports
 title: "MMU Registers (Ports E0–FF)"
-fields: [port, register, function]
-entries:
-  - {port: "E0–EF", register: "MMU_EXT", function: "Extended mapper access (16 registers, save/restore)"}
-  - {port: "F0", register: "GLOBAL_CTRL", function: "Mode control: bit 0 = supervisor, bit 1 = native, bit 2 = trap hook, bit 4 = mmio_userlock"}
-  - {port: "F1", register: "MMIO_PAGE", function: "7-bit MMIO page (0–127)"}
-  - {port: "F2", register: "SYSCALL", function: "Supervisor entry (write-only)"}
-  - {port: "F3", register: "CLOCK_CTRL", function: "CPU clock divider (Supervisor only)"}
-  - {port: "FA", register: "SUPER_SLOT", function: "Supervisor slot select (4 × 2-bit page fields)"}
-  - {port: "FB", register: "USER_SLOT", function: "User slot select (4 × 2-bit page fields)"}
-  - {port: "FC–FF", register: "BANK_0–3", function: "Bank registers for current slot"}
+width: 8
+view: [table]
+registers:
+  - {offset: 0xE0, name: "MMU_EXT",     description: "Extended mapper access (16 registers, save/restore)"}
+  - {offset: 0xF0, name: "GLOBAL_CTRL", description: "Mode control: bit 0 = supervisor, bit 1 = native, bit 2 = trap hook, bit 4 = mmio_userlock"}
+  - {offset: 0xF1, name: "MMIO_PAGE",   description: "7-bit MMIO page (0–127)"}
+  - {offset: 0xF2, name: "SYSCALL",     description: "Supervisor entry (write-only)"}
+  - {offset: 0xF3, name: "CLOCK_CTRL",  description: "CPU clock divider (Supervisor only)"}
+  - {offset: 0xFA, name: "SUPER_SLOT",  description: "Supervisor slot select (4 × 2-bit page fields)"}
+  - {offset: 0xFB, name: "USER_SLOT",   description: "User slot select (4 × 2-bit page fields)"}
+  - {offset: 0xFC, name: "BANK_0",      description: "Bank register for current slot, page 0"}
+  - {offset: 0xFD, name: "BANK_1",      description: "Bank register for current slot, page 1"}
+  - {offset: 0xFE, name: "BANK_2",      description: "Bank register for current slot, page 2"}
+  - {offset: 0xFF, name: "BANK_3",      description: "Bank register for current slot, page 3"}
 ---
 # ============================================================
 # Legacy Mode Capabilities
 # ============================================================
-kind: code_list
+kind: enum
 name: io_legacy_can
 title: "Legacy Software CAN"
-fields: [capability, how]
+width: 2
 entries:
-  - {capability: "Native CPC ports", how: "7Fxx, BCXX, BDXX, DFXX, F4XX–F7XX, FA7E, FB7E, FB7F"}
-  - {capability: "Enter Supervisor", how: "SYSCALL (in Legacy, the syscall port is F2xx)"}
-  - {capability: "IPC mailbox", how: "via the Supervisor"}
-
+  - {value: 0, name: "Native CPC ports", description: "7Fxx, BCXX, BDXX, DFXX, F4XX–F7XX, FA7E, FB7E, FB7F"}
+  - {value: 1, name: "Enter Supervisor", description: "SYSCALL (in Legacy, the syscall port is F2xx)"}
+  - {value: 2, name: "IPC mailbox",      description: "via the Supervisor"}
 ---
-kind: code_list
+kind: enum
 name: io_legacy_cannot
 title: "Legacy Software CANNOT"
-fields: [capability, why]
+width: 2
 entries:
-  - {capability: "Direct MMIO_LO access", why: "No D0XX/D300 window"}
-  - {capability: "Direct access to PIC, Timer, RTC, Blitter, Sound", why: "Not mapped in Legacy"}
-  - {capability: "Any modern LX device", why: "Only via syscall"}
+  - {value: 0, name: "Direct MMIO_LO access", description: "No D0XX/D300 window"}
+  - {value: 1, name: "Direct access to PIC, Timer, RTC, Blitter, Sound", description: "Not mapped in Legacy"}
+  - {value: 2, name: "Any modern LX device",  description: "Only via syscall"}
 ---
 # ============================================================
 # MMIO_LO Page Map
 # ============================================================
-kind: code_list
+kind: enum
 name: io_mmio_pages
 title: "MMIO_LO Page Map"
-fields: [page, device, notes]
+width: 7
 entries:
-  - {page: 0, device: "(verify against RTL)", notes: "—"}
-  - {page: 2, device: "Legacy emulation", notes: "—"}
-  - {page: 4, device: "(verify against RTL)", notes: "—"}
-  - {page: 6, device: "Blitter", notes: "1 channel, 8-bit, copy/fill/transparent"}
-  - {page: 8, device: "Sound chip", notes: "—"}
+  - {value: 0, name: "Page 0", description: "(verify against RTL)"}
+  - {value: 2, name: "Page 2", description: "Legacy emulation"}
+  - {value: 4, name: "Page 4", description: "(verify against RTL)"}
+  - {value: 6, name: "Page 6", description: "Blitter (1 channel, 8-bit, copy/fill/transparent)"}
+  - {value: 8, name: "Page 8", description: "Sound chip"}
 ---
 # ============================================================
 # Legacy Device Sub-registers
 # ============================================================
-kind: code_list
+kind: enum
 name: io_legacy_devices
 title: "Legacy Device Sub-registers"
-fields: [device, cpc_port, rtl_status, lx]
+width: 4
 entries:
-  - {device: "Gate Array", cpc_port: "7Fxx (D7/D6)", rtl_status: "implemented", lx: "Mandatory"}
-  - {device: "CRTC 6845", cpc_port: "BCXX/BDXX", rtl_status: "implemented", lx: "Mandatory"}
-  - {device: "PPI 8255", cpc_port: "F4XX–F7XX", rtl_status: "implemented", lx: "Mandatory"}
-  - {device: "FDC 765", cpc_port: "FA7E/FB7E/FB7F", rtl_status: "implemented", lx: "Mandatory"}
-  - {device: "Upper ROM Select", cpc_port: "DFXX", rtl_status: "implemented", lx: "Mandatory"}
-  - {device: "Printer port", cpc_port: "EFXX", rtl_status: "(via PPI)", lx: "Optional"}
-  - {device: "Cassette tape", cpc_port: "(via PPI)", rtl_status: "(via PPI)", lx: "Optional"}
-  - {device: "Joysticks", cpc_port: "(via PPI/keyboard)", rtl_status: "(via PPI)", lx: "Optional"}
-  - {device: "SIO/DART", cpc_port: "FADC–FADF", rtl_status: "not implemented", lx: "Optional"}
-  - {device: "8253 Timer", cpc_port: "FBDC–FBDF", rtl_status: "not implemented", lx: "Optional"}
+  - {value: 0,  name: "Gate Array",       description: "CPC 7Fxx (D7/D6), RTL implemented, LX Mandatory"}
+  - {value: 1,  name: "CRTC 6845",        description: "CPC BCXX/BDXX, RTL implemented, LX Mandatory"}
+  - {value: 2,  name: "PPI 8255",         description: "CPC F4XX–F7XX, RTL implemented, LX Mandatory"}
+  - {value: 3,  name: "FDC 765",          description: "CPC FA7E/FB7E/FB7F, RTL implemented, LX Mandatory"}
+  - {value: 4,  name: "Upper ROM Select", description: "CPC DFXX, RTL implemented, LX Mandatory"}
+  - {value: 5,  name: "Printer port",     description: "CPC EFXX (via PPI), Optional"}
+  - {value: 6,  name: "Cassette tape",    description: "CPC (via PPI), Optional"}
+  - {value: 7,  name: "Joysticks",        description: "CPC (via PPI/keyboard), Optional"}
+  - {value: 8,  name: "SIO/DART",         description: "CPC FADC–FADF, RTL not implemented, Optional"}
+  - {value: 9,  name: "8253 Timer",       description: "CPC FBDC–FBDF, RTL not implemented, Optional"}
 ---
 # ============================================================
 # Gate Array Register Select
 # ============================================================
-kind: code_list
+kind: enum
 name: io_ga_regs
 title: "Gate Array Register Select (7Fxx)"
-fields: [d7, d6, register, function]
+width: 2
 entries:
-  - {d7: 0, d6: 0, register: "R0", function: "Palette index"}
-  - {d7: 0, d6: 1, register: "R1", function: "Palette data"}
-  - {d7: 1, d6: 0, register: "R2", function: "Mode, ROM enable, LEDs"}
-  - {d7: 1, d6: 1, register: "R3", function: "RAM banking"}
+  - {value: "0b00", name: "R0", description: "Palette index (D7=0, D6=0)"}
+  - {value: "0b01", name: "R1", description: "Palette data (D7=0, D6=1)"}
+  - {value: "0b10", name: "R2", description: "Mode, ROM enable, LEDs (D7=1, D6=0)"}
+  - {value: "0b11", name: "R3", description: "RAM banking (D7=1, D6=1)"}
 ---
 # ============================================================
 # CRTC Ports
 # ============================================================
-kind: code_list
+kind: enum
 name: io_crtc_ports
 title: "CRTC 6845 Ports"
-fields: [port, function, rw]
+width: 2
 entries:
-  - {port: "BCXX", function: "Index register", rw: "W"}
-  - {port: "BDXX", function: "Data register", rw: "W"}
-  - {port: "BEXX", function: "Status register", rw: "R"}
-  - {port: "BFXX", function: "Data register (read)", rw: "R"}
+  - {value: "0b00", name: "BCXX", description: "Index register (W)"}
+  - {value: "0b01", name: "BDXX", description: "Data register (W)"}
+  - {value: "0b10", name: "BEXX", description: "Status register (R)"}
+  - {value: "0b11", name: "BFXX", description: "Data register (R)"}
 ---
 # ============================================================
 # PPI Ports
 # ============================================================
-kind: code_list
+kind: enum
 name: io_ppi_ports
 title: "PPI 8255 Ports"
-fields: [port, function, rw]
+width: 2
 entries:
-  - {port: "F4XX", function: "Port A (PSG data)", rw: "RW"}
-  - {port: "F5XX", function: "Port B (Vsync, PrnBusy, Tape)", rw: "R"}
-  - {port: "F6XX", function: "Port C (KeybRow, Tape, PSG Control)", rw: "W"}
-  - {port: "F7XX", function: "Control register", rw: "W"}
+  - {value: "0b00", name: "F4XX", description: "Port A (PSG data), RW"}
+  - {value: "0b01", name: "F5XX", description: "Port B (Vsync, PrnBusy, Tape), R"}
+  - {value: "0b10", name: "F6XX", description: "Port C (KeybRow, Tape, PSG Control), W"}
+  - {value: "0b11", name: "F7XX", description: "Control register, W"}
 ---
 # ============================================================
 # FDC Ports
 # ============================================================
-kind: code_list
+kind: enum
 name: io_fdc_ports
 title: "FDC 765 Ports"
-fields: [port, function, rw]
+width: 2
 entries:
-  - {port: "FA7E", function: "Floppy motor control", rw: "W"}
-  - {port: "FB7E", function: "FDC status register", rw: "R"}
-  - {port: "FB7F", function: "FDC data register", rw: "R/W"}
+  - {value: "0b00", name: "FA7E", description: "Floppy motor control (W)"}
+  - {value: "0b01", name: "FB7E", description: "FDC status register (R)"}
+  - {value: "0b10", name: "FB7F", description: "FDC data register (R/W)"}

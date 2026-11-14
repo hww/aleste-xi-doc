@@ -1,10 +1,9 @@
-kind: code_list
+kind: enum
 name: palette_modes
-output: [md]
 title: "Color Modes"
-fields: [code, mode, bits, desc]
+width: 2
 entries:
-  - {code: 0, mode: "12-bit Native", bits: "12-bit", desc: "Direct RGB, bypasses conversion"}
-  - {code: 1, mode: "CPC Legacy", bits: "5-bit", desc: "16 colors + border, hardware LUT conversion"}
-  - {code: 2, mode: "MSX", bits: "8-bit", desc: "MSX2+ compatible, perceptual mapping"}
-  - {code: 3, mode: "YJK", bits: "YJK", desc: "Advanced color space for graphic arts"}
+  - {value: 0, name: "12-bit Native", description: "Direct RGB, bypasses conversion"}
+  - {value: 1, name: "CPC Legacy",    description: "5-bit; 16 colors + border, hardware LUT conversion"}
+  - {value: 2, name: "MSX",           description: "8-bit; MSX2+ compatible, perceptual mapping"}
+  - {value: 3, name: "YJK",           description: "Advanced color space for graphic arts"}

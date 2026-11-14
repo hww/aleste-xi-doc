@@ -1,60 +1,60 @@
-kind: code_list
+kind: regmap
 name: ms2a_channel_map
 title: "Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)"
 width: 8
-
-entries:
-  - addr: "+0"
+view: [diagram, table]
+registers:
+  - offset: 0x0
     name: "CH_CTRL"
-    fields: 
-      - {name: "EN", msb: 0, lsb: 0, description: "Enable"}
-      - {name: "LOOP", msb: 1, lsb: 1, description: "Loop"}
-      - {name: "PP", msb: 2, lsb: 2, description: "Ping-pong"}
-      - {name: "IRQ", msb: 3, lsb: 3, description: "IRQ on EOF"}
-      - {name: "VOL_L", msb: 7, lsb: 4, description: "Volume L (4-bit)"}
-      - {name: "VOL_R", msb: 3, lsb: 0, description: "Volume R (4-bit)"}
-  - addr: "+1"
+    fields:
+      - {name: "EN",    bit: 0,      description: "Enable"}
+      - {name: "LOOP",  bit: 1,      description: "Loop"}
+      - {name: "PP",    bit: 2,      description: "Ping-pong"}
+      - {name: "IRQ",   bit: 3,      description: "IRQ on EOF"}
+      - {name: "VOL_L", bits: [7,4], description: "Volume L (4-bit)"}
+      - {name: "VOL_R", bits: [3,0], description: "Volume R (4-bit)", overlay: true}
+  - offset: 0x1
     name: "START_ADDR_0"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Start address [7:0]"}]
-  - addr: "+2"
+    fields: [{name: "ADDR", bits: [7,0], description: "Start address [7:0]"}]
+  - offset: 0x2
     name: "START_ADDR_1"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Start address [15:8]"}]
-  - addr: "+3"
+    fields: [{name: "ADDR", bits: [7,0], description: "Start address [15:8]"}]
+  - offset: 0x3
     name: "START_ADDR_2"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Start address [23:16]"}]
-  - addr: "+4"
+    fields: [{name: "ADDR", bits: [7,0], description: "Start address [23:16]"}]
+  - offset: 0x4
     name: "END_ADDR_0"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "End address [7:0]"}]
-  - addr: "+5"
+    fields: [{name: "ADDR", bits: [7,0], description: "End address [7:0]"}]
+  - offset: 0x5
     name: "END_ADDR_1"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "End address [15:8]"}]
-  - addr: "+6"
+    fields: [{name: "ADDR", bits: [7,0], description: "End address [15:8]"}]
+  - offset: 0x6
     name: "END_ADDR_2"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "End address [23:16]"}]
-  - addr: "+7"
+    fields: [{name: "ADDR", bits: [7,0], description: "End address [23:16]"}]
+  - offset: 0x7
     name: "LOOP_START_0"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Loop start [7:0]"}]
-  - addr: "+8"
+    fields: [{name: "ADDR", bits: [7,0], description: "Loop start [7:0]"}]
+  - offset: 0x8
     name: "LOOP_START_1"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Loop start [15:8]"}]
-  - addr: "+9"
+    fields: [{name: "ADDR", bits: [7,0], description: "Loop start [15:8]"}]
+  - offset: 0x9
     name: "LOOP_START_2"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Loop start [23:16]"}]
-  - addr: "+A"
+    fields: [{name: "ADDR", bits: [7,0], description: "Loop start [23:16]"}]
+  - offset: 0xA
     name: "LOOP_END_0"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Loop end [7:0]"}]
-  - addr: "+B"
+    fields: [{name: "ADDR", bits: [7,0], description: "Loop end [7:0]"}]
+  - offset: 0xB
     name: "LOOP_END_1"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Loop end [15:8]"}]
-  - addr: "+C"
+    fields: [{name: "ADDR", bits: [7,0], description: "Loop end [15:8]"}]
+  - offset: 0xC
     name: "LOOP_END_2"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Loop end [23:16]"}]
-  - addr: "+D"
+    fields: [{name: "ADDR", bits: [7,0], description: "Loop end [23:16]"}]
+  - offset: 0xD
     name: "STEP_0"
-    fields: [{name: "STEP", msb: 7, lsb: 0, description: "Step fraction [7:0]"}]
-  - addr: "+E"
+    fields: [{name: "STEP", bits: [7,0], description: "Step fraction [7:0]"}]
+  - offset: 0xE
     name: "STEP_1"
-    fields: [{name: "STEP", msb: 7, lsb: 0, description: "Step fraction [15:8]"}]
-  - addr: "+F"
+    fields: [{name: "STEP", bits: [7,0], description: "Step fraction [15:8]"}]
+  - offset: 0xF
     name: "STEP_2"
-    fields: [{name: "STEP", msb: 7, lsb: 0, description: "Step integer [23:16]"}]
+    fields: [{name: "STEP", bits: [7,0], description: "Step integer [23:16]"}]

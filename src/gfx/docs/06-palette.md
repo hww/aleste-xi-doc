@@ -17,23 +17,23 @@ Advanced color palette controller with full CPC legacy compatibility and extende
 
 The following register map shows the unified native mode interface:
 
-![Registers](gen/palette_regmap.svg)
+{{auto:palette_regmap}}
 
-[include](gen/palette_regmap-table.md)
+[include](gen/palette_regmap.md)
 
 ## Control Register Details
 
 The Control Register (0x05) configures the palette behavior:
 
-![Control Register](gen/palette_control.svg)
+{{auto:palette_control}}
 
-[include](gen/palette_control-table.md)
+[include](gen/palette_control.md)
 
 ## Color Modes
 
 The palette supports multiple color conversion modes:
 
-[include](gen/palette_modes-table.md)
+[include](gen/palette_modes.md)
 
 ### CPC Legacy Mode
 

@@ -1,39 +1,56 @@
-kind: code_list
+kind: regmap
 name: dma_sysdma_map
 title: "SysDMA Register Map (wb_dma.sv)"
 width: 8
+view: [table]
 
-entries:
-  - addr: "0x00"
+registers:
+  - offset: 0x00
     name: "SRC_ADDR[ch]"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Source address (24 bits)"}]
-  - addr: "0x10"
+    fields: [{name: "ADDR", bits: [7,0], description: "Source address (24 bits)"}]
+  - offset: 0x10
     name: "DST_ADDR[ch]"
-    fields: [{name: "ADDR", msb: 7, lsb: 0, description: "Destination address (24 bits)"}]
-  - addr: "0x20"
+    fields: [{name: "ADDR", bits: [7,0], description: "Destination address (24 bits)"}]
+  - offset: 0x20
     name: "COUNT[ch]"
-    fields: [{name: "COUNT", msb: 7, lsb: 0, description: "Transfer count (24 bits)"}]
-  - addr: "0x30"
+    fields: [{name: "COUNT", bits: [7,0], description: "Transfer count (24 bits)"}]
+  - offset: 0x30
     name: "CONTROL[ch]"
-    fields: 
-      - {name: "SRC_CTRL", msb: 1, lsb: 0, description: "Source control"}
-      - {name: "DST_CTRL", msb: 3, lsb: 2, description: "Dest control"}
-      - {name: "ENABLE", msb: 4, lsb: 4, description: "Enable channel"}
-      - {name: "MODE", msb: 5, lsb: 5, description: "0=Demand, 1=Block"}
-  - addr: "0x31"
+    fields:
+      - {name: "SRC_CTRL", bits: [1,0], description: "Source control"}
+      - {name: "DST_CTRL", bits: [3,2], description: "Dest control"}
+      - {name: "ENABLE", bit: 4, description: "Enable channel"}
+      - {name: "MODE", bit: 5, description: "0=Demand, 1=Block"}
+      - {name: "RSV", bits: [7,6], reserved: true}
+  - offset: 0x31
     name: "STATUS[ch]"
-    fields: 
-      - {name: "DONE", msb: 0, lsb: 0, description: "Transfer done"}
-      - {name: "ERROR", msb: 1, lsb: 1, description: "Transfer error"}
-  - addr: "0x40"
+    fields:
+      - {name: "DONE", bit: 0, description: "Transfer done"}
+      - {name: "ERROR", bit: 1, description: "Transfer error"}
+      - {name: "RSV", bits: [7,2], reserved: true}
+  - offset: 0x40
     name: "IMASK"
-    fields: [{name: "MASK", msb: 3, lsb: 0, description: "Interrupt mask per channel"}]
-  - addr: "0x41"
+    fields:
+      - {name: "MASK", bits: [3,0], description: "Interrupt mask per channel"}
+      - {name: "RSV", bits: [7,4], reserved: true}
+  - offset: 0x41
     name: "DONE_CLEAR"
-    fields: [{name: "CLR", msb: 3, lsb: 0, description: "Clear DONE flags"}]
-  - addr: "0x42"
+    fields:
+      - {name: "CLR", bits: [3,0], description: "Clear DONE flags"}
+      - {name: "RSV", bits: [7,4], reserved: true}
+  - offset: 0x42
     name: "ERROR_CLEAR"
-    fields: [{name: "CLR", msb: 3, lsb: 0, description: "Clear ERROR flags"}]
-  - addr: "0x43"
+    fields:
+      - {name: "CLR", bits: [3,0], description: "Clear ERROR flags"}
+      - {name: "RSV", bits: [7,4], reserved: true}
+  - offset: 0x43
     name: "VERSION"
-    fields: [{name: "VER", msb: 7, lsb: 0, description: "Version / features"}]
+    fields: [{name: "VER", bits: [7,0], description: "Version / features"}]
+---
+kind: enum
+name: dma_sysdma_modes
+title: "SysDMA Transfer Modes"
+width: 1
+entries:
+  - {value: 0, name: "Demand", description: "Transfer driven by DRQ/DACK handshake"}
+  - {value: 1, name: "Block",  description: "Transfer entire block without handshake"}

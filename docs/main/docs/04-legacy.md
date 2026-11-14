@@ -101,7 +101,6 @@ Legend:
 
 ### 1.2 Official I/O ports
 
-
 | I/O | Decoded as | Port | R/W |
 |---|---|---|---|
 | `0x7FXX` | `%01xxxxxx xxxxxxxx` | Gate Array | W |
@@ -127,38 +126,98 @@ Exception: `0xEFXX` printer port is **Optional**.
 The 8255 PPI is connected to the AY‑3‑8912 (PSG), the keyboard, the
 cassette tape, the CRTC VSYNC signal, and the printer "busy" signal.
 
-**Selection:** the PPI is active when **bit 11 of the I/O address is
-`0`**.
+**Selection:** the PPI is active when **bit 11 of the I/O address is `0`**.
 
 **Recommended I/O addresses** (other bits set to `1` to avoid conflicts):
 
-![PPI Addresses](gen/L_PPI_ADDRS.svg)
+| Address | Port | Description |
+| --- | --- | --- |
+| `&F4xx` | Port A | PSG data |
+| `&F5xx` | Port B | VSYNC, cassette, printer |
+| `&F6xx` | Port C | PSG control, cassette, keyboard |
+| `&F7xx` | Control | 8255 control |
 
 #### Port A
 
 OS settings: I/O Mode 0, Output.
 
-![PPI Port A](gen/L_PPI_PORTA.svg)
+![8255 PPI Port A — PSG Data Bus](gen/L_PPI_PORTA.svg)
+
+*Figure 9 — 8255 PPI Port A — PSG Data Bus*
+
+**Table 12 — 8255 PPI Port A — PSG Data Bus**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="PSG_DATA"></a>**PSG_DATA** | [7:0] | 8 | PSG data bus |
+
 
 #### Port B
 
 OS settings: I/O Mode 0, Input.
 
-![PPI Port B](gen/L_PPI_PORTB.svg)
+![8255 PPI Port B — VSYNC, Cassette, Printer](gen/L_PPI_PORTB.svg)
+
+*Figure 10 — 8255 PPI Port B — VSYNC, Cassette, Printer*
+
+**Table 13 — 8255 PPI Port B — VSYNC, Cassette, Printer**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CASSETTE"></a>**CASSETTE** | [7] | 1 | Cassette data |
+| <a id="PRNBUSY"></a>**PRNBUSY** | [6] | 1 | 1=busy, 0=ready |
+| <a id="EXP"></a>**EXP** | [5] | 1 | Expansion signal |
+| <a id="REFRESH"></a>**REFRESH** | [4] | 1 | 1=50Hz, 0=60Hz |
+| <a id="MFG"></a>**MFG** | [3:1] | 3 | Manufacturer code [`L_PPI_MFG`](gen/L_PPI_MFG.md) |
+| <a id="VSYNC"></a>**VSYNC** | [0] | 1 | 1=active |
+
 
 **Manufacturer table (power‑on, CPC/CPC+ only):**
 
-![PPI Manufacturer](gen/L_PPI_MFG.svg)
+**Table 14 — PPI Manufacturer Bits (Port B bits 3–1)**
+
+| Value | Name | Description |
+| --- | --- | --- |
+| 0..0 | <a id="Isp"></a>**Isp** | Manufacturer Isp |
+| 1..1 | <a id="Triumph"></a>**Triumph** | Manufacturer Triumph |
+| 2..2 | <a id="Saisho"></a>**Saisho** | Manufacturer Saisho |
+| 3..3 | <a id="Solavox"></a>**Solavox** | Manufacturer Solavox |
+| 4..4 | <a id="Awa"></a>**Awa** | Manufacturer Awa |
+| 5..5 | <a id="Schneider"></a>**Schneider** | Manufacturer Schneider |
+| 6..6 | <a id="Orion"></a>**Orion** | Manufacturer Orion |
+| 7..7 | <a id="Amstrad"></a>**Amstrad** | Manufacturer Amstrad |
+
 
 #### Port C
 
 OS settings: Upper half Mode 0 Output, lower half Mode 0 Output.
 
-![PPI Port C](gen/L_PPI_PORTC.svg)
+![8255 PPI Port C — PSG Control, Cassette, Keyboard](gen/L_PPI_PORTC.svg)
+
+*Figure 11 — 8255 PPI Port C — PSG Control, Cassette, Keyboard*
+
+**Table 15 — 8255 PPI Port C — PSG Control, Cassette, Keyboard**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="BDIR"></a>**BDIR** | [7] | 1 | PSG BDIR |
+| <a id="BC1"></a>**BC1** | [6] | 1 | PSG BC1 |
+| <a id="CASS_WR"></a>**CASS_WR** | [5] | 1 | Cassette write data |
+| <a id="CASS_MOT"></a>**CASS_MOT** | [4] | 1 | Cassette motor (1=on) |
+| <a id="KB_LINE"></a>**KB_LINE** | [3:0] | 4 | Keyboard row select (0–15) |
+
 
 **PSG function select:**
 
-![PSG Select](gen/L_PSG_SELECT.svg)
+**Table 16 — PSG function select (BDIR, BC1)**
+
+| Value | Name | Description |
+| --- | --- | --- |
+| 0..0 | <a id="Inactive"></a>**Inactive** | No operation |
+| 1..1 | <a id="Read"></a>**Read** | Read from selected PSG register |
+| 2..2 | <a id="Write"></a>**Write** | Write to selected PSG register |
+| 3..3 | <a id="Select"></a>**Select** | Select PSG register |
+
 
 **Programming examples:**
 
@@ -203,11 +262,29 @@ Exception: printer‑related bits are **Optional**.
 
 ### 1.4 Gate Array (port 7Fxx)
 
-![Gate Array Registers](gen/L_GA_REGS.svg)
+**Table 17 — Gate Array register select (D7, D6)**
+
+| Value | Name | Description |
+| --- | --- | --- |
+| 0..0 | <a id="R0"></a>**R0** | Palette index (D7=0, D6=0) |
+| 1..1 | <a id="R1"></a>**R1** | Palette data (D7=0, D6=1) |
+| 2..2 | <a id="R2"></a>**R2** | Mode, ROM enable, LEDs (D7=1, D6=0) |
+| 3..3 | <a id="R3"></a>**R3** | RAM banking (D7=1, D6=1) |
+
 
 #### Register 0 — Palette Index
 
-![Gate Array R0](gen/L_GA_R0.svg)
+![Gate Array R0 — Palette Index](gen/L_GA_R0.svg)
+
+*Figure 12 — Gate Array R0 — Palette Index*
+
+**Table 18 — Gate Array R0 — Palette Index**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="SEL"></a>**SEL** | [7:6] | 2 | Must be 00 |
+| <a id="UNUSED"></a>**UNUSED** | [5] | 1 | Not used |
+| <a id="INDEX"></a>**INDEX** | [4:0] | 5 | 00h–0Fh=Ink, 10h=Border, 11h–1Fh=Border |
 
 
 | Depth | Normal inks (CPC) | Secondary inks (Aleste) |
@@ -230,10 +307,24 @@ The number is converted by IC D62.
 
 #### Register 2 — Video Mode, ROM enable, LEDs
 
-![Gate Array R2](gen/L_GA_R2.svg)
+![Gate Array R2 — Mode, ROM Enable, LEDs](gen/L_GA_R2.svg)
+
+*Figure 13 — Gate Array R2 — Mode, ROM Enable, LEDs*
+
+**Table 19 — Gate Array R2 — Mode, ROM Enable, LEDs**
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="B7"></a>**B7** | [7] | 1 | 1 | Must be 1 |
+| <a id="B6"></a>**B6** | [6] | 1 | 0 | Must be 0 |
+| <a id="CAPS"></a>**CAPS** | [5] | 1 | — | CAPS LED |
+| <a id="RUS"></a>**RUS** | [4] | 1 | — | RUS LED |
+| <a id="UPPER_ROM"></a>**UPPER_ROM** | [3] | 1 | — | 1=disabled, 0=enabled |
+| <a id="LOWER_ROM"></a>**LOWER_ROM** | [2] | 1 | — | 1=disabled, 0=enabled |
+| <a id="MODE"></a>**MODE** | [1:0] | 2 | — | 0=160x200, 1=320x200, 2=640x200 |
+
 
 **CPC modes:**
-
 
 | bit 1 | bit 0 | Mode |
 |---|---|---|
@@ -248,7 +339,12 @@ Aleste modes use the same encoding but can run at higher rates.
 
 **Four I/O ports control the mapper:**
 
-![Gate Array Mapper Ports](gen/L_GA_MAPPER_PORTS.svg)
+| Address | Page | RAM range |
+| --- | --- | --- |
+| `0x7CXX` | Page 0 | `&0000–&3FFF` |
+| `0x7DXX` | Page 1 | `&4000–&7FFF` |
+| `0x7EXX` | Page 2 | `&8000–&BFFF` |
+| `0x7FXX` | Page 3 | `&C000–&FFFF` |
 
 The mapper port decode uses bit 15 of the I/O address, as the Aleste
 Gate Array does. Address bits 9 and 8 select the page. To avoid writing
@@ -270,7 +366,12 @@ banking.
 
 ### 1.5 CRTC 6845
 
-![CRTC Ports](gen/L_CRTC_PORTS.svg)
+| Address | Name | R/W | Description |
+| --- | --- | --- | --- |
+| `0xBCXX` | Index | W | Register select |
+| `0xBDXX` | Data (write) | W | Data write |
+| `0xBEXX` | Status | R | Status read |
+| `0xBFXX` | Data (read) | R | Data read |
 
 The CRTC registers are documented in the Amstrad CPC 6128 technical
 manual; LX does not change their behaviour.
@@ -284,7 +385,10 @@ when `upper_rom` (RMR bit 3) is `0`.
 
 **CPC 6128 ROM banks:**
 
-![Upper ROM Banks](gen/L_UPPER_ROM_BANKS.svg)
+| Bank | Name | Description |
+| --- | --- | --- |
+| `00h` | BASIC | Lower ROM (visible at `0000–3FFF`) |
+| `07h` | AMSDOS | Disk operating system |
 
 **LX (hww):** Mandatory — needed for CPC ROM switching.
 
@@ -300,7 +404,11 @@ when `upper_rom` (RMR bit 3) is `0`.
 The floppy disk controller is a uPD765. It is accessed through the PPI
 and the following ports:
 
-![FDC Ports](gen/L_FDC_PORTS.svg)
+| Address | Name | R/W | Description |
+| --- | --- | --- | --- |
+| `0xFA7E` | Motor | W | Floppy motor control |
+| `0xFB7E` | Status | R | FDC status |
+| `0xFB7F` | Data | R/W | FDC data |
 
 **LX (hww):** Mandatory — FDC is the CPC disk interface.
 
@@ -308,7 +416,22 @@ and the following ports:
 
 #### RMR (Control Interrupt counter, ROM mapping, Graphics mode)
 
-![RMR](gen/L_RMR.svg)
+![RMR — Control, ROM Mapping, Graphics Mode](gen/L_RMR.svg)
+
+*Figure 14 — RMR — Control, ROM Mapping, Graphics Mode*
+
+**Table 20 — RMR — Control, ROM Mapping, Graphics Mode**
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="B7"></a>**B7** | [7] | 1 | 1 | Must be 1 |
+| <a id="B6"></a>**B6** | [6] | 1 | 0 | Must be 0 |
+| <a id="B5"></a>**B5** | [5] | 1 | 0 | Must be 0 (Plus ASIC unlocked) |
+| <a id="IRQ_CTRL"></a>**IRQ_CTRL** | [4] | 1 | — | Interrupt control |
+| <a id="UPPER_ROM"></a>**UPPER_ROM** | [3] | 1 | — | 1=disabled, 0=enabled |
+| <a id="LOWER_ROM"></a>**LOWER_ROM** | [2] | 1 | — | 1=disabled, 0=enabled |
+| <a id="GRAPHIC_MODE"></a>**GRAPHIC_MODE** | [1:0] | 2 | — | Graphics mode |
+
 
 - `upper_rom` starts at `C000`.
 - `lower_rom` starts at `0000`.
@@ -317,10 +440,21 @@ and the following ports:
 
 #### MMR (RAM memory mapping)
 
-![MMR](gen/L_MMR.svg)
+![MMR — RAM Memory Mapping](gen/L_MMR.svg)
+
+*Figure 15 — MMR — RAM Memory Mapping*
+
+**Table 21 — MMR — RAM Memory Mapping**
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="B7"></a>**B7** | [7] | 1 | 1 | Must be 1 |
+| <a id="B6"></a>**B6** | [6] | 1 | 1 | Must be 1 |
+| <a id="BBB"></a>**BBB** | [5:3] | 3 | — | Upper bank number |
+| <a id="CCC"></a>**CCC** | [2:0] | 3 | — | Configuration |
+
 
 **CPC 128 memory map:**
-
 
 | Address | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|---|
@@ -330,7 +464,6 @@ and the following ports:
 | `0000-3FFF` | RAM_0 | RAM_0 | RAM_4 | RAM_0 | RAM_0 | RAM_0 | RAM_0 | RAM_0 |
 
 **CPC 512 KB memory map:**
-
 
 | Address | ccc=0 | ccc=1 | ccc=2 | ccc=3 | ccc=4 | ccc=5 | ccc=6 | ccc=7 |
 |---|---|---|---|---|---|---|---|---|
@@ -392,7 +525,21 @@ This section documents **only what is actually in the RTL** (`gen_rtl`,
 
 The 520EX adds an EXTPORT register at port `FABF`:
 
-![520EX EXTPORT](gen/L_520EX_EXTPORT.svg)
+![EXTPORT (FABF) — 520EX Extension](gen/L_520EX_EXTPORT.svg)
+
+*Figure 16 — EXTPORT (FABF) — 520EX Extension*
+
+**Table 22 — EXTPORT (FABF) — 520EX Extension**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="B7_6"></a>**B7_6** | [7:6] | 2 | Not used |
+| <a id="PPI_A"></a>**PPI_A** | [5:4] | 2 | PPI Port A: 0=PSG, 1=reserved, 2=RTC, 3=8253 |
+| <a id="BLACK"></a>**BLACK** | [3] | 1 | Force video to black |
+| <a id="MAPMOD"></a>**MAPMOD** | [2] | 1 | 0=CPC-style, 1=64-colour |
+| <a id="HIGHX"></a>**HIGHX** | [1] | 1 | High resolution in X |
+| <a id="HIZ"></a>**HIZ** | [0] | 1 | Not fully understood |
+
 
 **LX (hww):** Not recommended.
 
@@ -437,7 +584,6 @@ MSX‑style mapper with four 6‑bit page registers.
 
 ## 3. Author's recommendation for LX (summary)
 
-
 | Element | CPC | 520EX | LX (hww) | Comment |
 |---|---|---|---|---|
 | Z80 CPU | yes | yes | **Mandatory** | Core CPU |
@@ -464,7 +610,6 @@ MSX‑style mapper with four 6‑bit page registers.
 ---
 
 ## 4. Spec vs RTL (RTL authoritative)
-
 
 | # | Old spec said | RTL does (gen_rtl) | Status | Comment |
 |---|---|---|---|---|

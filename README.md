@@ -162,7 +162,7 @@ The repository is structured to separate source files, generated content, and th
 │   ├── <project>/        # e.g., gfx, gpu, main
 │   │   ├── docs/         # Markdown templates
 │   │   │   ├── images/   # Hand-drawn images (e.g., .webp, .png)
-│   │   │   └── gen/      # Generated content (e.g., .svg, -table.md)
+│   │   │   └── gen/      # Generated content (e.g., .svg, .md)
 │   │   └── spec/         # YAML specifications for diagrams and tables
 └── out/                  # Final compiled documents and assets
 ```
@@ -175,13 +175,13 @@ The repository is structured to separate source files, generated content, and th
 2. **Generation (`docs/gen/`)**:
    The build script reads the YAML files and generates:
    - SVG vector graphics (`*.svg`).
-   - Markdown tables (`*-table.md`).
+   - Markdown tables (`*.md`).
    These files are placed in `docs/gen/`, allowing VS Code to display them directly in the editor.
 
 3. **Templating (`docs/*.md`)**:
    Source Markdown files contain special include tags, such as:
    - `![](gen/alu.svg)` — inserts a generated image.
-   - `[include](gen/registers-table.md)` — injects a generated table directly into the text.
+   - `[include](gen/registers.md)` — injects a generated table directly into the text.
    - `![](images/foo.webp)` — inserts a manually created image.
 
 4. **Assembly (`out/`)**:

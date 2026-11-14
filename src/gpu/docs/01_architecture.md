@@ -1,6 +1,6 @@
 # Graphics coprocessor for Z80: architecture
 
-*Source for the documentation generator. YAML declarations in `spec/` produce SVG and MD tables; `[include]` inserts them here. Numbers are approximate; details are refined on the simulator.*
+*Source for the documentation generator. YAML declarations in `spec/` produce SVG and MD tables. Numbers are approximate; details are refined on the simulator.*
 
 ## 1. Principles
 
@@ -8,13 +8,13 @@
 2. **Programmable core, not a hardwired state machine.** Microcode lives in BRAM; a new algorithm means new microcode, not new logic.
 3. **Only the hot path goes into hardware:** word buffers, pixel packing, address computation inside ports.
 4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)"; the port turns a pixel index into a word address.
-5. **Pixel formats: 1, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.** 1 bpp is fully supported as both source and destination (`AddrPacker`/`PixelPacker` handle it symmetrically).
+5. **Pixel formats: 1, 2, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.**
 6. **No hardware scrolling.** Replaced by fast block copying.
 7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm12, LDI24, control.
 8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`.
 9. **`SHADOW` — return address + flags**; `CALL` writes it, `RET` uses PC only, `JMPR` for indirect return.
 10. **`LOOP` register** — count + target, `L` bit drives it.
-11. **Ports stall the sequencer in hardware**; the model does not simulate cycle counts (mathematical model, execution order identical).
+11. **Ports stall the sequencer in hardware**; the model does not simulate cycle counts.
 12. **Three channels: SRC, DST, STM.** `STM` is read-only (microcode loader).
 
 ## 2. Overall picture
@@ -27,21 +27,15 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 ## 3. Microinstruction (32 bit)
 
-![reg-reg](./gen/insn_reg.svg)
+The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four formats: REG-REG, REG-IMM12, LDI24, CONTROL.
 
-[include](insn_reg-table.md)
+{{auto:insn_reg}}
 
-![reg-imm12](./gen/insn_imm12.svg)
+{{auto:insn_imm12}}
 
-[include](insn_imm12-table.md)
+{{auto:insn_ldi24}}
 
-![ldi24](./gen/insn_ldi24.svg)
-
-[include](insn_ldi24-table.md)
-
-![ctrl](./gen/insn_ctrl.svg)
-
-[include](insn_ctrl-table.md)
+{{auto:insn_ctrl}}
 
 **Classes (J, I):**
 
@@ -58,32 +52,46 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 **Condition and flags.** Z, N, C, V from the previous flag-writing instruction. `COND` selects; false = no register write, no port access.
 
-[include](conditions-table.md)
+{{table:conditions}}
+
+ROM is synchronous: `data_r <= mem[addr]` latches on `ack`, so the instruction is available one cycle after `addr`. The `pc` is stable during the whole cycle, and the `ack` from the previous instruction gates the read.
+
+{{auto:timing_microcode_rom}}
 
 ## 4. ALU
 
-[include](alu_ops-table.md)
+The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arithmetic (ADD/ADC/SUB/SBC), shift (ROR/SHR/SAR), and other (MUL/TST/CMP). The operation is selected by `op[4:0]`.
+
+{{table:alu_ops}}
 
 **Notes:**
 - Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
 - Flags are written only if F=1 (CMP/TST always).
 - `ROR`/`SHR`/`SAR` do not update C.
-- `MUL`/`MULH` are multi-cycle in RTL (DSP); 1 cycle in the model.
-- **`MUL`/`MULH` width.** The model defines a 24×24 product: `MUL` returns the low 24 bits, `MULH` returns bits [35:12]. The current RTL implementation (`alu.sv`) uses only `a[17:0]` and `b[17:0]` (18×18) and does not implement `MULH` (op 13). For operands outside ±131071 the RTL result will differ from the model. Either the RTL must be widened to 24×24, or the model must be restricted to 18×18 and `MULH` marked as unimplemented — decision pending.
-- **`SHR`/`SAR` with shift ≥ 24.** Not specified in this document. The RTL produces the fully-filled result (0 for `SHR`, sign-fill for `SAR`). This behaviour is hereby normative: shift counts ≥ 24 saturate to the fill value.
+- `MUL` is multi-cycle in RTL (DSP); 1 cycle in the model.
+- **`MUL` width.** RTL (`alu.sv`) computes `a_signed * b_signed` over 16×16 → 32 bits (low 16 to result, high 16 to MHI). The model agrees.
+- **`SHR`/`SAR` with shift ≥ 16.** RTL uses a 4-stage barrel shifter over `b[3:0]` (mod 16). Shift counts ≥ 16 wrap to `b[3:0]`. This behaviour is normative.
+
+An ALU instruction takes two cycles from "instruction available" to "result in register". In cycle 1 the register file reads `q_a`/`q_b`; in cycle 2 the writeback writes `mem[wa] <= wdata`. The ALU itself is combinational (0 cycles), so `pc` advances every cycle; only the register write is delayed by one cycle. `MUL` additionally registers `mhi` on the next `posedge clk`.
+
+{{auto:timing_alu_pipeline}}
 
 ## 5. Control
 
-[include](ctrl_ops-table.md)
+Control-class instructions (J=1, I=0) implement NOP, JMP, CALL, RET, JMPR, HALT, IRQ, and FLUSH. They are all selected by `reg_op` (CTRL op).
+
+{{table:ctrl_ops}}
 
 **Notes:**
-- `CALL` writes SHADOW. Nested calls: save SHADOW to a register first.
+- `CALL` writes `SHADOW = {v, c, n, z, pc+1}`. Nested calls: save SHADOW to a register first.
 - **`L` bit and control words.** `L` is forbidden on control-class words (the assembler rejects it). It is allowed on all data-processing classes (reg-reg, reg-imm12, LDI24). After the word, if count > 1 then count--, PC = loop target; else fall through. The loop update runs even if `COND` is false.
 - `STM` is read-only.
 
 ## 6. Operand map
 
-[include](operand_map-table.md)
+The 6-bit operand field selects 64 slots: R0..R31 (general-purpose), 32..39 (system), 40..43 (DATA), 44..47 (reserved), 48..63 (pixel engine channels).
+
+{{table:operand_map}}
 
 **Notes:**
 - Ports that are not readable/writable are rejected by the assembler.
@@ -92,27 +100,30 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 ## 7. Register file
 
-[include](registers-table.md)
+The register file holds 32 general-purpose registers R0..R31. R0 is a normal register (not hardwired to zero); the ZERO operand (`32`) provides the constant 0.
+
+{{table:registers}}
 
 `SDX`, `SDY`, `DDX`, `DDY` are a microcode convention (affine mode, 12.12), not a hardware feature.
 
 ## 8. Pixel formats and channel mode
 
-[include](channel_mode-table.md)
+The channel format (`MODE`) selects how many pixels per 16-bit word: 1 bpp (16 px), 2 bpp (8), 4 bpp (4), 8 bpp (2), 16 bpp (1). Pass-through modes LO8/HI8/16 bypass packing.
 
-`MODE` is set via `MOV x.MODE, R`; read via `MOV R, x.MODE`. No `COP` bit.
+{{table:channel_mode}}
+
+`MODE` is set via `MOV x.MODE, R`; read via `MOV R, x.MODE`.
 
 ## 9. Loader and packets
 
-BRAM 0–31 holds the loader; writing there → `HALT 1`.
+BRAM 0–31 holds the loader; writing there → `HALT 1`. Each packet starts with a 16-bit header `{kind[15:12], arg[11:0]}`.
 
-**Packet format:** sequence of blocks, each starts with a 16-bit header `{kind[15:12], arg[11:0]}`:
-
-[include](commands-table.md)
+{{table:commands}}
 
 `CODE`: 32-bit microinstruction = 2 words. `RUN`: entry point. `JUMP`: new `STM.PTR`.
 
 End of a task:
+
 ```
 MOV FLUSH, ZERO     ; flush all dirty words
 MOV IRQ, Rcode      ; optional: raise IRQ with code
@@ -134,18 +145,21 @@ HALT 0              ; IDLE
 ## 11. Reference loops
 
 **Solid fill:**
+
 ```
 ; setup: DST.PAGE, DST.MODE, DST.STEP, DST.IDX, LOOP=(N<<12)|PIX
 PIX:  MOV DST.PIX, FG      ; write pixel; IDX += STEP; L=1
 ```
 
 **Sprite copy:**
+
 ```
 PIX:  MOV T0, SRC.PIX      ; read source pixel
       MOV DST.PIX, T0      ; write destination pixel; IDX += STEP
 ```
 
 **Affine mode** — source sampled per pixel:
+
 ```
       LDI24 T0, sidx
       MOV SRC.IDX, T0
@@ -163,7 +177,7 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 
 - Hardware scrolling and page flip.
 - Color × color LUT.
-- 2 and 3 bpp formats (`fmt=1`, reserved).
+- 3 bpp format (`fmt=1` is used for 2 bpp; 3 bpp is not defined).
 - Third source (replaced by two passes through a hidden page).
 - Fast whole-word fill (solved in software).
 - Palette (not part of the processor).
@@ -172,7 +186,7 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 - `LDSP`/`LDDP`/`STDP` — replaced by `SRC.PIX`/`DST.PIX`/`STM.W16`.
 - `FAULT` — removed (`HALT X` with `X != 0`).
 - Saturation, `MIN`, `MAX` — removed from ALU.
-- `SETMASK` / pixel mask / bit-plane layers — removed. Layers and partial updates are done by microcode.
+- `SETMASK` / pixel mask / bit-plane layers — removed.
 
 ## 14. Open questions
 
@@ -188,21 +202,3 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 10. **Integration with `machine.cpp`** — `gpu_mmio` (page 3), `set_line(5)`, `tick(t)` — in progress.
 11. **`PAGE`** — 8 bits; low 16 bits of `base` optional (FPGA: 8 bits, simulator: 24 bits).
 12. **`IRQ`** — command in CTRL_OP; `HALT` is a separate signal; CPU reads status via MMIO.
-13. **`MUL`/`MULH` width mismatch** — RTL is 18×18 and lacks `MULH`; model is 24×24. Must converge (see §4).
-14. **`SHR`/`SAR` shift ≥ 24** — RTL saturates to fill value; now documented in §4 as normative.
-
----
-
-**Что исправлено:**
-
-| # | Ошибка | Правка |
-|---|---|---|
-| 1 | Противоречие про `L` с control-словами | §5: единая формулировка — `L` **запрещён** на control-словах, разрешён на data-processing классах. Убрано «allowed with any class». |
-| 2 | Дублирование заметок в §4–§7 | Каждый список заметок оставлен в одном экземпляре; дубли из include-блоков удалены. |
-| 3 | 1 bpp как приёмник | §1 п.5 и §8: явно указано, что 1 bpp поддерживается симметрично (источник и приёмник). |
-| 4 | Лишний операнд «C» в ALU | §3: «ALU reads its two operands A and B». |
-| 5 | MUL/MULH 24×24 vs 18×18 | §4: добавлена заметка о расхождении модели и RTL, вынесено в open questions (п.13). |
-| 6 | `SHR`/`SAR` ≥ 24 не определено | §4: зафиксировано нормативное поведение — сатурация к fill-значению. |
-| 7 | Пересечение полей control-слова | §3: добавлен абзац «Field overlap in control words» с объяснением. |
-| 8 | Сломанная markdown-таблица ALU (`\|`) | В таблице ALU символ `|` заменён на `OR` (экранирование или текстовое обозначение). |
-| 9 | Open questions | Добавлены п.13 (MUL/MULH) и п.14 (SHR/SAR), чтобы расхождения были видны в трекере. |

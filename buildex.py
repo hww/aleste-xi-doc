@@ -29,10 +29,10 @@ import argparse
 import copy
 import difflib
 import filecmp
+import hashlib
 import html
 import math
 import os
-import posixpath
 import re
 import shutil
 import sys
@@ -132,6 +132,31 @@ def smart_copy(src, dst, produced):
     if dst.exists() and filecmp.cmp(src, dst, shallow=False):
         return
     shutil.copy2(src, dst)
+
+
+def _hash(p):
+    h = hashlib.md5()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 16), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sync_tree(src_dir, dst_dir, produced):
+    """Зеркалит src_dir -> dst_dir, копируя только новые/изменённые файлы (по md5)."""
+    src_dir, dst_dir = Path(src_dir), Path(dst_dir)
+    if not src_dir.exists():
+        return
+    for f in sorted(src_dir.rglob("*")):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(src_dir)
+        dst = dst_dir / rel
+        produced.add(dst.resolve())
+        if dst.exists() and _hash(dst) == _hash(f):
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(f, dst)
 
 
 # ---------- метрики текста (оценка ширины без шрифтов) ----------
@@ -1508,7 +1533,7 @@ def legacy(spec):
     if "width" in spec and any(isinstance(e, dict) and ("ref" in e or "fields" in e) for e in entries):
         spec["kind"] = "regmap"
         regs = []
-        for e in entries:
+        for e in registers:
             r = {"offset": e.get("addr", e.get("index", 0)), "name": e.get("name", "?")}
             for k in ("ref", "fields", "access", "reset", "description"):
                 if k in e:
@@ -1522,7 +1547,7 @@ def legacy(spec):
     fields = spec.pop("fields", None) or ["code", "name", "description"]
     vk = fields[0]
     ne = []
-    for e in entries:
+    for e in registers:
         e = dict(e)
         if vk in e and vk != "value":
             e["value"] = e.pop(vk)
@@ -1589,16 +1614,21 @@ def views_of(spec):
 # =============================================================================
 DIRECTIVE = re.compile(r"\{\{\s*([a-z]+)\s*:\s*([^{}]+?)\s*\}\}")
 LEGACY_INC = re.compile(r"\[(?:include|insert)\]\(([^)]+)\)")
-
+MD_IMG = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
 
 class Ctx:
     def __init__(self, P, where, docdir, numbered=True):
         self.P, self.where, self.docdir, self.numbered = P, where, docdir, numbered
         self.count = {"figure": 0, "table": 0}
 
-    def rel(self, target):
-        return posixpath.relpath(target, self.docdir or ".")
-
+def check_images(text, where, src_docs, out_docs, P):
+    """Проверяет, что все ![](path) ссылаются на реально существующие файлы."""
+    for m in MD_IMG.finditer(text):
+        path = m.group(1).strip()
+        if path.startswith(("http://", "https://", "#", "data:")):
+            continue
+        if not ((src_docs / path).exists() or (out_docs / path).exists()):
+            P.diag.err(where, f"image '{path}': file not found")
 
 def expand(text, ctx, stack=()):
     P = ctx.P
@@ -1612,7 +1642,7 @@ def expand(text, ctx, stack=()):
         if fld and fld not in P.anchors.get(name, set()):
             P.diag.err(ctx.where, f"{{{{ref:{arg}}}}}: '{name}' has no '{fld}'")
             return f"`{arg}`"
-        url = ctx.rel(f"gen/{name}.md") + (f"#{anchor_id(fld)}" if fld else "")
+        url = f"gen/{name}.md" + (f"#{anchor_id(fld)}" if fld else "")
         return f"[`{fld or name}`]({url})"
 
     def figure(name):
@@ -1627,7 +1657,7 @@ def expand(text, ctx, stack=()):
             c = f"*{cap} {ctx.count['figure']} — {title}*"
         else:
             c = f"*{title}*"
-        return f"![{title}]({ctx.rel(f'gen/{name}.svg')})\n\n{c}\n"
+        return f"![{title}](gen/{name}.svg)\n\n{c}\n"
 
     def table(name):
         spec = P.REG.get(name)
@@ -1683,12 +1713,12 @@ def expand(text, ctx, stack=()):
     def legacy_repl(m):
         rel = m.group(1)
         rel = rel[2:] if rel.startswith("./") else rel
-        if rel.startswith("gen/"):
-            rel = rel[4:]
         if rel.endswith("-table.md"):
-            return expand("{{" + "table:" + rel[:-9] + "}}", ctx, stack)
+            base = rel[4:] if rel.startswith("gen/") else rel
+            return expand("{{" + "table:" + base[:-9] + "}}", ctx, stack)
         if rel.endswith(".svg"):
-            return expand("{{" + "figure:" + rel[:-4] + "}}", ctx, stack)
+            base = rel[4:] if rel.startswith("gen/") else rel
+            return expand("{{" + "figure:" + base[:-4] + "}}", ctx, stack)
         return expand("{{" + "include:" + rel + "}}", ctx, stack)
 
     text = LEGACY_INC.sub(legacy_repl, text)
@@ -1701,10 +1731,21 @@ def expand(text, ctx, stack=()):
 def build_project(pdir):
     P = Project(pdir)
     print(f"\n=== {P.name} ===")
-    spec_dir, docs_dir = pdir / "spec", pdir / "docs"
-    out_docs = OUT / P.name / "docs"
-    gen_out = out_docs / "gen"
+    spec_dir  = pdir / "spec"
+    docs_in   = pdir / "docs"
+    imgs_in   = docs_in / "images"
+    gen_in    = docs_in / "gen"
+
+    proj_out  = OUT / P.name
+    docs_out  = proj_out / "docs"
+    imgs_out  = docs_out / "images"
+    gen_out   = docs_out / "gen"
+
     produced = set()
+
+    def emit_pair(rel_name, content):
+        write_if_changed(gen_in  / rel_name, content, produced)
+        write_if_changed(gen_out / rel_name, content, produced)
 
     # 1. загрузка
     items = load_specs(P, spec_dir) if spec_dir.exists() else []
@@ -1746,7 +1787,7 @@ def build_project(pdir):
                 P.diag.err(W_(s), "diagram could not be generated")
             if svg:
                 s["_has_svg"] = True
-                write_if_changed(gen_out / f"{nm}.svg", svg, produced)
+                emit_pair(f"{nm}.svg", svg)
             if tbl is not None:
                 s["_table_md"] = tbl
     if P.diag.errors:
@@ -1761,39 +1802,62 @@ def build_project(pdir):
         if s.get("description"):
             page += f"{s['description']}\n\n"
         if s.get("_has_svg"):
-            page += f"![{s.get('title', nm)}]({nm}.svg)\n\n"
+            page += f"![{s.get('title', nm)}](gen/{nm}.svg)\n\n"
         if "_table_md" in s:
             page += s["_table_md"]
-            write_if_changed(gen_out / f"{nm}-table.md", expand(s["_table_md"], gctx), produced)
-        write_if_changed(gen_out / f"{nm}.md", expand(page, gctx), produced)
+            emit_pair(f"{nm}.md", expand(s["_table_md"], gctx))
+        emit_pair(f"{nm}.md", expand(page, gctx))
     idx = "# Specification index\n\n"
     for kd in KINDS:
         group = [(nm, s) for nm, s in sorted(P.REG.items()) if s["kind"] == kd]
         if group:
             idx += f"## {kd}\n\n" + "".join(f"- [{s.get('title', nm)}]({nm}.md) — `{nm}`\n" for nm, s in group) + "\n"
-    write_if_changed(gen_out / "index.md", idx, produced)
+    emit_pair("index.md", idx)
+
+    # 3b. зеркалим images -> out/docs/images (по md5)
+    sync_tree(imgs_in, imgs_out, produced)
 
     # 4. документы
-    if docs_dir.exists():
-        for f in sorted(docs_dir.rglob("*")):
+    if docs_in.exists():
+        for f in sorted(docs_in.rglob("*")):
             if not f.is_file():
                 continue
-            rel = f.relative_to(docs_dir)
-            if rel.parts[0] == "gen":
+            rel = f.relative_to(docs_in)
+            if rel.parts[0] in ("gen", "images"):
                 continue
             if f.suffix.lower() == ".md":
                 ctx = Ctx(P, f"docs/{rel.as_posix()}", rel.parent.as_posix() if str(rel.parent) != "." else "")
-                write_if_changed(out_docs / rel, expand(f.read_text(encoding="utf-8"), ctx), produced)
+                expanded = expand(f.read_text(encoding="utf-8"), ctx)
+                check_images(expanded, ctx.where, docs_in, docs_out, P)
+                write_if_changed(docs_out / rel, expand(f.read_text(encoding="utf-8"), ctx), produced)
             else:
-                smart_copy(f, out_docs / rel, produced)
+                smart_copy(f, docs_out / rel, produced)
 
-    # 5. вычистить устаревшее
-    if out_docs.exists():
-        for f in list(out_docs.rglob("*")):
-            if f.is_file() and f.resolve() not in produced:
+    # 5. вычистить устаревшее в gen (и в src, и в out)
+    for g in (gen_in, gen_out):
+        if g.exists():
+            for f in list(g.rglob("*")):
+                if f.is_file() and f.resolve() not in produced:
+                    f.unlink()
+                    print(f"  🧹 removed stale {f.relative_to(g).as_posix()}")
+            for d in sorted([x for x in g.rglob("*") if x.is_dir()], reverse=True):
+                if not any(d.iterdir()):
+                    d.rmdir()
+
+    # 5b. вычистить устаревшее в out/docs (только .md и прочее вне gen/images)
+    if docs_out.exists():
+        for f in list(docs_out.rglob("*")):
+            if not f.is_file():
+                continue
+            rel = f.relative_to(docs_out)
+            if rel.parts[0] in ("gen", "images"):
+                continue
+            if f.resolve() not in produced:
                 f.unlink()
-                print(f"  🧹 removed stale {f.relative_to(out_docs).as_posix()}")
-        for d in sorted([x for x in out_docs.rglob("*") if x.is_dir()], reverse=True):
+                print(f"  🧹 removed stale {rel.as_posix()}")
+        for d in sorted([x for x in docs_out.rglob("*") if x.is_dir()], reverse=True):
+            if d.name in ("gen", "images"):
+                continue
             if not any(d.iterdir()):
                 d.rmdir()
 
@@ -1808,11 +1872,22 @@ def deploy():
         print("❌ No out/ directory. Run build first.")
         return
     dst = ROOT / "docs"
-    if dst.exists():
-        print(f"🧹 Cleaning {dst}...")
-        shutil.rmtree(dst)
-    print(f"📦 Copying {OUT} -> {dst}...")
-    shutil.copytree(OUT, dst)
+    if not dst.exists():
+        dst.mkdir(parents=True)
+    print(f"📦 Syncing {OUT} -> {dst}...")
+    produced = set()
+    sync_tree(OUT, dst, produced)
+    # вычистить в dst то, чего нет в OUT
+    for f in list(dst.rglob("*")):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(dst)
+        if (OUT / rel).exists():
+            continue
+        f.unlink()
+    for d in sorted([x for x in dst.rglob("*") if x.is_dir()], reverse=True):
+        if not any(d.iterdir()):
+            d.rmdir()
     print(f"✅ Deployed to {dst}")
 
 
@@ -1857,7 +1932,7 @@ name: NAME
 title: "Operation codes"
 width: 3        # необязательно: проверка, что значения влезают; нужна для radix: bin/hex
 radix: dec      # dec | hex | bin
-entries:
+registers:
   - {value: 0, name: NOP, description: "Nothing"}
   - {value: 1, name: ADD, description: "d = d + s"}
   - {value: "2..7", name: reserved}"""),

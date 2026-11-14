@@ -88,16 +88,16 @@ Magic Sound 2 (rev. C) fixes all four:
 
 ### 3.1 Global registers
 
-![Global Registers Map](gen/ms2c_global_map.svg)
+{{auto:ms2c_global_map}}
 
-[include](gen/ms2c_global-table.md)
+[include](gen/ms2c_global_map.md)
 
 ### 3.2 Channel registers
 Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
-![Channel Registers Map](gen/ms2c_channel_map.svg)
+{{auto:ms2c_channel_map}}
 
-[include](gen/ms2c_channel-table.md)
+[include](gen/ms2c_channel_map.md)
 
 ---
 

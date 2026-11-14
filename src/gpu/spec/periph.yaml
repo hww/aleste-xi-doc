@@ -1,0 +1,81 @@
+kind: bitfield
+name: ctrl_reg
+title: "CTRL · 32 BIT"
+width: 32
+fields:
+  - {name: EN,   bit: 0,       access: rw, reset: 0, description: "Enable"}
+  - {name: MODE, bits: [3,1],  access: rw, reset: 0, description: "Mode"}
+  - {name: IRQ,  bit: 4,       access: w1c, reset: 0, description: "Interrupt pending"}
+  - {name: DIV,  bits: [15,8], access: rw, reset: 0x10, description: "Clock divider"}
+  - {name: RSV,  bits: [31,16], reserved: true}
+partial: true
+---
+kind: bitfield
+name: wide
+title: "64-bit status, 2 lanes"
+width: 64
+split: 32
+fields:
+  - {name: LO, bits: [31,0], description: "Low word"}
+  - {name: HI, bits: [63,32], description: "High word"}
+---
+kind: regmap
+name: uart
+title: "UART registers"
+width: 16
+view: [diagram, table]
+registers:
+  - {offset: 0x00, name: DATA,   access: rw, description: "Data", fields: [{name: D, bits: [7,0]}, {name: RSV, bits: [15,8], reserved: true}]}
+  - {offset: 0x04, name: STATUS, access: ro, description: "Status", fields: [{name: TXE, bit: 0}, {name: RXF, bit: 1}, {name: ERR, bits: [3,2]}, {name: RSV, bits: [15,4], reserved: true}]}
+  - {offset: 0x08, name: BAUD,   access: rw, reset: 0x1B2, description: "Baud divisor", fields: [{name: DIV, bits: [15,0]}]}
+---
+kind: memmap
+name: map
+title: "Memory map"
+width: 16
+regions:
+  - {name: ROM, start: 0x0000, size: 0x4000, access: ro, purpose: "Boot code", group: mem}
+  - {name: RAM, start: 0x8000, size: 0x2000, access: rw, group: mem}
+  - {name: IO,  start: 0xF000, end: 0xF0FF, access: rw, purpose: "Peripherals", group: io}
+---
+kind: timing
+name: wr_cycle
+title: "Write cycle"
+signals:
+  - {name: CLK,  wave: "p......."}
+  - {name: CS,   wave: "10....1."}
+  - {name: ADDR, wave: "x=.....x", data: ["A0"]}
+  - {name: DATA, wave: "x.==..x.", data: ["D0", "D1"]}
+  - {name: Z,    wave: "zz1.0.zz"}
+arrows:
+  - {from: [CS, 1], to: [DATA, 2], text: "t_su"}
+---
+kind: fsm
+name: ctl
+title: "Controller FSM"
+initial: IDLE
+states:
+  - {name: IDLE, output: "busy=0"}
+  - {name: FETCH, output: "busy=1"}
+  - {name: EXEC, output: "busy=1"}
+  - {name: DONE}
+transitions:
+  - {from: IDLE, to: FETCH, when: "start", do: "load"}
+  - {from: FETCH, to: EXEC}
+  - {from: EXEC, to: EXEC, when: "!last"}
+  - {from: EXEC, to: FETCH, when: "more"}
+  - {from: FETCH, to: IDLE, when: "abort"}
+  - {from: EXEC, to: DONE, when: "last"}
+  - {from: DONE, to: IDLE}
+---
+kind: pins
+name: chip
+title: "Pinout"
+symbol: GPU
+pins:
+  - {name: CLK, dir: in, pin: 1}
+  - {name: RST, dir: in, active_low: true, pin: 2}
+  - {name: A,   dir: in, width: 16, description: "Address"}
+  - {name: D,   dir: inout, width: 8, description: "Data"}
+  - {name: IRQ, dir: out, description: "Interrupt"}
+  - {name: RDY, dir: out}

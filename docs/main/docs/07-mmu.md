@@ -67,15 +67,24 @@ active.
 
 ### 2.3 Mode table
 
-**Operating Modes**
+The two bits `supervisor_mode` and `native_mode` in `GLOBAL_CTRL` (F0h)
+determine the current operating mode. Their values are described in the
+following enums:
 
-| Mode | Supervisor | Native | Description |
-| --- | --- | --- | --- |
-| Reset | 1 | 1 | Initial state after reset (Supervisor + Native) |
-| Trap | 1 | unchanged | Hardware transition to Supervisor |
-| Software | from GLOBAL_CTRL | from GLOBAL_CTRL | Control through port F0h |
-| User | 0 | 0 | CPC compatibility (User + Legacy) |
-| User | 0 | 1 | Extended operating mode (User + Native) |
+**Table 8 — supervisor_mode (GLOBAL_CTRL[0])**
+
+| Value | Name | Description |
+| --- | --- | --- |
+| 0 | <a id="User"></a>**User** | Application code; access to slots and I/O is restricted |
+| 1 | <a id="Supervisor"></a>**Supervisor** | Kernel code; full access to all resources; hardware trap entry |
+
+
+**Table 9 — native_mode (GLOBAL_CTRL[1])**
+
+| Value | Name | Description |
+| --- | --- | --- |
+| 0 | <a id="Legacy"></a>**Legacy** | CPC 6128 compatibility; ignored in Supervisor mode |
+| 1 | <a id="Native"></a>**Native** | Extended LX mode with slot/bank MMU |
 
 
 **Important:** In Supervisor mode, the `native_mode` bit has no effect.
@@ -96,14 +105,18 @@ supervisor, bit 1 = native).
 - **Logical slots:** the 64 KB logical space is divided into four
   16 KB slots:
 
-**Logical Slots**
+![Logical Slots (16-bit Z80 address space)](gen/mmu_slots.svg)
 
-| Slot | Range | Purpose |
-| --- | --- | --- |
-| 0 | 0000-3FFF | CPC RAM (base memory) |
-| 1 | 4000-7FFF | CPC ROM (system firmware) |
-| 2 | 8000-BFFF | User extended memory |
-| 3 | C000-FFFF | Supervisor memory (privileged) |
+*Figure 3 — Logical Slots (16-bit Z80 address space)*
+
+**Table 10 — Logical Slots (16-bit Z80 address space)**
+
+| Range | Name | Size | Purpose |
+| --- | --- | --- | --- |
+| `0x0000`–`0x3FFF` | <a id="Slot_0___CPC_RAM"></a>**Slot 0 — CPC RAM** | 16 KiB | Base memory |
+| `0x4000`–`0x7FFF` | <a id="Slot_1___CPC_ROM"></a>**Slot 1 — CPC ROM** | 16 KiB | System firmware |
+| `0x8000`–`0xBFFF` | <a id="Slot_2___User_extended"></a>**Slot 2 — User extended** | 16 KiB | User extended memory |
+| `0xC000`–`0xFFFF` | <a id="Slot_3___Supervisor_memory"></a>**Slot 3 — Supervisor memory** | 16 KiB | Privileged memory |
 
 
 ### 3.2 Bank switching
@@ -131,17 +144,26 @@ in `mmu_native.sv`. This is a **24-bit address**: 2 (slot) + 8 (bank) +
 There are **16 internal mapper registers**, organized as 4 slots × 4
 pages:
 
-**Internal Mapper Registers (16 × 8-bit)**
+**Table 11 — Internal Mapper Registers (16 × 8-bit)**
 
-| Index | Slot | Page | Purpose |
-| --- | --- | --- | --- |
-| 0 | 0 | 0 | Slot 0, page 0 |
-| 1 | 0 | 1 | Slot 0, page 1 |
-| 2 | 0 | 2 | Slot 0, page 2 |
-| 3 | 0 | 3 | Slot 0, page 3 |
-| 4–7 | 1 | 0–3 | Slot 1 |
-| 8–11 | 2 | 0–3 | Slot 2 |
-| 12–15 | 3 | 0–3 | Slot 3 |
+| Offset | Name | Access | Reset | Description |
+| --- | --- | --- | --- | --- |
+| `0x00` | <a id="MAPPER_0"></a>**MAPPER_0** | rw | 0x00 | Slot 0, page 0 |
+| `0x01` | <a id="MAPPER_1"></a>**MAPPER_1** | rw | 0x00 | Slot 0, page 1 |
+| `0x02` | <a id="MAPPER_2"></a>**MAPPER_2** | rw | 0x00 | Slot 0, page 2 |
+| `0x03` | <a id="MAPPER_3"></a>**MAPPER_3** | rw | 0x00 | Slot 0, page 3 |
+| `0x04` | <a id="MAPPER_4"></a>**MAPPER_4** | rw | 0x00 | Slot 1, page 0 |
+| `0x05` | <a id="MAPPER_5"></a>**MAPPER_5** | rw | 0x00 | Slot 1, page 1 |
+| `0x06` | <a id="MAPPER_6"></a>**MAPPER_6** | rw | 0x00 | Slot 1, page 2 |
+| `0x07` | <a id="MAPPER_7"></a>**MAPPER_7** | rw | 0x00 | Slot 1, page 3 |
+| `0x08` | <a id="MAPPER_8"></a>**MAPPER_8** | rw | 0x00 | Slot 2, page 0 |
+| `0x09` | <a id="MAPPER_9"></a>**MAPPER_9** | rw | 0x00 | Slot 2, page 1 |
+| `0x0A` | <a id="MAPPER_10"></a>**MAPPER_10** | rw | 0x00 | Slot 2, page 2 |
+| `0x0B` | <a id="MAPPER_11"></a>**MAPPER_11** | rw | 0x00 | Slot 2, page 3 |
+| `0x0C` | <a id="MAPPER_12"></a>**MAPPER_12** | rw | 0x00 | Slot 3, page 0 |
+| `0x0D` | <a id="MAPPER_13"></a>**MAPPER_13** | rw | 0x00 | Slot 3, page 1 |
+| `0x0E` | <a id="MAPPER_14"></a>**MAPPER_14** | rw | 0x00 | Slot 3, page 2 |
+| `0x0F` | <a id="MAPPER_15"></a>**MAPPER_15** | rw | 0x00 | Slot 3, page 3 |
 
 
 The index is computed as:
@@ -168,18 +190,21 @@ I/O access.
 
 All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
-**Control Registers (Ports F0–FF, E0–EF)**
+**Table 12 — Control Registers (Ports F0–FF, E0–EF)**
 
-| Port | Register | Function |
-| --- | --- | --- |
-| F0 | GLOBAL_CTRL | Mode control |
-| F1 | MMIO_PAGE | 7-bit MMIO page |
-| F2 | SYSCALL | Supervisor entry (write-only) |
-| F3 | CLOCK_CTRL | CPU clock divider (Supervisor only) |
-| FA | SUPER_SLOT | Supervisor slot select |
-| FB | USER_SLOT | User slot select |
-| FC–FF | BANK_0–3 | Bank registers for current slot |
-| E0–EF | MMU_EXT | Extended mapper access (CPU only) |
+| Offset | Name | Access | Reset | Description |
+| --- | --- | --- | --- | --- |
+| `0xE0` | <a id="MMU_EXT"></a>**MMU_EXT** | rw | — | Extended mapper access, ports E0–EF (CPU only) |
+| `0xF0` | <a id="GLOBAL_CTRL"></a>**GLOBAL_CTRL** | rw | 0x13 | Mode control (supervisor=1, native=1, lock=1) |
+| `0xF1` | <a id="MMIO_PAGE"></a>**MMIO_PAGE** | rw | 0x00 | 7-bit MMIO page |
+| `0xF2` | <a id="SYSCALL"></a>**SYSCALL** | wo | — | Supervisor entry (write-only) |
+| `0xF3` | <a id="CLOCK_CTRL"></a>**CLOCK_CTRL** | rw | 0x02 | CPU clock divider (Supervisor only), divide by 4 |
+| `0xFA` | <a id="SUPER_SLOT"></a>**SUPER_SLOT** | rw | 0xFF | Supervisor slot select (all pages → slot 3) |
+| `0xFB` | <a id="USER_SLOT"></a>**USER_SLOT** | rw | 0x00 | User slot select (all pages → slot 0) |
+| `0xFC` | <a id="BANK_0"></a>**BANK_0** | rw | 0x00 | Bank register for current slot, page 0 |
+| `0xFD` | <a id="BANK_1"></a>**BANK_1** | rw | 0x00 | Bank register for current slot, page 1 |
+| `0xFE` | <a id="BANK_2"></a>**BANK_2** | rw | 0x00 | Bank register for current slot, page 2 |
+| `0xFF` | <a id="BANK_3"></a>**BANK_3** | rw | 0x00 | Bank register for current slot, page 3 |
 
 
 **✔ By design (RTL):** `CONTROL_REG_ADDR = 8'hF0`, `MMIO_PAGE_ADDR = 8'hF1`,
@@ -196,16 +221,20 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
 ### 4.2 GLOBAL_CTRL (`F0`)
 
-**GLOBAL_CTRL (F0h)**
+![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
+
+*Figure 4 — GLOBAL_CTRL (F0h)*
+
+**Table 13 — GLOBAL_CTRL (F0h)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| **reserved** | [7:5] | 3 | Must be 0. |
-| **mmio_userlock** | [4:4] | 1 | 0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode, preventing unauthorised access. Only Supervisor can change this bit. |
-| **interrupt_hold** | [3:3] | 1 | 1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET) |
-| **supervisor_hook** | [2:2] | 1 | 0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). Allows the kernel to intercept interrupt handling. |
-| **native_mode** | [1:1] | 1 | 0 = Legacy (CPC 6128 compatibility), 1 = Native (modern LX address space). Ignored in Supervisor mode (Native mechanism is always used). |
-| **supervisor_mode** | [0:0] | 1 | 0 = User, 1 = Supervisor. In Supervisor mode, all system registers are accessible. In User mode, access is restricted. |
+| <a id="RSV"></a>**RSV** | [7:5] | 3 | Reserved |
+| <a id="mmio_userlock"></a>**mmio_userlock** | [4] | 1 | 0 = unlocked, 1 = locked. Blocks all MMU ports (E0–FF) in User mode. Only Supervisor can change this bit. |
+| <a id="interrupt_hold"></a>**interrupt_hold** | [3] | 1 | 1 = block INT to CPU (set on syscall entry/exit, released by kernel or on RET) |
+| <a id="supervisor_hook"></a>**supervisor_hook** | [2] | 1 | 0 = disabled, 1 = enabled. Enables hardware entry into Supervisor mode on M1 at 0038h (IM 1) or 0066h (NMI). |
+| <a id="native_mode"></a>**native_mode** | [1] | 1 | 0 = Legacy (CPC 6128), 1 = Native (LX). Ignored in Supervisor mode. [`native_mode_vals`](gen/native_mode_vals.md) |
+| <a id="supervisor_mode"></a>**supervisor_mode** | [0] | 1 | 0 = User, 1 = Supervisor. Hardware trap entry on 0038h/0066h. [`supervisor_mode_vals`](gen/supervisor_mode_vals.md) |
 
 
 **✔ By design (RTL):** `reg_ctrl_super_in = din[0]`,
@@ -442,14 +471,13 @@ etc.
 
 ### 6.2 Access security policy
 
-**Access Security Policy**
+`port_access_grant = supervisor_mode || !mmio_userlock`
 
-| Mode | Lock | Ports |
+| Mode | `mmio_userlock` | Allowed ports |
 | --- | --- | --- |
 | User | 1 | Blocked: 00–7F, F1, F3, FA, FB–FF; allowed: F2 (syscall) |
 | User | 0 | All allowed |
-| Supervisor | — | All allowed |
-
+| Supervisor | — | All allowed (lock ignored) |
 
 **✔ By design (RTL):** `port_access_grant = supervisor_mode || !reg_ctrl_user_lock`.
 `is_mmu_access = is_io_access && addr_is_mmu_space && reg_ctrl_native_mode && port_access_grant`.
@@ -473,16 +501,24 @@ mechanism is). See §10.
 
 ## 7. Reset state
 
-**Reset State (RTL)**
+The reset values of all MMU registers are given in the `Reset` column
+of the control register table:
 
-| Register | Address | Reset_value | Description |
-| --- | --- | --- | --- |
-| GLOBAL_CTRL | F0 | 8'b0001_0011 | supervisor=1, native=1, lock=1 |
-| MMIO_PAGE | F1 | 0x00 | MMIO page 0 |
-| SUPER_SLOT | FA | 0xFF | All pages → slot 3 |
-| USER_SLOT | FB | 0x00 | All pages → slot 0 |
-| BANK_0–3 | FC–FF | 0x00 | All banks = 0 |
-| CLOCK_CTRL | F3 | 8'b0000_0010 | Divide by 4 |
+**Table 14 — Control Registers (Ports F0–FF, E0–EF)**
+
+| Offset | Name | Access | Reset | Description |
+| --- | --- | --- | --- | --- |
+| `0xE0` | <a id="MMU_EXT"></a>**MMU_EXT** | rw | — | Extended mapper access, ports E0–EF (CPU only) |
+| `0xF0` | <a id="GLOBAL_CTRL"></a>**GLOBAL_CTRL** | rw | 0x13 | Mode control (supervisor=1, native=1, lock=1) |
+| `0xF1` | <a id="MMIO_PAGE"></a>**MMIO_PAGE** | rw | 0x00 | 7-bit MMIO page |
+| `0xF2` | <a id="SYSCALL"></a>**SYSCALL** | wo | — | Supervisor entry (write-only) |
+| `0xF3` | <a id="CLOCK_CTRL"></a>**CLOCK_CTRL** | rw | 0x02 | CPU clock divider (Supervisor only), divide by 4 |
+| `0xFA` | <a id="SUPER_SLOT"></a>**SUPER_SLOT** | rw | 0xFF | Supervisor slot select (all pages → slot 3) |
+| `0xFB` | <a id="USER_SLOT"></a>**USER_SLOT** | rw | 0x00 | User slot select (all pages → slot 0) |
+| `0xFC` | <a id="BANK_0"></a>**BANK_0** | rw | 0x00 | Bank register for current slot, page 0 |
+| `0xFD` | <a id="BANK_1"></a>**BANK_1** | rw | 0x00 | Bank register for current slot, page 1 |
+| `0xFE` | <a id="BANK_2"></a>**BANK_2** | rw | 0x00 | Bank register for current slot, page 2 |
+| `0xFF` | <a id="BANK_3"></a>**BANK_3** | rw | 0x00 | Bank register for current slot, page 3 |
 
 
 **✔ By design (RTL):** `reg_control <= 8'b0001_0011`,

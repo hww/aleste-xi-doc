@@ -1,0 +1,68 @@
+#!/bin/python3
+
+import os
+import re
+
+# Имя итогового файла
+OUTPUT_FILE = "combined_code.txt"
+
+def clean_csharp_code(content):
+    """
+    Удаляет из C# кода всё лишнее для ИИ: комментарии, 
+    директивы using и лишние пустые строки.
+    """
+    # 1. Удаляем многострочные комментарии /* ... */
+    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    
+    # 2. Удаляем однострочные комментарии // ...
+    # Используем lookbehind, чтобы случайно не удалить // внутри URL-строк
+    content = re.sub(r'(?<!:)//.*', '', content)
+    
+    lines = content.splitlines()
+    cleaned_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        
+        # 3. Удаляем директивы using (ИИ обычно не важны импорты)
+        if stripped.startswith("using ") and stripped.endswith(";"):
+            continue
+            
+        # 4. Пропускаем абсолютно пустые строки
+        if not stripped:
+            continue
+            
+        cleaned_lines.append(line)
+        
+    return "\n".join(cleaned_lines)
+
+def main():
+    pwd = os.getcwd()
+
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as outfile:
+        for root, dirs, files in os.walk(pwd):
+            # Пропускаем каталоги build/ на любом уровне вложенности
+            dirs[:] = [d for d in dirs if d != "gen"]
+
+            for file in files:
+                if not file.endswith((".yaml")):
+                    continue
+
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, pwd)
+
+                try:
+                    with open(full_path, "r", encoding="utf-8") as infile:
+                        content = infile.read()
+
+                    outfile.write(f"\n// === FILE: {rel_path} ===\n")
+                    outfile.write(content)
+                    outfile.write("\n")
+                    print(f"Обработан: {rel_path}")
+
+                except Exception as e:
+                    print(f"Ошибка при чтении {rel_path}: {e}")
+
+if __name__ == "__main__":
+    main()
+

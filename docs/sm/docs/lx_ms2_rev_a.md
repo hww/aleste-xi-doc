@@ -91,48 +91,417 @@ When the DMA reads memory and the memory controller returns a timeout (watchdog)
 ## 3. Registers
 
 ### 3.1 Global registers
-![Global Registers Map](gen/ms2a_global_map.svg)
+![Rev. A: Global Registers Map](gen/ms2a_global_map.svg)
 
-### Rev. A: Global Registers
+*Figure 3 — Rev. A: Global Registers Map*
 
-| Offset | Name | R/W | Bits |
+**Table 3 — Rev. A: Global Registers Map**
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="GLOBAL_CR"></a>**GLOBAL_CR** | — |
+| `0x01` | <a id="GLOBAL_VOL_L"></a>**GLOBAL_VOL_L** | — |
+| `0x02` | <a id="GLOBAL_VOL_R"></a>**GLOBAL_VOL_R** | — |
+| `0x03` | <a id="STATUS"></a>**STATUS** | — |
+| `0x04` | <a id="IRQ_CTRL"></a>**IRQ_CTRL** | — |
+| `0x05` | <a id="DMA_ERR_CLR"></a>**DMA_ERR_CLR** | — |
+| `0x10` | <a id="TIMER_VAL"></a>**TIMER_VAL** | — |
+| `0x11` | <a id="TIMER_VAL_H"></a>**TIMER_VAL_H** | — |
+| `0x12` | <a id="TIMER_CTRL"></a>**TIMER_CTRL** | — |
+
+**GLOBAL_CR** (`0x00`)
+
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| 0x00 | GLOBAL_CR | RW | [0] enable; [1] reset |
-| 0x01 | GLOBAL_VOL_L | RW | [7:0] global left volume |
-| 0x02 | GLOBAL_VOL_R | RW | [7:0] global right volume |
-| 0x03 | STATUS | R | [0] global active; [1] any active; [2] any error; [3] any EOF; [4] DMA error; [5] timer IRQ |
-| 0x04 | IRQ_CTRL | RW | [0] timer IRQ enable; [1] DMA error NMI enable |
-| 0x05 | DMA_ERR_CLR | W | write 1 to clear |
-| 0x10 | TIMER_VAL | RW | [7:0] timer value low |
-| 0x11 | TIMER_VAL_H | RW | [7:0] timer value high |
-| 0x12 | TIMER_CTRL | RW | [7:0] timer control |
+| <a id="RST"></a>**RST** | [1] | 1 | Reset |
+| <a id="EN"></a>**EN** | [0] | 1 | Enable |
+
+**GLOBAL_VOL_L** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:0] | 8 | Global left volume |
+
+**GLOBAL_VOL_R** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_R"></a>**VOL_R** | [7:0] | 8 | Global right volume |
+
+**STATUS** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_IRQ"></a>**TMR_IRQ** | [5] | 1 | Timer IRQ |
+| <a id="DMA_ERR"></a>**DMA_ERR** | [4] | 1 | DMA error |
+| <a id="EOF"></a>**EOF** | [3] | 1 | Any EOF |
+| <a id="ERR"></a>**ERR** | [2] | 1 | Any error |
+| <a id="CH_ACT"></a>**CH_ACT** | [1] | 1 | Any channel active |
+| <a id="ACT"></a>**ACT** | [0] | 1 | Global active |
+
+**IRQ_CTRL** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="DMA_NMI"></a>**DMA_NMI** | [1] | 1 | DMA error NMI enable |
+| <a id="TMR_EN"></a>**TMR_EN** | [0] | 1 | Timer IRQ enable |
+
+**DMA_ERR_CLR** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CLR"></a>**CLR** | [0] | 1 | Write 1 to clear |
+
+**TIMER_VAL** (`0x10`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VAL_L"></a>**VAL_L** | [7:0] | 8 | Timer value low |
+
+**TIMER_VAL_H** (`0x11`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VAL_H"></a>**VAL_H** | [7:0] | 8 | Timer value high |
+
+**TIMER_CTRL** (`0x12`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CTRL"></a>**CTRL** | [7:0] | 8 | Timer control |
+
+
+# Rev. A: Global Registers Map
+
+![Rev. A: Global Registers Map](gen/ms2a_global_map.svg)
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="GLOBAL_CR"></a>**GLOBAL_CR** | — |
+| `0x01` | <a id="GLOBAL_VOL_L"></a>**GLOBAL_VOL_L** | — |
+| `0x02` | <a id="GLOBAL_VOL_R"></a>**GLOBAL_VOL_R** | — |
+| `0x03` | <a id="STATUS"></a>**STATUS** | — |
+| `0x04` | <a id="IRQ_CTRL"></a>**IRQ_CTRL** | — |
+| `0x05` | <a id="DMA_ERR_CLR"></a>**DMA_ERR_CLR** | — |
+| `0x10` | <a id="TIMER_VAL"></a>**TIMER_VAL** | — |
+| `0x11` | <a id="TIMER_VAL_H"></a>**TIMER_VAL_H** | — |
+| `0x12` | <a id="TIMER_CTRL"></a>**TIMER_CTRL** | — |
+
+**GLOBAL_CR** (`0x00`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="RST"></a>**RST** | [1] | 1 | Reset |
+| <a id="EN"></a>**EN** | [0] | 1 | Enable |
+
+**GLOBAL_VOL_L** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:0] | 8 | Global left volume |
+
+**GLOBAL_VOL_R** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_R"></a>**VOL_R** | [7:0] | 8 | Global right volume |
+
+**STATUS** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="TMR_IRQ"></a>**TMR_IRQ** | [5] | 1 | Timer IRQ |
+| <a id="DMA_ERR"></a>**DMA_ERR** | [4] | 1 | DMA error |
+| <a id="EOF"></a>**EOF** | [3] | 1 | Any EOF |
+| <a id="ERR"></a>**ERR** | [2] | 1 | Any error |
+| <a id="CH_ACT"></a>**CH_ACT** | [1] | 1 | Any channel active |
+| <a id="ACT"></a>**ACT** | [0] | 1 | Global active |
+
+**IRQ_CTRL** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="DMA_NMI"></a>**DMA_NMI** | [1] | 1 | DMA error NMI enable |
+| <a id="TMR_EN"></a>**TMR_EN** | [0] | 1 | Timer IRQ enable |
+
+**DMA_ERR_CLR** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CLR"></a>**CLR** | [0] | 1 | Write 1 to clear |
+
+**TIMER_VAL** (`0x10`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VAL_L"></a>**VAL_L** | [7:0] | 8 | Timer value low |
+
+**TIMER_VAL_H** (`0x11`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VAL_H"></a>**VAL_H** | [7:0] | 8 | Timer value high |
+
+**TIMER_CTRL** (`0x12`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CTRL"></a>**CTRL** | [7:0] | 8 | Timer control |
 
 
 ### 3.2 Channel registers
 Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
-![Channel Registers Map](gen/ms2a_channel_map.svg)
+![Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2a_channel_map.svg)
 
-### Rev. A: Channel Registers (Base 0x20, 0x30, 0x40, 0x50)
+*Figure 4 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
 
-| Offset | Name | R/W | Bits |
+**Table 4 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="CH_CTRL"></a>**CH_CTRL** | — |
+| `0x01` | <a id="START_ADDR_0"></a>**START_ADDR_0** | — |
+| `0x02` | <a id="START_ADDR_1"></a>**START_ADDR_1** | — |
+| `0x03` | <a id="START_ADDR_2"></a>**START_ADDR_2** | — |
+| `0x04` | <a id="END_ADDR_0"></a>**END_ADDR_0** | — |
+| `0x05` | <a id="END_ADDR_1"></a>**END_ADDR_1** | — |
+| `0x06` | <a id="END_ADDR_2"></a>**END_ADDR_2** | — |
+| `0x07` | <a id="LOOP_START_0"></a>**LOOP_START_0** | — |
+| `0x08` | <a id="LOOP_START_1"></a>**LOOP_START_1** | — |
+| `0x09` | <a id="LOOP_START_2"></a>**LOOP_START_2** | — |
+| `0x0A` | <a id="LOOP_END_0"></a>**LOOP_END_0** | — |
+| `0x0B` | <a id="LOOP_END_1"></a>**LOOP_END_1** | — |
+| `0x0C` | <a id="LOOP_END_2"></a>**LOOP_END_2** | — |
+| `0x0D` | <a id="STEP_0"></a>**STEP_0** | — |
+| `0x0E` | <a id="STEP_1"></a>**STEP_1** | — |
+| `0x0F` | <a id="STEP_2"></a>**STEP_2** | — |
+
+**CH_CTRL** (`0x00`)
+
+| Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| +0 | CH_CTRL | RW | [0] enable; [1] loop; [2] ping-pong; [3] IRQ on EOF; [7:4] vol L; [3:0] vol R |
-| +1 | START_ADDR_0 | RW | [7:0] |
-| +2 | START_ADDR_1 | RW | [15:8] |
-| +3 | START_ADDR_2 | RW | [23:16] |
-| +4 | END_ADDR_0 | RW | [7:0] |
-| +5 | END_ADDR_1 | RW | [15:8] |
-| +6 | END_ADDR_2 | RW | [23:16] |
-| +7 | LOOP_START_0 | RW | [7:0] |
-| +8 | LOOP_START_1 | RW | [15:8] |
-| +9 | LOOP_START_2 | RW | [23:16] |
-| +A | LOOP_END_0 | RW | [7:0] |
-| +B | LOOP_END_1 | RW | [15:8] |
-| +C | LOOP_END_2 | RW | [23:16] |
-| +D | STEP_0 | RW | [7:0] |
-| +E | STEP_1 | RW | [15:8] |
-| +F | STEP_2 | RW | [23:16] |
+| <a id="VOL_L"></a>**VOL_L** | [7:4] | 4 | Volume L (4-bit) |
+| <a id="IRQ"></a>**IRQ** | [3] | 1 | IRQ on EOF |
+| <a id="VOL_R"></a>**VOL_R** | [3:0] | 4 | Volume R (4-bit) |
+| <a id="PP"></a>**PP** | [2] | 1 | Ping-pong |
+| <a id="LOOP"></a>**LOOP** | [1] | 1 | Loop |
+| <a id="EN"></a>**EN** | [0] | 1 | Enable |
+
+**START_ADDR_0** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Start address [7:0] |
+
+**START_ADDR_1** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Start address [15:8] |
+
+**START_ADDR_2** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Start address [23:16] |
+
+**END_ADDR_0** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | End address [7:0] |
+
+**END_ADDR_1** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | End address [15:8] |
+
+**END_ADDR_2** (`0x06`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | End address [23:16] |
+
+**LOOP_START_0** (`0x07`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop start [7:0] |
+
+**LOOP_START_1** (`0x08`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop start [15:8] |
+
+**LOOP_START_2** (`0x09`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop start [23:16] |
+
+**LOOP_END_0** (`0x0A`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop end [7:0] |
+
+**LOOP_END_1** (`0x0B`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop end [15:8] |
+
+**LOOP_END_2** (`0x0C`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop end [23:16] |
+
+**STEP_0** (`0x0D`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="STEP"></a>**STEP** | [7:0] | 8 | Step fraction [7:0] |
+
+**STEP_1** (`0x0E`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="STEP"></a>**STEP** | [7:0] | 8 | Step fraction [15:8] |
+
+**STEP_2** (`0x0F`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="STEP"></a>**STEP** | [7:0] | 8 | Step integer [23:16] |
+
+
+# Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)
+
+![Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2a_channel_map.svg)
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="CH_CTRL"></a>**CH_CTRL** | — |
+| `0x01` | <a id="START_ADDR_0"></a>**START_ADDR_0** | — |
+| `0x02` | <a id="START_ADDR_1"></a>**START_ADDR_1** | — |
+| `0x03` | <a id="START_ADDR_2"></a>**START_ADDR_2** | — |
+| `0x04` | <a id="END_ADDR_0"></a>**END_ADDR_0** | — |
+| `0x05` | <a id="END_ADDR_1"></a>**END_ADDR_1** | — |
+| `0x06` | <a id="END_ADDR_2"></a>**END_ADDR_2** | — |
+| `0x07` | <a id="LOOP_START_0"></a>**LOOP_START_0** | — |
+| `0x08` | <a id="LOOP_START_1"></a>**LOOP_START_1** | — |
+| `0x09` | <a id="LOOP_START_2"></a>**LOOP_START_2** | — |
+| `0x0A` | <a id="LOOP_END_0"></a>**LOOP_END_0** | — |
+| `0x0B` | <a id="LOOP_END_1"></a>**LOOP_END_1** | — |
+| `0x0C` | <a id="LOOP_END_2"></a>**LOOP_END_2** | — |
+| `0x0D` | <a id="STEP_0"></a>**STEP_0** | — |
+| `0x0E` | <a id="STEP_1"></a>**STEP_1** | — |
+| `0x0F` | <a id="STEP_2"></a>**STEP_2** | — |
+
+**CH_CTRL** (`0x00`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="VOL_L"></a>**VOL_L** | [7:4] | 4 | Volume L (4-bit) |
+| <a id="IRQ"></a>**IRQ** | [3] | 1 | IRQ on EOF |
+| <a id="VOL_R"></a>**VOL_R** | [3:0] | 4 | Volume R (4-bit) |
+| <a id="PP"></a>**PP** | [2] | 1 | Ping-pong |
+| <a id="LOOP"></a>**LOOP** | [1] | 1 | Loop |
+| <a id="EN"></a>**EN** | [0] | 1 | Enable |
+
+**START_ADDR_0** (`0x01`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Start address [7:0] |
+
+**START_ADDR_1** (`0x02`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Start address [15:8] |
+
+**START_ADDR_2** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Start address [23:16] |
+
+**END_ADDR_0** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | End address [7:0] |
+
+**END_ADDR_1** (`0x05`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | End address [15:8] |
+
+**END_ADDR_2** (`0x06`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | End address [23:16] |
+
+**LOOP_START_0** (`0x07`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop start [7:0] |
+
+**LOOP_START_1** (`0x08`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop start [15:8] |
+
+**LOOP_START_2** (`0x09`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop start [23:16] |
+
+**LOOP_END_0** (`0x0A`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop end [7:0] |
+
+**LOOP_END_1** (`0x0B`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop end [15:8] |
+
+**LOOP_END_2** (`0x0C`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="ADDR"></a>**ADDR** | [7:0] | 8 | Loop end [23:16] |
+
+**STEP_0** (`0x0D`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="STEP"></a>**STEP** | [7:0] | 8 | Step fraction [7:0] |
+
+**STEP_1** (`0x0E`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="STEP"></a>**STEP** | [7:0] | 8 | Step fraction [15:8] |
+
+**STEP_2** (`0x0F`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="STEP"></a>**STEP** | [7:0] | 8 | Step integer [23:16] |
 
 
 ---

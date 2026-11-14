@@ -67,7 +67,13 @@ active.
 
 ### 2.3 Mode table
 
-[include](gen/mmu_modes-table.md)
+The two bits `supervisor_mode` and `native_mode` in `GLOBAL_CTRL` (F0h)
+determine the current operating mode. Their values are described in the
+following enums:
+
+{{table:supervisor_mode_vals}}
+
+{{table:native_mode_vals}}
 
 **Important:** In Supervisor mode, the `native_mode` bit has no effect.
 Native memory and device access mechanisms are always used.
@@ -87,7 +93,7 @@ supervisor, bit 1 = native).
 - **Logical slots:** the 64 KB logical space is divided into four
   16 KB slots:
 
-[include](gen/mmu_slots-table.md)
+{{auto:mmu_slots}}
 
 ### 3.2 Bank switching
 
@@ -114,7 +120,7 @@ in `mmu_native.sv`. This is a **24-bit address**: 2 (slot) + 8 (bank) +
 There are **16 internal mapper registers**, organized as 4 slots × 4
 pages:
 
-[include](gen/mmu_mapper_regs-table.md)
+{{auto:mmu_mapper_regs}}
 
 The index is computed as:
 
@@ -140,7 +146,7 @@ I/O access.
 
 All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
-[include](gen/mmu_ports-table.md)
+{{auto:mmu_ports}}
 
 **✔ By design (RTL):** `CONTROL_REG_ADDR = 8'hF0`, `MMIO_PAGE_ADDR = 8'hF1`,
 `SYSCALL_ADDR = 8'hF2`, `CLOCK_CTRL_ADDR = 8'hF3`,
@@ -156,7 +162,7 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
 ### 4.2 GLOBAL_CTRL (`F0`)
 
-[include](gen/mmu_global_ctrl-table.md)
+{{auto:mmu_global_ctrl}}
 
 **✔ By design (RTL):** `reg_ctrl_super_in = din[0]`,
 `reg_ctrl_native_mode = reg_control[1]`, `reg_ctrl_trap_enabled = reg_control[2]`,
@@ -392,7 +398,13 @@ etc.
 
 ### 6.2 Access security policy
 
-[include](gen/mmu_access_policy-table.md)
+`port_access_grant = supervisor_mode || !mmio_userlock`
+
+| Mode | `mmio_userlock` | Allowed ports |
+| --- | --- | --- |
+| User | 1 | Blocked: 00–7F, F1, F3, FA, FB–FF; allowed: F2 (syscall) |
+| User | 0 | All allowed |
+| Supervisor | — | All allowed (lock ignored) |
 
 **✔ By design (RTL):** `port_access_grant = supervisor_mode || !reg_ctrl_user_lock`.
 `is_mmu_access = is_io_access && addr_is_mmu_space && reg_ctrl_native_mode && port_access_grant`.
@@ -416,7 +428,10 @@ mechanism is). See §10.
 
 ## 7. Reset state
 
-[include](gen/mmu_reset_state-table.md)
+The reset values of all MMU registers are given in the `Reset` column
+of the control register table:
+
+{{table:mmu_ports}}
 
 **✔ By design (RTL):** `reg_control <= 8'b0001_0011`,
 `reg_clock <= 8'b0000_0010`, `reg_super_slot <= 8'hFF`,

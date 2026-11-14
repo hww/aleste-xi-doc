@@ -91,16 +91,16 @@ When the DMA reads memory and the memory controller returns a timeout (watchdog)
 ## 3. Registers
 
 ### 3.1 Global registers
-![Global Registers Map](gen/ms2a_global_map.svg)
+{{auto:ms2a_global_map}}
 
-[include](gen/ms2a_global-table.md)
+[include](gen/ms2a_global_map.md)
 
 ### 3.2 Channel registers
 Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
-![Channel Registers Map](gen/ms2a_channel_map.svg)
+{{auto:ms2a_channel_map}}
 
-[include](gen/ms2a_channel-table.md)
+[include](gen/ms2a_channel_map.md)
 
 ---
 

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="928.9" height="184" viewBox="0 0 928.9 184">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="928.9" height="184" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">CHANNEL MODE_PAGE (11 bits, логическая склейка MODE[2:0] + PAGE[7:0])</text>
+<text x="32" y="62" font-size="14" fill="#555555">11-bit register</text>
+<text x="50" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">10</text>
+<text x="122" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">8</text>
+<text x="158" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">7</text>
+<text x="410" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">0</text>
+<rect x="32" y="104" width="396" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="32" y="104" width="108" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="86" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">FMT</text>
+<line x1="68" y1="104" x2="68" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="104" y1="104" x2="104" y2="111" stroke="#000000" stroke-width="1"/>
+<rect x="140" y="104" width="288" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="284" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">PAGE</text>
+<line x1="176" y1="104" x2="176" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="212" y1="104" x2="212" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="248" y1="104" x2="248" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="284" y1="104" x2="284" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="320" y1="104" x2="320" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="356" y1="104" x2="356" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="392" y1="104" x2="392" y2="111" stroke="#000000" stroke-width="1"/>
+</svg>

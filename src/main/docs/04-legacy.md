@@ -101,7 +101,6 @@ Legend:
 
 ### 1.2 Official I/O ports
 
-
 | I/O | Decoded as | Port | R/W |
 |---|---|---|---|
 | `0x7FXX` | `%01xxxxxx xxxxxxxx` | Gate Array | W |
@@ -127,38 +126,42 @@ Exception: `0xEFXX` printer port is **Optional**.
 The 8255 PPI is connected to the AY‑3‑8912 (PSG), the keyboard, the
 cassette tape, the CRTC VSYNC signal, and the printer "busy" signal.
 
-**Selection:** the PPI is active when **bit 11 of the I/O address is
-`0`**.
+**Selection:** the PPI is active when **bit 11 of the I/O address is `0`**.
 
 **Recommended I/O addresses** (other bits set to `1` to avoid conflicts):
 
-![PPI Addresses](gen/L_PPI_ADDRS.svg)
+| Address | Port | Description |
+| --- | --- | --- |
+| `&F4xx` | Port A | PSG data |
+| `&F5xx` | Port B | VSYNC, cassette, printer |
+| `&F6xx` | Port C | PSG control, cassette, keyboard |
+| `&F7xx` | Control | 8255 control |
 
 #### Port A
 
 OS settings: I/O Mode 0, Output.
 
-![PPI Port A](gen/L_PPI_PORTA.svg)
+{{auto:L_PPI_PORTA}}
 
 #### Port B
 
 OS settings: I/O Mode 0, Input.
 
-![PPI Port B](gen/L_PPI_PORTB.svg)
+{{auto:L_PPI_PORTB}}
 
 **Manufacturer table (power‑on, CPC/CPC+ only):**
 
-![PPI Manufacturer](gen/L_PPI_MFG.svg)
+{{table:L_PPI_MFG}}
 
 #### Port C
 
 OS settings: Upper half Mode 0 Output, lower half Mode 0 Output.
 
-![PPI Port C](gen/L_PPI_PORTC.svg)
+{{auto:L_PPI_PORTC}}
 
 **PSG function select:**
 
-![PSG Select](gen/L_PSG_SELECT.svg)
+{{table:L_PSG_SELECT}}
 
 **Programming examples:**
 
@@ -203,12 +206,11 @@ Exception: printer‑related bits are **Optional**.
 
 ### 1.4 Gate Array (port 7Fxx)
 
-![Gate Array Registers](gen/L_GA_REGS.svg)
+{{table:L_GA_REGS}}
 
 #### Register 0 — Palette Index
 
-![Gate Array R0](gen/L_GA_R0.svg)
-
+{{auto:L_GA_R0}}
 
 | Depth | Normal inks (CPC) | Secondary inks (Aleste) |
 |---|---|---|
@@ -230,10 +232,9 @@ The number is converted by IC D62.
 
 #### Register 2 — Video Mode, ROM enable, LEDs
 
-![Gate Array R2](gen/L_GA_R2.svg)
+{{auto:L_GA_R2}}
 
 **CPC modes:**
-
 
 | bit 1 | bit 0 | Mode |
 |---|---|---|
@@ -248,7 +249,12 @@ Aleste modes use the same encoding but can run at higher rates.
 
 **Four I/O ports control the mapper:**
 
-![Gate Array Mapper Ports](gen/L_GA_MAPPER_PORTS.svg)
+| Address | Page | RAM range |
+| --- | --- | --- |
+| `0x7CXX` | Page 0 | `&0000–&3FFF` |
+| `0x7DXX` | Page 1 | `&4000–&7FFF` |
+| `0x7EXX` | Page 2 | `&8000–&BFFF` |
+| `0x7FXX` | Page 3 | `&C000–&FFFF` |
 
 The mapper port decode uses bit 15 of the I/O address, as the Aleste
 Gate Array does. Address bits 9 and 8 select the page. To avoid writing
@@ -270,7 +276,12 @@ banking.
 
 ### 1.5 CRTC 6845
 
-![CRTC Ports](gen/L_CRTC_PORTS.svg)
+| Address | Name | R/W | Description |
+| --- | --- | --- | --- |
+| `0xBCXX` | Index | W | Register select |
+| `0xBDXX` | Data (write) | W | Data write |
+| `0xBEXX` | Status | R | Status read |
+| `0xBFXX` | Data (read) | R | Data read |
 
 The CRTC registers are documented in the Amstrad CPC 6128 technical
 manual; LX does not change their behaviour.
@@ -284,7 +295,10 @@ when `upper_rom` (RMR bit 3) is `0`.
 
 **CPC 6128 ROM banks:**
 
-![Upper ROM Banks](gen/L_UPPER_ROM_BANKS.svg)
+| Bank | Name | Description |
+| --- | --- | --- |
+| `00h` | BASIC | Lower ROM (visible at `0000–3FFF`) |
+| `07h` | AMSDOS | Disk operating system |
 
 **LX (hww):** Mandatory — needed for CPC ROM switching.
 
@@ -300,7 +314,11 @@ when `upper_rom` (RMR bit 3) is `0`.
 The floppy disk controller is a uPD765. It is accessed through the PPI
 and the following ports:
 
-![FDC Ports](gen/L_FDC_PORTS.svg)
+| Address | Name | R/W | Description |
+| --- | --- | --- | --- |
+| `0xFA7E` | Motor | W | Floppy motor control |
+| `0xFB7E` | Status | R | FDC status |
+| `0xFB7F` | Data | R/W | FDC data |
 
 **LX (hww):** Mandatory — FDC is the CPC disk interface.
 
@@ -308,7 +326,7 @@ and the following ports:
 
 #### RMR (Control Interrupt counter, ROM mapping, Graphics mode)
 
-![RMR](gen/L_RMR.svg)
+{{auto:L_RMR}}
 
 - `upper_rom` starts at `C000`.
 - `lower_rom` starts at `0000`.
@@ -317,10 +335,9 @@ and the following ports:
 
 #### MMR (RAM memory mapping)
 
-![MMR](gen/L_MMR.svg)
+{{auto:L_MMR}}
 
 **CPC 128 memory map:**
-
 
 | Address | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|---|
@@ -330,7 +347,6 @@ and the following ports:
 | `0000-3FFF` | RAM_0 | RAM_0 | RAM_4 | RAM_0 | RAM_0 | RAM_0 | RAM_0 | RAM_0 |
 
 **CPC 512 KB memory map:**
-
 
 | Address | ccc=0 | ccc=1 | ccc=2 | ccc=3 | ccc=4 | ccc=5 | ccc=6 | ccc=7 |
 |---|---|---|---|---|---|---|---|---|
@@ -392,7 +408,7 @@ This section documents **only what is actually in the RTL** (`gen_rtl`,
 
 The 520EX adds an EXTPORT register at port `FABF`:
 
-![520EX EXTPORT](gen/L_520EX_EXTPORT.svg)
+{{auto:L_520EX_EXTPORT}}
 
 **LX (hww):** Not recommended.
 
@@ -437,7 +453,6 @@ MSX‑style mapper with four 6‑bit page registers.
 
 ## 3. Author's recommendation for LX (summary)
 
-
 | Element | CPC | 520EX | LX (hww) | Comment |
 |---|---|---|---|---|
 | Z80 CPU | yes | yes | **Mandatory** | Core CPU |
@@ -464,7 +479,6 @@ MSX‑style mapper with four 6‑bit page registers.
 ---
 
 ## 4. Spec vs RTL (RTL authoritative)
-
 
 | # | Old spec said | RTL does (gen_rtl) | Status | Comment |
 |---|---|---|---|---|

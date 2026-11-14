@@ -37,13 +37,13 @@ does not run out of samples during a long copy.
 The blitter has **17 registers**, 8 bits each, at offsets `0x00`–`0x10`
 from the base address.
 
-![Blitter Register Map](gen/dma_blitter_map.svg)
+{{auto:dma_blitter_map}}
 
 **✔ By design (RTL):** the register layout matches `lx_dma.sv`.
 
 ### 1.3 Modes
 
-[include](gen/dma_blitter_modes-table.md)
+[include](gen/dma_blitter_modes.md)
 
 ### 1.4 Interrupt
 
@@ -86,13 +86,13 @@ SysDMA is a **4-channel** DMA controller with **DRQ/DACK** handshake,
 SysDMA has per-channel registers and common registers. The layout is in
 `wb_dma.sv`; the exact byte offsets are `TBD: verify against RTL`.
 
-![SysDMA Register Map](gen/dma_sysdma_map.svg)
+{{auto:dma_sysdma_map}}
 
 **✔ By design (RTL):** `wb_dma.sv` implements these registers.
 
 ### 2.3 Modes
 
-[include](gen/dma_sysdma_modes-table.md)
+[include](gen/dma_sysdma_modes.md)
 
 ### 2.4 Arbitration
 

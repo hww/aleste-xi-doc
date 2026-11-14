@@ -1,0 +1,154 @@
+# 32-битная микроинструкция. Четыре формата выбираются парой (J, I).
+kind: const
+name: limits
+title: "Limits"
+values:
+  - {name: IMM12_BITS, value: 12, description: "Immediate width in reg-imm12"}
+  - {name: LDI_BITS,   value: 24, description: "Immediate width in LDI24"}
+---
+kind: encoding
+name: insn
+title: "INSTRUCTION · 32 BIT"
+description: "All microinstruction formats. J and I select the format."
+width: 32
+common:
+  - {name: L,   bit: 31,       description: "Loop flag"}
+  - {name: J,   bit: 30,       description: "Format selector, high"}
+  - {name: I,   bit: 29,       description: "Format selector, low"}
+  - {name: DST, bits: [28,24], description: "Destination operand, low 5 bits"}
+variants:
+  - name: reg-reg
+    title: "REG-REG"
+    when: {J: 0, I: 0}
+    description: "d = d op s"
+    fields:
+      - {name: DS,   bit: 23,       description: "DST bank: 0 = R0..R31, 1 = special operand"}
+      - {name: COND, bits: [22,19], enum: conditions, description: "Condition; false = no register write, no port access"}
+      - {name: F,    bit: 18,       description: "1 = update flags"}
+      - {name: OP,   bits: [17,13], enum: alu_ops,    description: "ALU operation"}
+      - {name: SRC,  bits: [12,7],  enum: operand_map, description: "Second operand {S, n[4:0]}"}
+      - {name: RSV,  bits: [6,0],   reserved: true,   description: "Reserved, must be 0"}
+  - name: reg-imm12
+    title: "REG-IMM12"
+    when: {J: 1, I: 1}
+    description: "d = d op imm"
+    fields:
+      - {name: DS,   bit: 23}
+      - {name: COND, bits: [22,19], enum: conditions}
+      - {name: F,    bit: 18}
+      - {name: OP,   bits: [17,13], enum: alu_ops}
+      - {name: SX,   bit: 12,       description: "1 = sign-extend IMM, 0 = zero-extend"}
+      - {name: IMM,  bits: [11,0],  description: "12-bit immediate, operand B"}
+  - name: ldi24
+    title: "LDI24"
+    when: {J: 0, I: 1}
+    description: "R[DST] = imm24; unconditional, flags untouched"
+    fields:
+      - {name: DST,   bits: [28,24], description: "R0..R31 only"}
+      - {name: IMM24, bits: [23,0],  description: "24-bit constant"}
+  - name: control
+    title: "CONTROL"
+    when: {J: 1, I: 0}
+    fields:
+      - {name: DST,  bits: [28,24], description: "Unused"}
+      - {name: DS,   bit: 23,       description: "Unused"}
+      - {name: COND, bits: [22,19], enum: conditions}
+      - {name: F,    bit: 18,       description: "Unused"}
+      - {name: OP,   bits: [17,13], enum: ctrl_ops}
+      - {name: REG,  bits: [12,7],  overlay: true, description: "Operand for JMPR (any operand, including special)"}
+      - {name: ADDR, bits: [11,0],  description: "Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ)"}
+notes:
+  - "L bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false."
+---
+kind: enum
+name: alu_ops
+title: "ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])"
+width: 5
+entries:
+  - {value: 0,  name: MOV,  description: "cls=00, fn=00, inv=0: d = s"}
+  - {value: 1,  name: MVN,  description: "cls=00, fn=00, inv=1: d = ~s"}
+  - {value: 2,  name: AND,  description: "cls=00, fn=01, inv=0: d = d & s"}
+  - {value: 3,  name: BIC,  description: "cls=00, fn=01, inv=1: d = d & ~s"}
+  - {value: 4,  name: OR,   description: "cls=00, fn=10, inv=0: d = d | s"}
+  - {value: 5,  name: ORN,  description: "cls=00, fn=10, inv=1: d = d | ~s"}
+  - {value: 6,  name: XOR,  description: "cls=00, fn=11, inv=0: d = d ^ s"}
+  - {value: 7,  name: XNOR, description: "cls=00, fn=11, inv=1: d = d ^ ~s"}
+  - {value: 8,  name: ADD,  description: "cls=01, fn=00, cin=0: d = d + s"}
+  - {value: 9,  name: ADC,  description: "cls=01, fn=00, cin=C: d = d + s + C"}
+  - {value: 10, name: SUB,  description: "cls=01, fn=01, cin=1: d = d - s; C = not borrow"}
+  - {value: 11, name: SBC,  description: "cls=01, fn=01, cin=C: d = d - s - (1-C)"}
+  - {value: 12, name: ROR,  description: "cls=10, fn=00: 16-bit rotate right by s[3:0]"}
+  - {value: 13, name: reserved, description: "cls=10, fn=00, op[0]=1 — reserved"}
+  - {value: 14, name: SHR,  description: "cls=10, fn=01: ROR with zero fill"}
+  - {value: 15, name: reserved, description: "cls=10, fn=01, op[0]=1 — reserved"}
+  - {value: 16, name: SAR,  description: "cls=10, fn=10: ROR with bit 15 fill (arithmetic)"}
+  - {value: 17, name: reserved, description: "cls=10, fn=10, op[0]=1 — reserved"}
+  - {value: "18..23", name: reserved, description: "cls=10, fn=11 and others — reserved"}
+  - {value: 24, name: MUL,  description: "cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI"}
+  - {value: "25..27", name: reserved, description: "cls=11, fn=00, op[0]=1 or fn=01 — reserved"}
+  - {value: 28, name: TST,  description: "cls=11, fn=10: d & s, result discarded, flags written"}
+  - {value: 29, name: reserved, description: "cls=11, fn=10, op[0]=1 — reserved"}
+  - {value: 30, name: CMP,  description: "cls=11, fn=11: d - s, result discarded, flags written"}
+  - {value: 31, name: reserved, description: "cls=11, fn=11, op[0]=1 — reserved"}
+notes:
+  - "Writing to ZERO discards the result. NOP = MOV ZERO, ZERO."
+---
+kind: enum
+name: conditions
+title: "COND (4 bits, ARM-style)"
+width: 4
+entries:
+  - {value: 0,  name: AL, description: "Always"}
+  - {value: 1,  name: EQ, description: "Z=1"}
+  - {value: 2,  name: NE, description: "Z=0"}
+  - {value: 3,  name: CS, description: "C=1 (unsigned >=)"}
+  - {value: 4,  name: CC, description: "C=0 (unsigned <)"}
+  - {value: 5,  name: MI, description: "N=1"}
+  - {value: 6,  name: PL, description: "N=0"}
+  - {value: 7,  name: VS, description: "V=1"}
+  - {value: 8,  name: VC, description: "V=0"}
+  - {value: 9,  name: HI, description: "C=1 and Z=0"}
+  - {value: 10, name: LS, description: "C=0 or Z=1"}
+  - {value: 11, name: GE, description: "N=V"}
+  - {value: 12, name: LT, description: "N!=V"}
+  - {value: 13, name: GT, description: "Z=0 and N=V"}
+  - {value: 14, name: LE, description: "Z=1 or N!=V"}
+  - {value: 15, name: NV, description: "Never (default=false)"}
+---
+kind: enum
+name: ctrl_ops
+title: "CTRL OP (J=1, I=0)"
+width: 5
+entries:
+  - {value: 0, name: NOP,   description: "Nothing"}
+  - {value: 1, name: JMP,   description: "PC = ADDR"}
+  - {value: 2, name: CALL,  description: "SHADOW[15:12] = flags, SHADOW[11:0] = PC+1; PC = ADDR"}
+  - {value: 3, name: RET,   description: "PC = SHADOW[11:0]; flags not restored"}
+  - {value: 4, name: JMPR,  description: "PC = operand[REG][11:0]"}
+  - {value: 5, name: HALT,  description: "ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code)"}
+  - {value: 6, name: IRQ,   description: "Raise IRQ, code = ADDR"}
+  - {value: 7, name: FLUSH, description: "Flush cache channel imm12[1:0]"}
+---
+kind: enum
+name: operand_map
+title: "Operand map (6 bits, 0..63)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "0..31", name: "R0..R31", read: "16-bit value", write: "16-bit value"}
+  - {value: 32, name: "ZERO",     read: "0", write: "Ignored"}
+  - {value: 33, name: "FLAGS",    read: "[3:0] = V C N Z", write: "[3:0]"}
+  - {value: 34, name: "SHADOW",   read: "[15:12] flags, [11:0] PC+1", write: "[11:0] PC"}
+  - {value: 35, name: "LOOP_CNT", read: "Loop counter", write: "Loop counter"}
+  - {value: 36, name: "LOOP_TGT", read: "Loop target", write: "Loop target"}
+  - {value: 37, name: "BUSY",     read: "{wb_cyc, flush_done, access_done, hit}", write: "-"}
+  - {value: 38, name: "MHI",      read: "Upper 16 bits of MUL", write: "-"}
+  - {value: 39, name: "reserved", read: "0", write: "-"}
+  - {value: "40..43", name: "DATA[0..3]", read: "pixel_out from channel ch", write: "pixel_in to channel ch"}
+  - {value: "44..47", name: "reserved", read: "0", write: "-"}
+  - {value: "48..63", name: "CH[ch]_{IDX,IDXH,STEP,MODE_PAGE}", read: "-", write: "Write-only channel register"}

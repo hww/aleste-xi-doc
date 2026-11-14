@@ -1,5 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="220" viewBox="0 0 1200 220" style="background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-<text x="32" y="45" style="font: 700 24px sans-serif; fill: #000000;">RMR — Control, ROM Mapping, Graphics Mode</text>
-<text x="32" y="75" style="font: 16px sans-serif; fill: #555555;">8-bit bitfield</text>
-<text x="103.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">7</text><line x1="32.0" y1="120" x2="32.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="245.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">6</text><line x1="174.0" y1="120" x2="174.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="387.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">5</text><line x1="316.0" y1="120" x2="316.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="529.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">4</text><line x1="458.0" y1="120" x2="458.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="671.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">3</text><line x1="600.0" y1="120" x2="600.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="813.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">2</text><line x1="742.0" y1="120" x2="742.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="955.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">1</text><line x1="884.0" y1="120" x2="884.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="1097.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">0</text><line x1="1026.0" y1="120" x2="1026.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><line x1="1168.0" y1="120" x2="1168.0" y2="170" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><rect x="32.0" y="120" width="142.0" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="103.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">B7</text><rect x="174.0" y="120" width="142.0" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="2"/><text x="245.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">B6</text><rect x="316.0" y="120" width="142.0" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="387.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">B5</text><rect x="458.0" y="120" width="142.0" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="2"/><text x="529.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">IRQ_CTRL</text><rect x="600.0" y="120" width="142.0" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="671.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">UPPER_ROM</text><rect x="742.0" y="120" width="142.0" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="2"/><text x="813.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">LOWER_ROM</text><rect x="884.0" y="120" width="284.0" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="1026.0" y="151.0" text-anchor="middle" style="font: 700 16px sans-serif;">GRAPHIC_MODE</text><line x1="32.0" y1="120" x2="32.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="174.0" y1="120" x2="174.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="316.0" y1="120" x2="316.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="458.0" y1="120" x2="458.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="600.0" y1="120" x2="600.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="742.0" y1="120" x2="742.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="884.0" y1="120" x2="884.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="1026.0" y1="120" x2="1026.0" y2="127.5" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="120" x2="1168.0" y2="127.5" stroke="#000000" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="569.6" height="184" viewBox="0 0 569.6 184">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="569.6" height="184" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">RMR — Control, ROM Mapping, Graphics Mode</text>
+<text x="32" y="62" font-size="14" fill="#555555">8-bit register</text>
+<text x="50" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">7</text>
+<text x="86" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">6</text>
+<text x="122" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">5</text>
+<text x="158" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">4</text>
+<text x="194" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">3</text>
+<text x="230" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">2</text>
+<text x="266" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">1</text>
+<text x="302" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">0</text>
+<rect x="32" y="104" width="288" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="32" y="104" width="36" height="50" fill="#DCE8F6" stroke="#000000" stroke-width="1.5"/>
+<text x="50" y="126" font-size="12" text-anchor="middle" fill="#000000" font-weight="700">B7</text>
+<text x="50" y="141" font-size="11" text-anchor="middle" fill="#1A3A6A" class="m">1</text>
+<rect x="68" y="104" width="36" height="50" fill="#DCE8F6" stroke="#000000" stroke-width="1.5"/>
+<text x="86" y="126" font-size="12" text-anchor="middle" fill="#000000" font-weight="700">B6</text>
+<text x="86" y="141" font-size="11" text-anchor="middle" fill="#1A3A6A" class="m">0</text>
+<rect x="104" y="104" width="36" height="50" fill="#DCE8F6" stroke="#000000" stroke-width="1.5"/>
+<text x="122" y="126" font-size="12" text-anchor="middle" fill="#000000" font-weight="700">B5</text>
+<text x="122" y="141" font-size="11" text-anchor="middle" fill="#1A3A6A" class="m">0</text>
+<rect x="140" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="158" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">IRQ_…</text>
+<rect x="176" y="104" width="36" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="194" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">UPPE…</text>
+<rect x="212" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="230" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">LOW…</text>
+<rect x="248" y="104" width="72" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="284" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">GRAPHIC_MO…</text>
+<line x1="284" y1="104" x2="284" y2="111" stroke="#000000" stroke-width="1"/>
 </svg>

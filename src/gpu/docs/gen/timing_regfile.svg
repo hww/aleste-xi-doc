@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="792.8" height="476" viewBox="0 0 792.8 476">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="792.8" height="476" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">regfile: write mem_R5 (t2), read q_a (t2), bypass (t1, same-cycle)</text>
+<text x="32" y="62" font-size="14" fill="#555555">5 ticks</text>
+<line x1="94.6" y1="108" x2="94.6" y2="448" stroke="#CCCCCC" stroke-width="1"/>
+<text x="130.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
+<line x1="166.6" y1="108" x2="166.6" y2="448" stroke="#CCCCCC" stroke-width="1"/>
+<text x="202.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
+<line x1="238.6" y1="108" x2="238.6" y2="448" stroke="#CCCCCC" stroke-width="1"/>
+<text x="274.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
+<line x1="310.6" y1="108" x2="310.6" y2="448" stroke="#CCCCCC" stroke-width="1"/>
+<text x="346.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
+<line x1="382.6" y1="108" x2="382.6" y2="448" stroke="#CCCCCC" stroke-width="1"/>
+<text x="418.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
+<line x1="454.6" y1="108" x2="454.6" y2="448" stroke="#CCCCCC" stroke-width="1"/>
+<text x="82.6" y="138" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
+<path d="M94.6 145 L94.6 121 L130.6 121 L130.6 145 L166.6 145 M166.6 145 L166.6 121 L202.6 121 L202.6 145 L238.6 145 M238.6 145 L238.6 121 L274.6 121 L274.6 145 L310.6 145 M310.6 145 L310.6 121 L346.6 121 L346.6 145 L382.6 145 M382.6 145 L382.6 121 L418.6 121 L418.6 145 L454.6 145" fill="none" stroke="#000000" stroke-width="2"/>
+<text x="82.6" y="180" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">we</text>
+<line x1="94.6" y1="187" x2="166.6" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="166.6" y1="163" x2="238.6" y2="163" stroke="#000000" stroke-width="2"/>
+<line x1="166.6" y1="163" x2="166.6" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="238.6" y1="187" x2="310.6" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="238.6" y1="163" x2="238.6" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="310.6" y1="187" x2="382.6" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="382.6" y1="187" x2="454.6" y2="187" stroke="#000000" stroke-width="2"/>
+<text x="82.6" y="222" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wa</text>
+<polygon points="100.6,205 160.6,205 166.6,217 160.6,229 100.6,229 94.6,217" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="221.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="172.6,205 232.6,205 238.6,217 232.6,229 172.6,229 166.6,217" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="221.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<polygon points="244.6,205 304.6,205 310.6,217 304.6,229 244.6,229 238.6,217" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="221.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="316.6,205 376.6,205 382.6,217 376.6,229 316.6,229 310.6,217" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="221.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="388.6,205 448.6,205 454.6,217 448.6,229 388.6,229 382.6,217" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="221.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<text x="82.6" y="264" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wdata</text>
+<polygon points="100.6,247 160.6,247 166.6,259 160.6,271 100.6,271 94.6,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="263.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="172.6,247 232.6,247 238.6,259 232.6,271 172.6,271 166.6,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="263.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="244.6,247 304.6,247 310.6,259 304.6,271 244.6,271 238.6,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="263.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="316.6,247 376.6,247 382.6,259 376.6,271 316.6,271 310.6,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="263.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="388.6,247 448.6,247 454.6,259 448.6,271 388.6,271 382.6,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="263.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<text x="82.6" y="306" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">mem_R5</text>
+<polygon points="100.6,289 160.6,289 166.6,301 160.6,313 100.6,313 94.6,301" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="305.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
+<polygon points="172.6,289 232.6,289 238.6,301 232.6,313 172.6,313 166.6,301" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="305.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
+<polygon points="244.6,289 304.6,289 310.6,301 304.6,313 244.6,313 238.6,301" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="305.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="316.6,289 376.6,289 382.6,301 376.6,313 316.6,313 310.6,301" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="305.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="388.6,289 448.6,289 454.6,301 448.6,313 388.6,313 382.6,301" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="305.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<text x="82.6" y="348" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">ra</text>
+<polygon points="100.6,331 160.6,331 166.6,343 160.6,355 100.6,355 94.6,343" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<polygon points="172.6,331 232.6,331 238.6,343 232.6,355 172.6,355 166.6,343" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<polygon points="244.6,331 304.6,331 310.6,343 304.6,355 244.6,355 238.6,343" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<polygon points="316.6,331 376.6,331 382.6,343 376.6,355 316.6,355 310.6,343" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<polygon points="388.6,331 448.6,331 454.6,343 448.6,355 388.6,355 382.6,343" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<text x="82.6" y="390" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">q_a</text>
+<polygon points="100.6,373 160.6,373 166.6,385 160.6,397 100.6,397 94.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
+<polygon points="172.6,373 232.6,373 238.6,385 232.6,397 172.6,397 166.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
+<polygon points="244.6,373 304.6,373 310.6,385 304.6,397 244.6,397 238.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="316.6,373 376.6,373 382.6,385 376.6,397 316.6,397 310.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="388.6,373 448.6,373 454.6,385 448.6,397 388.6,397 382.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<text x="82.6" y="432" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">rdata_a</text>
+<polygon points="100.6,415 160.6,415 166.6,427 160.6,439 100.6,439 94.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
+<polygon points="172.6,415 232.6,415 238.6,427 232.6,439 172.6,439 166.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="244.6,415 304.6,415 310.6,427 304.6,439 244.6,439 238.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="316.6,415 376.6,415 382.6,427 376.6,439 316.6,439 310.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+<polygon points="388.6,415 448.6,415 454.6,427 448.6,439 388.6,439 382.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">1234</text>
+</svg>

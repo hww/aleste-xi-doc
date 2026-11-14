@@ -1,12 +1,11 @@
-kind: code_list
+kind: enum
 name: crtc_table_sync
-output: [md]
 title: "Sync Strobe Generation"
-fields: [code, strobe, desc]
+width: 4
 entries:
-  - {code: "0xF", strobe: "stb_char_o", desc: "One pulse every 16 pixel clocks"}
-  - {code: "0x3", strobe: "stb_sync1_o", desc: "Pulse at pixel 4 within a character"}
-  - {code: "0xB", strobe: "stb_sync2_o", desc: "Pulse at pixel 12 within a character"}
+  - {value: "0xF", name: "0xF", description: "stb_char_o — one pulse every 16 pixel clocks"}
+  - {value: "0x3", name: "0x3", description: "stb_sync1_o — pulse at pixel 4 within a character"}
+  - {value: "0xB", name: "0xB", description: "stb_sync2_o — pulse at pixel 12 within a character"}
 notes:
-  - "Строб генерируется, когда `pix_x[3:0]` совпадает со значением `code`."
-  - "`stb_char_o` — один импульс каждые 16 пиксельных тактов."
+  - "Strobe is generated when `pix_x[3:0]` matches the `code` value."
+  - "`stb_char_o` — one pulse every 16 pixel clocks."

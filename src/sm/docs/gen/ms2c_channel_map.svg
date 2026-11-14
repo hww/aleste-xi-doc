@@ -1,5 +1,211 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="810" viewBox="0 0 1200 810" style="background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-<text x="32" y="45" style="font: 700 24px sans-serif; fill: #000000;">Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)</text>
-<text x="32" y="75" style="font: 16px sans-serif; fill: #555555;">8-bit register map</text>
-<text x="208.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">7</text><line x1="144.0" y1="120" x2="144.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="336.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">6</text><line x1="272.0" y1="120" x2="272.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="464.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">5</text><line x1="400.0" y1="120" x2="400.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="592.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">4</text><line x1="528.0" y1="120" x2="528.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="720.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">3</text><line x1="656.0" y1="120" x2="656.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="848.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">2</text><line x1="784.0" y1="120" x2="784.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="976.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">1</text><line x1="912.0" y1="120" x2="912.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="1104.0" y="110" text-anchor="middle" style="font: 12px monospace; fill:#666;">0</text><line x1="1040.0" y1="120" x2="1040.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><line x1="1168.0" y1="120" x2="1168.0" y2="760" stroke="#000000" stroke-dasharray="2,2" stroke-width="1"/><text x="32" y="145.0" style="font: 700 14px monospace;">+0</text><text x="58" y="145.0" style="font: 700 14px sans-serif;">CTRL</text><rect x="656.0" y="120" width="128.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="720.0" y="146.0" text-anchor="middle" style="font: 700 14px sans-serif;">IRQ</text><rect x="784.0" y="120" width="128.0" height="40" fill="#E0E0E0" stroke="#000000" stroke-width="2"/><text x="848.0" y="146.0" text-anchor="middle" style="font: 700 14px sans-serif;">16BIT</text><rect x="912.0" y="120" width="128.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="976.0" y="146.0" text-anchor="middle" style="font: 700 14px sans-serif;">LOOP</text><rect x="1040.0" y="120" width="128.0" height="40" fill="#E0E0E0" stroke="#000000" stroke-width="2"/><text x="1104.0" y="146.0" text-anchor="middle" style="font: 700 14px sans-serif;">PLAY</text><line x1="656.0" y1="120" x2="656.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="120" x2="784.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="120" x2="784.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="120" x2="912.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="120" x2="912.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="1040.0" y1="120" x2="1040.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="1040.0" y1="120" x2="1040.0" y2="126.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="120" x2="1168.0" y2="126.0" stroke="#000000" stroke-width="1"/><text x="32" y="185.0" style="font: 700 14px monospace;">+1</text><text x="58" y="185.0" style="font: 700 14px sans-serif;">START_0</text><rect x="144.0" y="160" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="186.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_0</text><line x1="1040.0" y1="160" x2="1040.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="160" x2="912.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="160" x2="784.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="160" x2="656.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="160" x2="528.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="160" x2="400.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="160" x2="272.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="160" x2="144.0" y2="166.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="160" x2="1168.0" y2="166.0" stroke="#000000" stroke-width="1"/><text x="32" y="225.0" style="font: 700 14px monospace;">+2</text><text x="58" y="225.0" style="font: 700 14px sans-serif;">START_1</text><rect x="144.0" y="200" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="226.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_1</text><line x1="1040.0" y1="200" x2="1040.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="200" x2="912.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="200" x2="784.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="200" x2="656.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="200" x2="528.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="200" x2="400.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="200" x2="272.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="200" x2="144.0" y2="206.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="200" x2="1168.0" y2="206.0" stroke="#000000" stroke-width="1"/><text x="32" y="265.0" style="font: 700 14px monospace;">+3</text><text x="58" y="265.0" style="font: 700 14px sans-serif;">START_2</text><rect x="144.0" y="240" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="266.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_2</text><line x1="1040.0" y1="240" x2="1040.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="240" x2="912.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="240" x2="784.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="240" x2="656.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="240" x2="528.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="240" x2="400.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="240" x2="272.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="240" x2="144.0" y2="246.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="240" x2="1168.0" y2="246.0" stroke="#000000" stroke-width="1"/><text x="32" y="305.0" style="font: 700 14px monospace;">+4</text><text x="58" y="305.0" style="font: 700 14px sans-serif;">END_0</text><rect x="144.0" y="280" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="306.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_0</text><line x1="1040.0" y1="280" x2="1040.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="280" x2="912.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="280" x2="784.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="280" x2="656.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="280" x2="528.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="280" x2="400.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="280" x2="272.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="280" x2="144.0" y2="286.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="280" x2="1168.0" y2="286.0" stroke="#000000" stroke-width="1"/><text x="32" y="345.0" style="font: 700 14px monospace;">+5</text><text x="58" y="345.0" style="font: 700 14px sans-serif;">END_1</text><rect x="144.0" y="320" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="346.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_1</text><line x1="1040.0" y1="320" x2="1040.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="320" x2="912.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="320" x2="784.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="320" x2="656.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="320" x2="528.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="320" x2="400.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="320" x2="272.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="320" x2="144.0" y2="326.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="320" x2="1168.0" y2="326.0" stroke="#000000" stroke-width="1"/><text x="32" y="385.0" style="font: 700 14px monospace;">+6</text><text x="58" y="385.0" style="font: 700 14px sans-serif;">END_2</text><rect x="144.0" y="360" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="386.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_2</text><line x1="1040.0" y1="360" x2="1040.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="360" x2="912.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="360" x2="784.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="360" x2="656.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="360" x2="528.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="360" x2="400.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="360" x2="272.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="360" x2="144.0" y2="366.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="360" x2="1168.0" y2="366.0" stroke="#000000" stroke-width="1"/><text x="32" y="425.0" style="font: 700 14px monospace;">+7</text><text x="58" y="425.0" style="font: 700 14px sans-serif;">LOOP_0</text><rect x="144.0" y="400" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="426.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_0</text><line x1="1040.0" y1="400" x2="1040.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="400" x2="912.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="400" x2="784.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="400" x2="656.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="400" x2="528.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="400" x2="400.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="400" x2="272.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="400" x2="144.0" y2="406.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="400" x2="1168.0" y2="406.0" stroke="#000000" stroke-width="1"/><text x="32" y="465.0" style="font: 700 14px monospace;">+8</text><text x="58" y="465.0" style="font: 700 14px sans-serif;">LOOP_1</text><rect x="144.0" y="440" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="466.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_1</text><line x1="1040.0" y1="440" x2="1040.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="440" x2="912.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="440" x2="784.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="440" x2="656.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="440" x2="528.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="440" x2="400.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="440" x2="272.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="440" x2="144.0" y2="446.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="440" x2="1168.0" y2="446.0" stroke="#000000" stroke-width="1"/><text x="32" y="505.0" style="font: 700 14px monospace;">+9</text><text x="58" y="505.0" style="font: 700 14px sans-serif;">LOOP_2</text><rect x="144.0" y="480" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="506.0" text-anchor="middle" style="font: 700 14px sans-serif;">ADDR_2</text><line x1="1040.0" y1="480" x2="1040.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="480" x2="912.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="480" x2="784.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="480" x2="656.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="480" x2="528.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="480" x2="400.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="480" x2="272.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="480" x2="144.0" y2="486.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="480" x2="1168.0" y2="486.0" stroke="#000000" stroke-width="1"/><text x="32" y="545.0" style="font: 700 14px monospace;">+A</text><text x="58" y="545.0" style="font: 700 14px sans-serif;">VOL_L</text><rect x="144.0" y="520" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="546.0" text-anchor="middle" style="font: 700 14px sans-serif;">VOL_L</text><line x1="1040.0" y1="520" x2="1040.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="520" x2="912.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="520" x2="784.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="520" x2="656.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="520" x2="528.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="520" x2="400.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="520" x2="272.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="520" x2="144.0" y2="526.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="520" x2="1168.0" y2="526.0" stroke="#000000" stroke-width="1"/><text x="32" y="585.0" style="font: 700 14px monospace;">+B</text><text x="58" y="585.0" style="font: 700 14px sans-serif;">VOL_R</text><rect x="144.0" y="560" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="586.0" text-anchor="middle" style="font: 700 14px sans-serif;">VOL_R</text><line x1="1040.0" y1="560" x2="1040.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="560" x2="912.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="560" x2="784.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="560" x2="656.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="560" x2="528.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="560" x2="400.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="560" x2="272.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="560" x2="144.0" y2="566.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="560" x2="1168.0" y2="566.0" stroke="#000000" stroke-width="1"/><text x="32" y="625.0" style="font: 700 14px monospace;">+C</text><text x="58" y="625.0" style="font: 700 14px sans-serif;">STEP_0</text><rect x="144.0" y="600" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="626.0" text-anchor="middle" style="font: 700 14px sans-serif;">FRAC_0</text><line x1="1040.0" y1="600" x2="1040.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="600" x2="912.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="600" x2="784.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="600" x2="656.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="600" x2="528.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="600" x2="400.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="600" x2="272.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="600" x2="144.0" y2="606.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="600" x2="1168.0" y2="606.0" stroke="#000000" stroke-width="1"/><text x="32" y="665.0" style="font: 700 14px monospace;">+D</text><text x="58" y="665.0" style="font: 700 14px sans-serif;">STEP_1</text><rect x="144.0" y="640" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="666.0" text-anchor="middle" style="font: 700 14px sans-serif;">FRAC_1</text><line x1="1040.0" y1="640" x2="1040.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="640" x2="912.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="640" x2="784.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="640" x2="656.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="640" x2="528.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="640" x2="400.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="640" x2="272.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="640" x2="144.0" y2="646.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="640" x2="1168.0" y2="646.0" stroke="#000000" stroke-width="1"/><text x="32" y="705.0" style="font: 700 14px monospace;">+E</text><text x="58" y="705.0" style="font: 700 14px sans-serif;">STEP_2</text><rect x="144.0" y="680" width="1024.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="656.0" y="706.0" text-anchor="middle" style="font: 700 14px sans-serif;">INT</text><line x1="1040.0" y1="680" x2="1040.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="680" x2="912.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="784.0" y1="680" x2="784.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="680" x2="656.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="528.0" y1="680" x2="528.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="680" x2="400.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="680" x2="272.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="680" x2="144.0" y2="686.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="680" x2="1168.0" y2="686.0" stroke="#000000" stroke-width="1"/><text x="32" y="745.0" style="font: 700 14px monospace;">+F</text><text x="58" y="745.0" style="font: 700 14px sans-serif;">Status</text><rect x="144.0" y="720" width="512.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="400.0" y="746.0" text-anchor="middle" style="font: 700 14px sans-serif;">POS_HI</text><rect x="912.0" y="720" width="128.0" height="40" fill="#E0E0E0" stroke="#000000" stroke-width="2"/><text x="976.0" y="746.0" text-anchor="middle" style="font: 700 14px sans-serif;">EOF</text><rect x="1040.0" y="720" width="128.0" height="40" fill="#F2F2F2" stroke="#000000" stroke-width="2"/><text x="1104.0" y="746.0" text-anchor="middle" style="font: 700 14px sans-serif;">PLAYING</text><line x1="528.0" y1="720" x2="528.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="400.0" y1="720" x2="400.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="272.0" y1="720" x2="272.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="144.0" y1="720" x2="144.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="656.0" y1="720" x2="656.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="912.0" y1="720" x2="912.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="1040.0" y1="720" x2="1040.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="1040.0" y1="720" x2="1040.0" y2="726.0" stroke="#000000" stroke-width="1"/><line x1="1168.0" y1="720" x2="1168.0" y2="726.0" stroke="#000000" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="753.7" height="1080" viewBox="0 0 753.7 1080">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="753.7" height="1080" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)</text>
+<text x="32" y="62" font-size="14" fill="#555555">8-bit registers</text>
+<text x="132.9" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">7</text>
+<text x="240.9" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">4</text>
+<text x="276.9" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">3</text>
+<text x="312.9" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">2</text>
+<text x="348.9" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">1</text>
+<text x="384.9" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">0</text>
+<text x="32" y="132" font-size="13" text-anchor="start" fill="#000000" font-weight="700">CTRL</text>
+<text x="32" y="148" font-size="11" text-anchor="start" fill="#555555" class="m">0x00</text>
+<rect x="114.9" y="112" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="258.9" y="112" width="36" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="276.9" y="139.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">IRQ</text>
+<rect x="294.9" y="112" width="36" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="312.9" y="138.5" font-size="10" text-anchor="middle" fill="#000000" font-weight="700">16BIT</text>
+<rect x="330.9" y="112" width="36" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="348.9" y="138.5" font-size="10" text-anchor="middle" fill="#000000" font-weight="700">LOOP</text>
+<rect x="366.9" y="112" width="36" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="384.9" y="138.5" font-size="10" text-anchor="middle" fill="#000000" font-weight="700">PLAY</text>
+<text x="32" y="192" font-size="13" text-anchor="start" fill="#000000" font-weight="700">START_0</text>
+<text x="32" y="208" font-size="11" text-anchor="start" fill="#555555" class="m">0x01</text>
+<rect x="114.9" y="172" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="172" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="199.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_0</text>
+<line x1="150.9" y1="172" x2="150.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="172" x2="186.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="172" x2="222.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="172" x2="258.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="172" x2="294.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="172" x2="330.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="172" x2="366.9" y2="178.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="252" font-size="13" text-anchor="start" fill="#000000" font-weight="700">START_1</text>
+<text x="32" y="268" font-size="11" text-anchor="start" fill="#555555" class="m">0x02</text>
+<rect x="114.9" y="232" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="232" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="259.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_1</text>
+<line x1="150.9" y1="232" x2="150.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="232" x2="186.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="232" x2="222.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="232" x2="258.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="232" x2="294.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="232" x2="330.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="232" x2="366.9" y2="238.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="312" font-size="13" text-anchor="start" fill="#000000" font-weight="700">START_2</text>
+<text x="32" y="328" font-size="11" text-anchor="start" fill="#555555" class="m">0x03</text>
+<rect x="114.9" y="292" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="292" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="319.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_2</text>
+<line x1="150.9" y1="292" x2="150.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="292" x2="186.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="292" x2="222.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="292" x2="258.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="292" x2="294.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="292" x2="330.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="292" x2="366.9" y2="298.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="372" font-size="13" text-anchor="start" fill="#000000" font-weight="700">END_0</text>
+<text x="32" y="388" font-size="11" text-anchor="start" fill="#555555" class="m">0x04</text>
+<rect x="114.9" y="352" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="352" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="379.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_0</text>
+<line x1="150.9" y1="352" x2="150.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="352" x2="186.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="352" x2="222.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="352" x2="258.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="352" x2="294.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="352" x2="330.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="352" x2="366.9" y2="358.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="432" font-size="13" text-anchor="start" fill="#000000" font-weight="700">END_1</text>
+<text x="32" y="448" font-size="11" text-anchor="start" fill="#555555" class="m">0x05</text>
+<rect x="114.9" y="412" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="412" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="439.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_1</text>
+<line x1="150.9" y1="412" x2="150.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="412" x2="186.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="412" x2="222.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="412" x2="258.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="412" x2="294.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="412" x2="330.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="412" x2="366.9" y2="418.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="492" font-size="13" text-anchor="start" fill="#000000" font-weight="700">END_2</text>
+<text x="32" y="508" font-size="11" text-anchor="start" fill="#555555" class="m">0x06</text>
+<rect x="114.9" y="472" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="472" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="499.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_2</text>
+<line x1="150.9" y1="472" x2="150.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="472" x2="186.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="472" x2="222.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="472" x2="258.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="472" x2="294.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="472" x2="330.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="472" x2="366.9" y2="478.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="552" font-size="13" text-anchor="start" fill="#000000" font-weight="700">LOOP_0</text>
+<text x="32" y="568" font-size="11" text-anchor="start" fill="#555555" class="m">0x07</text>
+<rect x="114.9" y="532" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="532" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="559.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_0</text>
+<line x1="150.9" y1="532" x2="150.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="532" x2="186.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="532" x2="222.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="532" x2="258.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="532" x2="294.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="532" x2="330.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="532" x2="366.9" y2="538.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="612" font-size="13" text-anchor="start" fill="#000000" font-weight="700">LOOP_1</text>
+<text x="32" y="628" font-size="11" text-anchor="start" fill="#555555" class="m">0x08</text>
+<rect x="114.9" y="592" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="592" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="619.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_1</text>
+<line x1="150.9" y1="592" x2="150.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="592" x2="186.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="592" x2="222.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="592" x2="258.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="592" x2="294.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="592" x2="330.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="592" x2="366.9" y2="598.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="672" font-size="13" text-anchor="start" fill="#000000" font-weight="700">LOOP_2</text>
+<text x="32" y="688" font-size="11" text-anchor="start" fill="#555555" class="m">0x09</text>
+<rect x="114.9" y="652" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="652" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="679.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR_2</text>
+<line x1="150.9" y1="652" x2="150.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="652" x2="186.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="652" x2="222.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="652" x2="258.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="652" x2="294.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="652" x2="330.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="652" x2="366.9" y2="658.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="732" font-size="13" text-anchor="start" fill="#000000" font-weight="700">VOL_L</text>
+<text x="32" y="748" font-size="11" text-anchor="start" fill="#555555" class="m">0x0A</text>
+<rect x="114.9" y="712" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="712" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="739.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">VOL_L</text>
+<line x1="150.9" y1="712" x2="150.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="712" x2="186.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="712" x2="222.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="712" x2="258.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="712" x2="294.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="712" x2="330.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="712" x2="366.9" y2="718.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="792" font-size="13" text-anchor="start" fill="#000000" font-weight="700">VOL_R</text>
+<text x="32" y="808" font-size="11" text-anchor="start" fill="#555555" class="m">0x0B</text>
+<rect x="114.9" y="772" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="772" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="799.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">VOL_R</text>
+<line x1="150.9" y1="772" x2="150.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="772" x2="186.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="772" x2="222.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="772" x2="258.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="772" x2="294.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="772" x2="330.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="772" x2="366.9" y2="778.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="852" font-size="13" text-anchor="start" fill="#000000" font-weight="700">STEP_0</text>
+<text x="32" y="868" font-size="11" text-anchor="start" fill="#555555" class="m">0x0C</text>
+<rect x="114.9" y="832" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="832" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="859.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">FRAC_0</text>
+<line x1="150.9" y1="832" x2="150.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="832" x2="186.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="832" x2="222.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="832" x2="258.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="832" x2="294.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="832" x2="330.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="832" x2="366.9" y2="838.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="912" font-size="13" text-anchor="start" fill="#000000" font-weight="700">STEP_1</text>
+<text x="32" y="928" font-size="11" text-anchor="start" fill="#555555" class="m">0x0D</text>
+<rect x="114.9" y="892" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="892" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="919.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">FRAC_1</text>
+<line x1="150.9" y1="892" x2="150.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="892" x2="186.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="892" x2="222.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="892" x2="258.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="892" x2="294.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="892" x2="330.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="892" x2="366.9" y2="898.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="972" font-size="13" text-anchor="start" fill="#000000" font-weight="700">STEP_2</text>
+<text x="32" y="988" font-size="11" text-anchor="start" fill="#555555" class="m">0x0E</text>
+<rect x="114.9" y="952" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="952" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="258.9" y="979.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">INT</text>
+<line x1="150.9" y1="952" x2="150.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="952" x2="186.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="952" x2="222.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<line x1="258.9" y1="952" x2="258.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<line x1="294.9" y1="952" x2="294.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<line x1="330.9" y1="952" x2="330.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<line x1="366.9" y1="952" x2="366.9" y2="958.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="1032" font-size="13" text-anchor="start" fill="#000000" font-weight="700">Status</text>
+<text x="32" y="1048" font-size="11" text-anchor="start" fill="#555555" class="m">0x0F</text>
+<rect x="114.9" y="1012" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="114.9" y="1012" width="144" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="186.9" y="1039.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">POS_HI</text>
+<line x1="150.9" y1="1012" x2="150.9" y2="1018.4" stroke="#000000" stroke-width="1"/>
+<line x1="186.9" y1="1012" x2="186.9" y2="1018.4" stroke="#000000" stroke-width="1"/>
+<line x1="222.9" y1="1012" x2="222.9" y2="1018.4" stroke="#000000" stroke-width="1"/>
+<rect x="330.9" y="1012" width="36" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="348.9" y="1039.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">EOF</text>
+<rect x="366.9" y="1012" width="36" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="384.9" y="1038.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">PLAY…</text>
 </svg>

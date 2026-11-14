@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="549.2" height="434" viewBox="0 0 549.2 434">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="549.2" height="434" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">top: DATA read (3 cyc: cache + blender)</text>
+<text x="32" y="62" font-size="14" fill="#555555">5 ticks</text>
+<line x1="149.2" y1="108" x2="149.2" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="185.2" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
+<line x1="221.2" y1="108" x2="221.2" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="257.2" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
+<line x1="293.2" y1="108" x2="293.2" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="329.2" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
+<line x1="365.2" y1="108" x2="365.2" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="401.2" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
+<line x1="437.2" y1="108" x2="437.2" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="473.2" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
+<line x1="509.2" y1="108" x2="509.2" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="137.2" y="138" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
+<path d="M149.2 145 L149.2 121 L185.2 121 L185.2 145 L221.2 145 M221.2 145 L221.2 121 L257.2 121 L257.2 145 L293.2 145 M293.2 145 L293.2 121 L329.2 121 L329.2 145 L365.2 145 M365.2 145 L365.2 121 L401.2 121 L401.2 145 L437.2 145 M437.2 145 L437.2 121 L473.2 121 L473.2 145 L509.2 145" fill="none" stroke="#000000" stroke-width="2"/>
+<text x="137.2" y="180" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">pc</text>
+<polygon points="155.2,163 215.2,163 221.2,175 215.2,187 155.2,187 149.2,175" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="185.2" y="179.2" font-size="12" text-anchor="middle" fill="#000000">100</text>
+<polygon points="227.2,163 287.2,163 293.2,175 287.2,187 227.2,187 221.2,175" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="257.2" y="179.2" font-size="12" text-anchor="middle" fill="#000000">100</text>
+<polygon points="299.2,163 359.2,163 365.2,175 359.2,187 299.2,187 293.2,175" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="329.2" y="179.2" font-size="12" text-anchor="middle" fill="#000000">100</text>
+<polygon points="371.2,163 431.2,163 437.2,175 431.2,187 371.2,187 365.2,175" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="401.2" y="179.2" font-size="12" text-anchor="middle" fill="#000000">100</text>
+<polygon points="443.2,163 503.2,163 509.2,175 503.2,187 443.2,187 437.2,175" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="473.2" y="179.2" font-size="12" text-anchor="middle" fill="#000000">101</text>
+<text x="137.2" y="222" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">gc_access</text>
+<line x1="149.2" y1="229" x2="221.2" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="221.2" y1="205" x2="293.2" y2="205" stroke="#000000" stroke-width="2"/>
+<line x1="221.2" y1="205" x2="221.2" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="205" x2="365.2" y2="205" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="229" x2="437.2" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="205" x2="365.2" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="437.2" y1="229" x2="509.2" y2="229" stroke="#000000" stroke-width="2"/>
+<text x="137.2" y="264" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">gc_access_done</text>
+<line x1="149.2" y1="271" x2="221.2" y2="271" stroke="#000000" stroke-width="2"/>
+<line x1="221.2" y1="271" x2="293.2" y2="271" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="247" x2="365.2" y2="247" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="247" x2="293.2" y2="271" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="271" x2="437.2" y2="271" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="247" x2="365.2" y2="271" stroke="#000000" stroke-width="2"/>
+<line x1="437.2" y1="271" x2="509.2" y2="271" stroke="#000000" stroke-width="2"/>
+<text x="137.2" y="306" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">pb_start</text>
+<line x1="149.2" y1="313" x2="221.2" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="221.2" y1="313" x2="293.2" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="289" x2="365.2" y2="289" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="289" x2="293.2" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="313" x2="437.2" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="289" x2="365.2" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="437.2" y1="313" x2="509.2" y2="313" stroke="#000000" stroke-width="2"/>
+<text x="137.2" y="348" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">pb_ack</text>
+<line x1="149.2" y1="355" x2="221.2" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="221.2" y1="355" x2="293.2" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="355" x2="365.2" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="331" x2="437.2" y2="331" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="331" x2="365.2" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="437.2" y1="355" x2="509.2" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="437.2" y1="331" x2="437.2" y2="355" stroke="#000000" stroke-width="2"/>
+<text x="137.2" y="390" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">ack</text>
+<line x1="149.2" y1="397" x2="221.2" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="221.2" y1="397" x2="293.2" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="293.2" y1="397" x2="365.2" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="373" x2="437.2" y2="373" stroke="#000000" stroke-width="2"/>
+<line x1="365.2" y1="373" x2="365.2" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="437.2" y1="373" x2="509.2" y2="373" stroke="#000000" stroke-width="2"/>
+</svg>

@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="741.8" height="434" viewBox="0 0 741.8 434">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="741.8" height="434" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">gpu_cache: hit (1 cyc), miss/fill (3+ cyc)</text>
+<text x="32" y="62" font-size="14" fill="#555555">8 ticks</text>
+<line x1="125.8" y1="108" x2="125.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="161.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
+<line x1="197.8" y1="108" x2="197.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="233.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
+<line x1="269.8" y1="108" x2="269.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="305.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
+<line x1="341.8" y1="108" x2="341.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="377.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
+<line x1="413.8" y1="108" x2="413.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="449.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
+<line x1="485.8" y1="108" x2="485.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="521.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T6</text>
+<line x1="557.8" y1="108" x2="557.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="593.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T7</text>
+<line x1="629.8" y1="108" x2="629.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="665.8" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T8</text>
+<line x1="701.8" y1="108" x2="701.8" y2="406" stroke="#CCCCCC" stroke-width="1"/>
+<text x="113.8" y="138" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
+<path d="M125.8 145 L125.8 121 L161.8 121 L161.8 145 L197.8 145 M197.8 145 L197.8 121 L233.8 121 L233.8 145 L269.8 145 M269.8 145 L269.8 121 L305.8 121 L305.8 145 L341.8 145 M341.8 145 L341.8 121 L377.8 121 L377.8 145 L413.8 145 M413.8 145 L413.8 121 L449.8 121 L449.8 145 L485.8 145 M485.8 145 L485.8 121 L521.8 121 L521.8 145 L557.8 145 M557.8 145 L557.8 121 L593.8 121 L593.8 145 L629.8 145 M629.8 145 L629.8 121 L665.8 121 L665.8 145 L701.8 145" fill="none" stroke="#000000" stroke-width="2"/>
+<text x="113.8" y="180" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">access</text>
+<line x1="125.8" y1="187" x2="197.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="197.8" y1="163" x2="269.8" y2="163" stroke="#000000" stroke-width="2"/>
+<line x1="197.8" y1="163" x2="197.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="163" x2="341.8" y2="163" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="187" x2="413.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="163" x2="341.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="187" x2="485.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="163" x2="557.8" y2="163" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="163" x2="485.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="163" x2="629.8" y2="163" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="187" x2="701.8" y2="187" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="163" x2="629.8" y2="187" stroke="#000000" stroke-width="2"/>
+<text x="113.8" y="222" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">hit</text>
+<polygon points="131.8,205 191.8,205 197.8,217 191.8,229 131.8,229 125.8,217" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="161.8" y="221.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<line x1="197.8" y1="205" x2="269.8" y2="205" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="229" x2="341.8" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="205" x2="269.8" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="229" x2="413.8" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="229" x2="485.8" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="229" x2="557.8" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="205" x2="629.8" y2="205" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="205" x2="557.8" y2="229" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="205" x2="701.8" y2="205" stroke="#000000" stroke-width="2"/>
+<text x="113.8" y="264" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">state</text>
+<polygon points="131.8,247 191.8,247 197.8,259 191.8,271 131.8,271 125.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="161.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">IDLE</text>
+<polygon points="203.8,247 263.8,247 269.8,259 263.8,271 203.8,271 197.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="233.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">IDLE</text>
+<polygon points="275.8,247 335.8,247 341.8,259 335.8,271 275.8,271 269.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="305.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">FILL</text>
+<polygon points="347.8,247 407.8,247 413.8,259 407.8,271 347.8,271 341.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="377.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">FILL</text>
+<polygon points="419.8,247 479.8,247 485.8,259 479.8,271 419.8,271 413.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="449.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">IDLE</text>
+<polygon points="491.8,247 551.8,247 557.8,259 551.8,271 491.8,271 485.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="521.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">IDLE</text>
+<polygon points="563.8,247 623.8,247 629.8,259 623.8,271 563.8,271 557.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="593.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">IDLE</text>
+<polygon points="635.8,247 695.8,247 701.8,259 695.8,271 635.8,271 629.8,259" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="665.8" y="263.2" font-size="12" text-anchor="middle" fill="#000000">IDLE</text>
+<text x="113.8" y="306" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wb_cyc_o</text>
+<line x1="125.8" y1="313" x2="197.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="197.8" y1="313" x2="269.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="289" x2="341.8" y2="289" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="289" x2="269.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="289" x2="413.8" y2="289" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="313" x2="485.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="289" x2="413.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="313" x2="557.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="313" x2="629.8" y2="313" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="313" x2="701.8" y2="313" stroke="#000000" stroke-width="2"/>
+<text x="113.8" y="348" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wb_ack_i</text>
+<line x1="125.8" y1="355" x2="197.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="197.8" y1="355" x2="269.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="355" x2="341.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="331" x2="413.8" y2="331" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="331" x2="341.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="355" x2="485.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="331" x2="413.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="355" x2="557.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="355" x2="629.8" y2="355" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="355" x2="701.8" y2="355" stroke="#000000" stroke-width="2"/>
+<text x="113.8" y="390" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">access_done</text>
+<line x1="125.8" y1="397" x2="197.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="197.8" y1="373" x2="269.8" y2="373" stroke="#000000" stroke-width="2"/>
+<line x1="197.8" y1="373" x2="197.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="397" x2="341.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="269.8" y1="373" x2="269.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="341.8" y1="397" x2="413.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="373" x2="485.8" y2="373" stroke="#000000" stroke-width="2"/>
+<line x1="413.8" y1="373" x2="413.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="397" x2="557.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="485.8" y1="373" x2="485.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="373" x2="629.8" y2="373" stroke="#000000" stroke-width="2"/>
+<line x1="557.8" y1="373" x2="557.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="397" x2="701.8" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="629.8" y1="373" x2="629.8" y2="397" stroke="#000000" stroke-width="2"/>
+</svg>
