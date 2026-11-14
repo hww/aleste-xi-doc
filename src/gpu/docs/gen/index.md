@@ -6,7 +6,8 @@
 - [CHANNEL MODE_PAGE (11 bits, логическая склейка MODE[2:0] + PAGE[7:0])](channel_mode_page.md) — `channel_mode_page`
 - [CTRL · 32 BIT](ctrl_reg.md) — `ctrl_reg`
 - [FLAGS Register](flags_bitfield.md) — `flags_bitfield`
-- [INSTRUCTION · 32 BIT · J=1 I=0 CONTROL](insn_ctrl.md) — `insn_ctrl`
+- [INSTRUCTION · 32 BIT · J=1 I=0 CONTROL (JMP/CALL/HALT/IRQ)](insn_ctrl_jmp.md) — `insn_ctrl_jmp`
+- [INSTRUCTION · 32 BIT · J=1 I=0 CONTROL (JMPR)](insn_ctrl_jmpr.md) — `insn_ctrl_jmpr`
 - [INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)](insn_imm12.md) — `insn_imm12`
 - [INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)](insn_ldi24.md) — `insn_ldi24`
 - [INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)](insn_reg.md) — `insn_reg`

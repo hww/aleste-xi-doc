@@ -45,9 +45,10 @@ fields:
   - {name: DST,   bits: [28,24], description: "R0..R31 only"}
   - {name: IMM24, bits: [23,0], description: "24-bit constant; unconditional, flags untouched"}
 ---
+---
 kind: bitfield
-name: insn_ctrl
-title: "INSTRUCTION · 32 BIT · J=1 I=0 CONTROL"
+name: insn_ctrl_jmp
+title: "INSTRUCTION · 32 BIT · J=1 I=0 CONTROL (JMP/CALL/HALT/IRQ)"
 width: 32
 fields:
   - {name: L,    bit: 31, description: "Loop flag"}
@@ -58,8 +59,23 @@ fields:
   - {name: COND, bits: [22,19], enum: conditions, description: "Condition"}
   - {name: F,    bit: 18, description: "Unused"}
   - {name: OP,   bits: [17,13], enum: ctrl_ops, description: "Control operation"}
-  - {name: REG,  bits: [12,7], overlay: true, description: "Operand for JMPR (any operand, including special)"}
-  - {name: ADDR, bits: [11,0], description: "Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ)"}
+  - {name: ADDR, bits: [12,0], description: "Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ); bits [12:7] unused for JMP/CALL/HALT/IRQ"}
+---
+kind: bitfield
+name: insn_ctrl_jmpr
+title: "INSTRUCTION · 32 BIT · J=1 I=0 CONTROL (JMPR)"
+width: 32
+fields:
+  - {name: L,    bit: 31, description: "Loop flag"}
+  - {name: J,    bit: 30, description: "= 1"}
+  - {name: I,    bit: 29, description: "= 0"}
+  - {name: DST,  bits: [28,24], description: "Unused"}
+  - {name: DS,   bit: 23, description: "Unused"}
+  - {name: COND, bits: [22,19], enum: conditions, description: "Condition"}
+  - {name: F,    bit: 18, description: "Unused"}
+  - {name: OP,   bits: [17,13], enum: ctrl_ops, description: "= JMPR"}
+  - {name: REG,  bits: [12,7], description: "Source operand code (0..63)"}
+  - {name: RSV,  bits: [6,0], reserved: true, description: "Unused (part of ADDR for non-JMPR ops)"}
 ---
 kind: bitfield
 name: shadow_bitfield
