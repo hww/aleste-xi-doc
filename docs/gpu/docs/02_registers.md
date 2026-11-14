@@ -48,9 +48,9 @@ Registers R0..R31 serve as source and destination in most instructions. R0 is a 
 
 A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cycle (`mem[wa] <= wdata`). Read-after-write in the same cycle is covered by bypass: `rdata_a = wdata_r` when `we && (wa == ra)`, so the new value is visible without waiting for the write to land.
 
-![regfile: write mem_R5 (t2), read q_a (t2), bypass (t1, same-cycle)](gen/timing_regfile.svg)
+![regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]](gen/timing_regfile.svg)
 
-*Figure 2 — regfile: write mem_R5 (t2), read q_a (t2), bypass (t1, same-cycle)*
+*Figure 2 — regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]*
 
 
 ## System Registers

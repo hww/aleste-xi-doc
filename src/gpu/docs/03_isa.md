@@ -6,7 +6,13 @@ Instructions are 32-bit, fixed-format. The instruction class is determined by fi
 
 The format is fixed; all fields have strict positions. This simplifies decoding: all fields are available combinationally from `insn`.
 
-{{auto:insn}}
+{{auto:insn_reg}}
+
+{{auto:insn_imm11}}
+
+{{auto:insn_ctrl_jmp}}
+
+{{auto:insn_ctrl_jmpr}}
 
 *Fig. 9. Instruction format.*
 

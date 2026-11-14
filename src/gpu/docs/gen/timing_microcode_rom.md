@@ -1,4 +1,4 @@
-# microcode_rom: synchronous read latched on ack; data holds during stall
+# microcode_rom: synchronous read, latched on ack
 
-![microcode_rom: synchronous read latched on ack; data holds during stall](gen/timing_microcode_rom.svg)
+![microcode_rom: synchronous read, latched on ack](gen/timing_microcode_rom.svg)
 

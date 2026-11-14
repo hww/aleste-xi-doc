@@ -30,6 +30,6 @@ Processor registers are split into three groups: general (R0..R31), system (32..
 
 All instructions are 32-bit. Fields are fixed: `L`, `I`, `DST`, `DS`, `COND`, `F`, `REG_OP`, `SRC`, `IMM12`. See the ISA section for details.
 
-{{auto:insn}}
+{{auto:insn_ctrl_jmp}}
 
 *Fig. 4. Instruction format.*

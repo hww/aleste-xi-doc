@@ -1,64 +1,78 @@
-# 32-битная микроинструкция. Четыре формата выбираются парой (J, I).
+# 32-bit microinstruction. Four formats selected by (J, I).
+# Layout matches RTL: dst_code [28:23], WRITE [22], COND [21:18], F [17],
+# OP [16:12], SRC [11:6] (reg-reg) / SX [11] + IMM11 [10:0] (reg-imm11) /
+# ADDR [10:0] (ctrl-jmp) / REG [11:6] + RSV [5:0] (ctrl-jmpr).
+
 kind: const
 name: limits
 title: "Limits"
 values:
-  - {name: IMM12_BITS, value: 12, description: "Immediate width in reg-imm12"}
-  - {name: LDI_BITS,   value: 24, description: "Immediate width in LDI24"}
+  - {name: IMM11_BITS, value: 11, description: "Immediate width in reg-imm11"}
+  - {name: CTRL_ADDR_BITS, value: 11, description: "Target address width in JMP/CALL (0..2047)"}
 ---
-kind: encoding
-name: insn
-title: "INSTRUCTION · 32 BIT"
-description: "All microinstruction formats. J and I select the format."
+kind: bitfield
+name: insn_reg
+title: "J=0 I=0 REG-REG"
 width: 32
-common:
-  - {name: L,   bit: 31,       description: "Loop flag"}
-  - {name: J,   bit: 30,       description: "Format selector, high"}
-  - {name: I,   bit: 29,       description: "Format selector, low"}
-  - {name: DST, bits: [28,24], description: "Destination operand, low 5 bits"}
-variants:
-  - name: reg-reg
-    title: "REG-REG"
-    when: {J: 0, I: 0}
-    description: "d = d op s"
-    fields:
-      - {name: DS,   bit: 23,       description: "DST bank: 0 = R0..R31, 1 = special operand"}
-      - {name: COND, bits: [22,19], enum: conditions, description: "Condition; false = no register write, no port access"}
-      - {name: F,    bit: 18,       description: "1 = update flags"}
-      - {name: OP,   bits: [17,13], enum: alu_ops,    description: "ALU operation"}
-      - {name: SRC,  bits: [12,7],  enum: operand_map, description: "Second operand {S, n[4:0]}"}
-      - {name: RSV,  bits: [6,0],   reserved: true,   description: "Reserved, must be 0"}
-  - name: reg-imm12
-    title: "REG-IMM12"
-    when: {J: 1, I: 1}
-    description: "d = d op imm"
-    fields:
-      - {name: DS,   bit: 23}
-      - {name: COND, bits: [22,19], enum: conditions}
-      - {name: F,    bit: 18}
-      - {name: OP,   bits: [17,13], enum: alu_ops}
-      - {name: SX,   bit: 12,       description: "1 = sign-extend IMM, 0 = zero-extend"}
-      - {name: IMM,  bits: [11,0],  description: "12-bit immediate, operand B"}
-  - name: ldi24
-    title: "LDI24"
-    when: {J: 0, I: 1}
-    description: "R[DST] = imm24; unconditional, flags untouched"
-    fields:
-      - {name: DST,   bits: [28,24], description: "R0..R31 only"}
-      - {name: IMM24, bits: [23,0],  description: "24-bit constant"}
-  - name: control
-    title: "CONTROL"
-    when: {J: 1, I: 0}
-    fields:
-      - {name: DST,  bits: [28,24], description: "Unused"}
-      - {name: DS,   bit: 23,       description: "Unused"}
-      - {name: COND, bits: [22,19], enum: conditions}
-      - {name: F,    bit: 18,       description: "Unused"}
-      - {name: OP,   bits: [17,13], enum: ctrl_ops}
-      - {name: REG,  bits: [12,7],  overlay: true, description: "Operand for JMPR (any operand, including special)"}
-      - {name: ADDR, bits: [11,0],  description: "Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ)"}
-notes:
-  - "L bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false."
+fields:
+  - {name: L,        bit: 31,       description: "Loop flag"}
+  - {name: J,        bit: 30,       description: "= 0"}
+  - {name: I,        bit: 29,       description: "= 0"}
+  - {name: DST_CODE, bits: [28,23], enum: operand_map, description: "Destination operand (6 bits)"}
+  - {name: WRITE,    bit: 22,       description: "1 = write result; 0 = do not write (flags still update if F=1)"}
+  - {name: COND,     bits: [21,18], enum: conditions, description: "Condition"}
+  - {name: F,        bit: 17,       description: "1 = update flags"}
+  - {name: OP,       bits: [16,12], enum: alu_ops, description: "ALU operation"}
+  - {name: SRC,      bits: [11,6],  enum: operand_map, description: "Second operand (6 bits)"}
+  - {name: RSV,      bits: [5,0],   reserved: true, description: "Reserved, must be 0"}
+---
+kind: bitfield
+name: insn_imm11
+title: "J=1 I=1 REG-IMM11"
+width: 32
+fields:
+  - {name: L,        bit: 31,       description: "Loop flag"}
+  - {name: J,        bit: 30,       description: "= 1"}
+  - {name: I,        bit: 29,       description: "= 1"}
+  - {name: DST_CODE, bits: [28,23], enum: operand_map, description: "Destination operand (6 bits)"}
+  - {name: WRITE,    bit: 22,       description: "1 = write result; 0 = do not write"}
+  - {name: COND,     bits: [21,18], enum: conditions, description: "Condition"}
+  - {name: F,        bit: 17,       description: "Update flags"}
+  - {name: OP,       bits: [16,12], enum: alu_ops, description: "ALU operation"}
+  - {name: SX,       bit: 11,       description: "1 = sign-extend IMM11, 0 = zero-extend"}
+  - {name: IMM,      bits: [10,0],  description: "11-bit immediate, operand B"}
+---
+kind: bitfield
+name: insn_ctrl_jmp
+title: "J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)"
+width: 32
+fields:
+  - {name: L,        bit: 31,       description: "Loop flag"}
+  - {name: J,        bit: 30,       description: "= 1"}
+  - {name: I,        bit: 29,       description: "= 0"}
+  - {name: DST_CODE, bits: [28,23], enum: operand_map, description: "Unused for non-JMPR CTRL"}
+  - {name: WRITE,    bit: 22,       description: "Unused for CTRL"}
+  - {name: COND,     bits: [21,18], enum: conditions, description: "Condition"}
+  - {name: F,        bit: 17,       description: "Unused for CTRL (must be 0)"}
+  - {name: OP,       bits: [16,12], enum: ctrl_ops, description: "Control operation"}
+  - {name: SX,       bit: 11,       description: "Unused in CTRL"}
+  - {name: ADDR,     bits: [10,0],  description: "Target address (JMP/CALL), halt/IRQ code, channel (FLUSH)"}
+---
+kind: bitfield
+name: insn_ctrl_jmpr
+title: "J=1 I=0 CTRL (JMPR)"
+width: 32
+fields:
+  - {name: L,        bit: 31,       description: "Loop flag"}
+  - {name: J,        bit: 30,       description: "= 1"}
+  - {name: I,        bit: 29,       description: "= 0"}
+  - {name: DST_CODE, bits: [28,23], enum: operand_map, description: "Source register for target address"}
+  - {name: WRITE,    bit: 22,       description: "Unused"}
+  - {name: COND,     bits: [21,18], enum: conditions, description: "Condition"}
+  - {name: F,        bit: 17,       description: "Unused"}
+  - {name: OP,       bits: [16,12], enum: ctrl_ops, description: "= JMPR"}
+  - {name: REG,      bits: [11,6],  enum: operand_map, description: "Source operand code (0..63)"}
+  - {name: RSV,      bits: [5,0],   reserved: true, description: "Unused"}
 ---
 kind: enum
 name: alu_ops
@@ -73,25 +87,19 @@ entries:
   - {value: 5,  name: ORN,  description: "cls=00, fn=10, inv=1: d = d | ~s"}
   - {value: 6,  name: XOR,  description: "cls=00, fn=11, inv=0: d = d ^ s"}
   - {value: 7,  name: XNOR, description: "cls=00, fn=11, inv=1: d = d ^ ~s"}
-  - {value: 8,  name: ADD,  description: "cls=01, fn=00, cin=0: d = d + s"}
-  - {value: 9,  name: ADC,  description: "cls=01, fn=00, cin=C: d = d + s + C"}
-  - {value: 10, name: SUB,  description: "cls=01, fn=01, cin=1: d = d - s; C = not borrow"}
-  - {value: 11, name: SBC,  description: "cls=01, fn=01, cin=C: d = d - s - (1-C)"}
-  - {value: 12, name: ROR,  description: "cls=10, fn=00: 16-bit rotate right by s[3:0]"}
-  - {value: 13, name: reserved, description: "cls=10, fn=00, op[0]=1 — reserved"}
-  - {value: 14, name: SHR,  description: "cls=10, fn=01: ROR with zero fill"}
-  - {value: 15, name: reserved, description: "cls=10, fn=01, op[0]=1 — reserved"}
-  - {value: 16, name: SAR,  description: "cls=10, fn=10: ROR with bit 15 fill (arithmetic)"}
-  - {value: 17, name: reserved, description: "cls=10, fn=10, op[0]=1 — reserved"}
-  - {value: "18..23", name: reserved, description: "cls=10, fn=11 and others — reserved"}
+  - {value: 8,  name: ADD,  description: "cls=01, fn=00, sub=0, cin_sel=0: d = d + s"}
+  - {value: 10, name: ADC,  description: "cls=01, fn=01, sub=0, cin_sel=1: d = d + s + C"}
+  - {value: 13, name: SUB,  description: "cls=01, fn=10, sub=1, cin_sel=0: d = d - s; C = not borrow"}
+  - {value: 15, name: SBC,  description: "cls=01, fn=11, sub=1, cin_sel=1: d = d - s - (1-C)"}
+  - {value: 16, name: ROR,  description: "cls=10, fn=00: 16-bit rotate right by s[3:0]"}
+  - {value: 18, name: SHR,  description: "cls=10, fn=01: logical shift right"}
+  - {value: 20, name: SAR,  description: "cls=10, fn=10: arithmetic shift right"}
   - {value: 24, name: MUL,  description: "cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI"}
-  - {value: "25..27", name: reserved, description: "cls=11, fn=00, op[0]=1 or fn=01 — reserved"}
   - {value: 28, name: TST,  description: "cls=11, fn=10: d & s, result discarded, flags written"}
-  - {value: 29, name: reserved, description: "cls=11, fn=10, op[0]=1 — reserved"}
   - {value: 30, name: CMP,  description: "cls=11, fn=11: d - s, result discarded, flags written"}
-  - {value: 31, name: reserved, description: "cls=11, fn=11, op[0]=1 — reserved"}
 notes:
   - "Writing to ZERO discards the result. NOP = MOV ZERO, ZERO."
+  - "TST/CMP are encoded in the assembler with WRITE=0; dedicated opcodes 28/30 are equivalent to AND/SUB with WRITE=0."
 ---
 kind: enum
 name: conditions
@@ -121,13 +129,13 @@ title: "CTRL OP (J=1, I=0)"
 width: 5
 entries:
   - {value: 0, name: NOP,   description: "Nothing"}
-  - {value: 1, name: JMP,   description: "PC = ADDR"}
+  - {value: 1, name: JMP,   description: "PC = ADDR (11 bits)"}
   - {value: 2, name: CALL,  description: "SHADOW[15:12] = flags, SHADOW[11:0] = PC+1; PC = ADDR"}
   - {value: 3, name: RET,   description: "PC = SHADOW[11:0]; flags not restored"}
-  - {value: 4, name: JMPR,  description: "PC = operand[REG][11:0]"}
+  - {value: 4, name: JMPR,  description: "PC = operand[DST_CODE][11:0]"}
   - {value: 5, name: HALT,  description: "ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code)"}
   - {value: 6, name: IRQ,   description: "Raise IRQ, code = ADDR"}
-  - {value: 7, name: FLUSH, description: "Flush cache channel imm12[1:0]"}
+  - {value: 7, name: FLUSH, description: "Flush cache channel ADDR[1:0]"}
 ---
 kind: enum
 name: operand_map

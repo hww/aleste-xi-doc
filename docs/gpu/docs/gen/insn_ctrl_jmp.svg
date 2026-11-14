@@ -9,14 +9,21 @@
 </defs>
 <style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
 <rect width="1144" height="184" fill="#FFFFFF"/>
-<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)</text>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)</text>
 <text x="32" y="62" font-size="14" fill="#555555">32-bit register</text>
 <text x="48.9" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">31</text>
 <text x="82.6" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">30</text>
 <text x="116.4" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">29</text>
 <text x="150.1" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">28</text>
-<text x="285.1" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">24</text>
 <text x="318.9" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">23</text>
+<text x="352.6" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">22</text>
+<text x="386.4" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">21</text>
+<text x="487.6" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">18</text>
+<text x="521.4" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">17</text>
+<text x="555.1" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">16</text>
+<text x="690.1" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">12</text>
+<text x="723.9" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">11</text>
+<text x="757.6" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">10</text>
 <text x="1095.1" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">0</text>
 <rect x="32" y="104" width="1080" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
 <rect x="32" y="104" width="33.8" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
@@ -25,27 +32,32 @@
 <text x="82.6" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">J</text>
 <rect x="99.5" y="104" width="33.8" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="116.4" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">I</text>
-<rect x="133.2" y="104" width="168.8" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
-<text x="217.6" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">DST</text>
+<rect x="133.2" y="104" width="202.5" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="234.5" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">DST_CODE</text>
 <line x1="167" y1="104" x2="167" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="200.8" y1="104" x2="200.8" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="234.5" y1="104" x2="234.5" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="268.2" y1="104" x2="268.2" y2="111" stroke="#000000" stroke-width="1"/>
-<rect x="302" y="104" width="810" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="707" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">IMM24</text>
-<line x1="335.8" y1="104" x2="335.8" y2="111" stroke="#000000" stroke-width="1"/>
-<line x1="369.5" y1="104" x2="369.5" y2="111" stroke="#000000" stroke-width="1"/>
+<line x1="302" y1="104" x2="302" y2="111" stroke="#000000" stroke-width="1"/>
+<rect x="335.8" y="104" width="33.8" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="352.6" y="133.2" font-size="12" text-anchor="middle" fill="#000000" font-weight="700" transform="rotate(-90 352.6 133.2)">WRITE</text>
+<rect x="369.5" y="104" width="135" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="437" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">COND</text>
 <line x1="403.2" y1="104" x2="403.2" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="437" y1="104" x2="437" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="470.8" y1="104" x2="470.8" y2="111" stroke="#000000" stroke-width="1"/>
-<line x1="504.5" y1="104" x2="504.5" y2="111" stroke="#000000" stroke-width="1"/>
-<line x1="538.2" y1="104" x2="538.2" y2="111" stroke="#000000" stroke-width="1"/>
+<rect x="504.5" y="104" width="33.8" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="521.4" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">F</text>
+<rect x="538.2" y="104" width="168.8" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="622.6" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">OP</text>
 <line x1="572" y1="104" x2="572" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="605.8" y1="104" x2="605.8" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="639.5" y1="104" x2="639.5" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="673.2" y1="104" x2="673.2" y2="111" stroke="#000000" stroke-width="1"/>
-<line x1="707" y1="104" x2="707" y2="111" stroke="#000000" stroke-width="1"/>
-<line x1="740.8" y1="104" x2="740.8" y2="111" stroke="#000000" stroke-width="1"/>
+<rect x="707" y="104" width="33.8" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="723.9" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">SX</text>
+<rect x="740.8" y="104" width="371.2" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="926.4" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR</text>
 <line x1="774.5" y1="104" x2="774.5" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="808.2" y1="104" x2="808.2" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="842" y1="104" x2="842" y2="111" stroke="#000000" stroke-width="1"/>

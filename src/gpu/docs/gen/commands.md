@@ -10,4 +10,4 @@
 
 **Notes:**
 
-- В combined_code.txt loader отсутствует (есть только bootloader.hex для microcode_rom). Если loader реализован вне combined_code.txt — сверить с ним.
+- Loader is not implemented in RTL. Reserved for future extension.

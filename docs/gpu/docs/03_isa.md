@@ -6,77 +6,84 @@ Instructions are 32-bit, fixed-format. The instruction class is determined by fi
 
 The format is fixed; all fields have strict positions. This simplifies decoding: all fields are available combinationally from `insn`.
 
-![INSTRUCTION · 32 BIT](gen/insn.svg)
+![J=0 I=0 REG-REG](gen/insn_reg.svg)
 
-*Figure 2 — INSTRUCTION · 32 BIT*
+*Figure 5 — J=0 I=0 REG-REG*
 
-**Table 5 — INSTRUCTION · 32 BIT**
+**Table 8 — J=0 I=0 REG-REG**
 
-| Format | Selector | Description |
-| --- | --- | --- |
-| <a id="reg-reg"></a>**REG-REG** | `J=0 I=0` | d = d op s |
-| <a id="reg-imm12"></a>**REG-IMM12** | `J=1 I=1` | d = d op imm |
-| <a id="ldi24"></a>**LDI24** | `J=0 I=1` | R[DST] = imm24; unconditional, flags untouched |
-| <a id="control"></a>**CONTROL** | `J=1 I=0` | — |
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | = 0 |
+| <a id="I"></a>**I** | [29] | 1 | = 0 |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | 1 = write result; 0 = do not write (flags still update if F=1) |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | 1 = update flags |
+| <a id="OP"></a>**OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
+| <a id="SRC"></a>**SRC** | [11:6] | 6 | Second operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | Reserved, must be 0 |
 
-**REG-REG** (`J=0 I=0`)
 
-| Field | Bits | Width | Fixed | Description |
-| --- | --- | --- | --- | --- |
-| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
-| <a id="J"></a>**J** | [30] | 1 | 0 | Format selector, high |
-| <a id="I"></a>**I** | [29] | 1 | 0 | Format selector, low |
-| <a id="DST"></a>**DST** | [28:24] | 5 | — | Destination operand, low 5 bits |
-| <a id="DS"></a>**DS** | [23] | 1 | — | DST bank: 0 = R0..R31, 1 = special operand |
-| <a id="COND"></a>**COND** | [22:19] | 4 | — | Condition; false = no register write, no port access [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [18] | 1 | — | 1 = update flags |
-| <a id="OP"></a>**OP** | [17:13] | 5 | — | ALU operation [`alu_ops`](gen/alu_ops.md) |
-| <a id="SRC"></a>**SRC** | [12:7] | 6 | — | Second operand {S, n[4:0]} [`operand_map`](gen/operand_map.md) |
-| <a id="RSV"></a>**RSV** | [6:0] | 7 | — | Reserved, must be 0 |
+![J=1 I=1 REG-IMM11](gen/insn_imm11.svg)
 
-**REG-IMM12** (`J=1 I=1`)
+*Figure 6 — J=1 I=1 REG-IMM11*
 
-| Field | Bits | Width | Fixed | Description |
-| --- | --- | --- | --- | --- |
-| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
-| <a id="J"></a>**J** | [30] | 1 | 1 | Format selector, high |
-| <a id="I"></a>**I** | [29] | 1 | 1 | Format selector, low |
-| <a id="DST"></a>**DST** | [28:24] | 5 | — | Destination operand, low 5 bits |
-| <a id="DS"></a>**DS** | [23] | 1 | — | — |
-| <a id="COND"></a>**COND** | [22:19] | 4 | — | [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [18] | 1 | — | — |
-| <a id="OP"></a>**OP** | [17:13] | 5 | — | [`alu_ops`](gen/alu_ops.md) |
-| <a id="SX"></a>**SX** | [12] | 1 | — | 1 = sign-extend IMM, 0 = zero-extend |
-| <a id="IMM"></a>**IMM** | [11:0] | 12 | — | 12-bit immediate, operand B |
+**Table 9 — J=1 I=1 REG-IMM11**
 
-**LDI24** (`J=0 I=1`)
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | = 1 |
+| <a id="I"></a>**I** | [29] | 1 | = 1 |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | 1 = write result; 0 = do not write |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | Update flags |
+| <a id="OP"></a>**OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
+| <a id="SX"></a>**SX** | [11] | 1 | 1 = sign-extend IMM11, 0 = zero-extend |
+| <a id="IMM"></a>**IMM** | [10:0] | 11 | 11-bit immediate, operand B |
 
-| Field | Bits | Width | Fixed | Description |
-| --- | --- | --- | --- | --- |
-| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
-| <a id="J"></a>**J** | [30] | 1 | 0 | Format selector, high |
-| <a id="I"></a>**I** | [29] | 1 | 1 | Format selector, low |
-| <a id="DST"></a>**DST** | [28:24] | 5 | — | R0..R31 only |
-| <a id="IMM24"></a>**IMM24** | [23:0] | 24 | — | 24-bit constant |
 
-**CONTROL** (`J=1 I=0`)
+![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-| Field | Bits | Width | Fixed | Description |
-| --- | --- | --- | --- | --- |
-| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
-| <a id="J"></a>**J** | [30] | 1 | 1 | Format selector, high |
-| <a id="I"></a>**I** | [29] | 1 | 0 | Format selector, low |
-| <a id="DST"></a>**DST** | [28:24] | 5 | — | Unused |
-| <a id="DS"></a>**DS** | [23] | 1 | — | Unused |
-| <a id="COND"></a>**COND** | [22:19] | 4 | — | [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [18] | 1 | — | Unused |
-| <a id="OP"></a>**OP** | [17:13] | 5 | — | [`ctrl_ops`](gen/ctrl_ops.md) |
-| <a id="REG"></a>**REG** | [12:7] | 6 | — | Operand for JMPR (any operand, including special) |
-| <a id="ADDR"></a>**ADDR** | [11:0] | 12 | — | Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ) |
+*Figure 7 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-**Notes:**
+**Table 10 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
-- L bit: after the word, if count > 1 then count--, PC = loop target; else fall through. Runs even if COND is false.
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | = 1 |
+| <a id="I"></a>**I** | [29] | 1 | = 0 |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Unused for non-JMPR CTRL [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused for CTRL |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | Unused for CTRL (must be 0) |
+| <a id="OP"></a>**OP** | [16:12] | 5 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="SX"></a>**SX** | [11] | 1 | Unused in CTRL |
+| <a id="ADDR"></a>**ADDR** | [10:0] | 11 | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
+
+
+![J=1 I=0 CTRL (JMPR)](gen/insn_ctrl_jmpr.svg)
+
+*Figure 8 — J=1 I=0 CTRL (JMPR)*
+
+**Table 11 — J=1 I=0 CTRL (JMPR)**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | = 1 |
+| <a id="I"></a>**I** | [29] | 1 | = 0 |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Source register for target address [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | Unused |
+| <a id="OP"></a>**OP** | [16:12] | 5 | = JMPR [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="REG"></a>**REG** | [11:6] | 6 | Source operand code (0..63) [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | Unused |
 
 
 *Fig. 9. Instruction format.*
@@ -85,7 +92,7 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ALU instructions (class `00` and `01`) perform logical and arithmetic operations. The result is written to `DST` if `nowrite = 0`. Flags (`Z`, `N`, `C`, `V`) are updated according to `F` and the opcode.
 
-**Table 6 — ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
+**Table 12 — ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -97,27 +104,21 @@ ALU instructions (class `00` and `01`) perform logical and arithmetic operations
 | 5 | <a id="ORN"></a>**ORN** | cls=00, fn=10, inv=1: d = d \| ~s |
 | 6 | <a id="XOR"></a>**XOR** | cls=00, fn=11, inv=0: d = d ^ s |
 | 7 | <a id="XNOR"></a>**XNOR** | cls=00, fn=11, inv=1: d = d ^ ~s |
-| 8 | <a id="ADD"></a>**ADD** | cls=01, fn=00, cin=0: d = d + s |
-| 9 | <a id="ADC"></a>**ADC** | cls=01, fn=00, cin=C: d = d + s + C |
-| 10 | <a id="SUB"></a>**SUB** | cls=01, fn=01, cin=1: d = d - s; C = not borrow |
-| 11 | <a id="SBC"></a>**SBC** | cls=01, fn=01, cin=C: d = d - s - (1-C) |
-| 12 | <a id="ROR"></a>**ROR** | cls=10, fn=00: 16-bit rotate right by s[3:0] |
-| 13 | <a id="reserved"></a>**reserved** | cls=10, fn=00, op[0]=1 — reserved |
-| 14 | <a id="SHR"></a>**SHR** | cls=10, fn=01: ROR with zero fill |
-| 15 | <a id="reserved"></a>**reserved** | cls=10, fn=01, op[0]=1 — reserved |
-| 16 | <a id="SAR"></a>**SAR** | cls=10, fn=10: ROR with bit 15 fill (arithmetic) |
-| 17 | <a id="reserved"></a>**reserved** | cls=10, fn=10, op[0]=1 — reserved |
-| 18..23 | <a id="reserved"></a>**reserved** | cls=10, fn=11 and others — reserved |
+| 8 | <a id="ADD"></a>**ADD** | cls=01, fn=00, sub=0, cin_sel=0: d = d + s |
+| 10 | <a id="ADC"></a>**ADC** | cls=01, fn=01, sub=0, cin_sel=1: d = d + s + C |
+| 13 | <a id="SUB"></a>**SUB** | cls=01, fn=10, sub=1, cin_sel=0: d = d - s; C = not borrow |
+| 15 | <a id="SBC"></a>**SBC** | cls=01, fn=11, sub=1, cin_sel=1: d = d - s - (1-C) |
+| 16 | <a id="ROR"></a>**ROR** | cls=10, fn=00: 16-bit rotate right by s[3:0] |
+| 18 | <a id="SHR"></a>**SHR** | cls=10, fn=01: logical shift right |
+| 20 | <a id="SAR"></a>**SAR** | cls=10, fn=10: arithmetic shift right |
 | 24 | <a id="MUL"></a>**MUL** | cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI |
-| 25..27 | <a id="reserved"></a>**reserved** | cls=11, fn=00, op[0]=1 or fn=01 — reserved |
 | 28 | <a id="TST"></a>**TST** | cls=11, fn=10: d & s, result discarded, flags written |
-| 29 | <a id="reserved"></a>**reserved** | cls=11, fn=10, op[0]=1 — reserved |
 | 30 | <a id="CMP"></a>**CMP** | cls=11, fn=11: d - s, result discarded, flags written |
-| 31 | <a id="reserved"></a>**reserved** | cls=11, fn=11, op[0]=1 — reserved |
 
 **Notes:**
 
 - Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
+- TST/CMP are encoded in the assembler with WRITE=0; dedicated opcodes 28/30 are equivalent to AND/SUB with WRITE=0.
 
 
 *Fig. 10. ALU opcode map.*
@@ -126,18 +127,18 @@ ALU instructions (class `00` and `01`) perform logical and arithmetic operations
 
 CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JMPR` change `PC`. `HALT` stops the processor. `IRQ` sets the interrupt flag. `FLUSH` starts a background cache flush.
 
-**Table 7 — CTRL OP (J=1, I=0)**
+**Table 13 — CTRL OP (J=1, I=0)**
 
 | Value | Name | Description |
 | --- | --- | --- |
 | 0 | <a id="NOP"></a>**NOP** | Nothing |
-| 1 | <a id="JMP"></a>**JMP** | PC = ADDR |
+| 1 | <a id="JMP"></a>**JMP** | PC = ADDR (11 bits) |
 | 2 | <a id="CALL"></a>**CALL** | SHADOW[15:12] = flags, SHADOW[11:0] = PC+1; PC = ADDR |
 | 3 | <a id="RET"></a>**RET** | PC = SHADOW[11:0]; flags not restored |
-| 4 | <a id="JMPR"></a>**JMPR** | PC = operand[REG][11:0] |
+| 4 | <a id="JMPR"></a>**JMPR** | PC = operand[DST_CODE][11:0] |
 | 5 | <a id="HALT"></a>**HALT** | ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code) |
 | 6 | <a id="IRQ"></a>**IRQ** | Raise IRQ, code = ADDR |
-| 7 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel imm12[1:0] |
+| 7 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel ADDR[1:0] |
 
 
 *Fig. 11. CTRL opcode map.*
@@ -146,7 +147,7 @@ CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JM
 
 Conditions (`COND`) determine whether an instruction executes. If the condition is false, the instruction does not change state (except `PC`).
 
-**Table 8 — COND (4 bits, ARM-style)**
+**Table 14 — COND (4 bits, ARM-style)**
 
 | Value | Name | Description |
 | --- | --- | --- |

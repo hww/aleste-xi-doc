@@ -18,4 +18,5 @@
 
 **Notes:**
 
-- Переход C_IDLE → C_IDLE — flush_noop: flush запрошен, но канал невалиден или чист, WB не нужен.
+- C_IDLE -> C_IDLE is flush_noop: flush requested but channel invalid or clean, no WB needed.
+- gc is a 4-channel single-word buffer, not a classic cache. Writing N consecutive words requires FLUSH after each word.

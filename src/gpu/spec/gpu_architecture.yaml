@@ -1,91 +1,18 @@
 # ============================================================
-# LX-GPU: Architecture Description (по RTL combined_code.txt)
+# LX-GPU: Architecture Description
+# Instruction format bitfields live in isa.yaml.
+# This file describes the register file, channels, flags, FSM, and timing.
 # ============================================================
 
-kind: bitfield
-name: insn_reg
-title: "INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)"
-width: 32
-fields:
-  - {name: L,    bit: 31, description: "Loop flag"}
-  - {name: J,    bit: 30, description: "= 0"}
-  - {name: I,    bit: 29, description: "= 0"}
-  - {name: DST,  bits: [28,24], description: "Destination operand, low 5 bits"}
-  - {name: DS,   bit: 23, description: "DST bank: 0 = R0..R31, 1 = special operand"}
-  - {name: COND, bits: [22,19], enum: conditions, description: "Condition; false = no register write, no port access"}
-  - {name: F,    bit: 18, description: "1 = update flags"}
-  - {name: OP,   bits: [17,13], enum: alu_ops, description: "ALU operation"}
-  - {name: SRC,  bits: [12,7], enum: operand_map, description: "Second operand {S, n[4:0]}"}
-  - {name: RSV,  bits: [6,0], reserved: true, description: "Reserved, must be 0"}
----
-kind: bitfield
-name: insn_imm12
-title: "INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)"
-width: 32
-fields:
-  - {name: L,    bit: 31, description: "Loop flag"}
-  - {name: J,    bit: 30, description: "= 1"}
-  - {name: I,    bit: 29, description: "= 1"}
-  - {name: DST,  bits: [28,24], description: "Destination operand, low 5 bits"}
-  - {name: DS,   bit: 23, description: "DST bank"}
-  - {name: COND, bits: [22,19], enum: conditions, description: "Condition"}
-  - {name: F,    bit: 18, description: "Update flags"}
-  - {name: OP,   bits: [17,13], enum: alu_ops, description: "ALU operation"}
-  - {name: SX,   bit: 12, description: "1 = sign-extend IMM, 0 = zero-extend"}
-  - {name: IMM,  bits: [11,0], description: "12-bit immediate, operand B"}
----
-kind: bitfield
-name: insn_ldi24
-title: "INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)"
-width: 32
-fields:
-  - {name: L,     bit: 31, description: "Loop flag"}
-  - {name: J,     bit: 30, description: "= 0"}
-  - {name: I,     bit: 29, description: "= 1"}
-  - {name: DST,   bits: [28,24], description: "R0..R31 only"}
-  - {name: IMM24, bits: [23,0], description: "24-bit constant; unconditional, flags untouched"}
----
----
-kind: bitfield
-name: insn_ctrl_jmp
-title: "INSTRUCTION · 32 BIT · J=1 I=0 CONTROL (JMP/CALL/HALT/IRQ)"
-width: 32
-fields:
-  - {name: L,    bit: 31, description: "Loop flag"}
-  - {name: J,    bit: 30, description: "= 1"}
-  - {name: I,    bit: 29, description: "= 0"}
-  - {name: DST,  bits: [28,24], description: "Unused"}
-  - {name: DS,   bit: 23, description: "Unused"}
-  - {name: COND, bits: [22,19], enum: conditions, description: "Condition"}
-  - {name: F,    bit: 18, description: "Unused"}
-  - {name: OP,   bits: [17,13], enum: ctrl_ops, description: "Control operation"}
-  - {name: ADDR, bits: [12,0], description: "Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ); bits [12:7] unused for JMP/CALL/HALT/IRQ"}
----
-kind: bitfield
-name: insn_ctrl_jmpr
-title: "INSTRUCTION · 32 BIT · J=1 I=0 CONTROL (JMPR)"
-width: 32
-fields:
-  - {name: L,    bit: 31, description: "Loop flag"}
-  - {name: J,    bit: 30, description: "= 1"}
-  - {name: I,    bit: 29, description: "= 0"}
-  - {name: DST,  bits: [28,24], description: "Unused"}
-  - {name: DS,   bit: 23, description: "Unused"}
-  - {name: COND, bits: [22,19], enum: conditions, description: "Condition"}
-  - {name: F,    bit: 18, description: "Unused"}
-  - {name: OP,   bits: [17,13], enum: ctrl_ops, description: "= JMPR"}
-  - {name: REG,  bits: [12,7], description: "Source operand code (0..63)"}
-  - {name: RSV,  bits: [6,0], reserved: true, description: "Unused (part of ADDR for non-JMPR ops)"}
----
 kind: bitfield
 name: shadow_bitfield
 title: "SHADOW Register Format"
 width: 16
 fields:
-  - {name: V, bit: 15, description: "Overflow flag"}
-  - {name: C, bit: 14, description: "Carry flag"}
-  - {name: N, bit: 13, description: "Negative flag"}
-  - {name: Z, bit: 12, description: "Zero flag"}
+  - {name: V,        bit: 15, description: "Overflow flag"}
+  - {name: C,        bit: 14, description: "Carry flag"}
+  - {name: N,        bit: 13, description: "Negative flag"}
+  - {name: Z,        bit: 12, description: "Zero flag"}
   - {name: RET_ADDR, bits: [11,0], description: "Return address (PC+1)"}
 ---
 kind: enum
@@ -174,13 +101,13 @@ entries:
 ---
 kind: bitfield
 name: channel_mode_page
-title: "CHANNEL MODE_PAGE (11 bits, логическая склейка MODE[2:0] + PAGE[7:0])"
+title: "CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])"
 width: 11
 fields:
   - {name: PAGE, bits: [7,0], description: "Page number (8 bits)"}
   - {name: FMT,  bits: [10,8], description: "Channel format (3 bits)"}
 notes:
-  - "В RTL MODE и PAGE — два отдельных регистра: mode_r[ch] (3 бита) и page_ebr[ch] (8 бит). MODE_PAGE — это их логическая склейка для удобства записи через один операнд."
+  - "In RTL, MODE and PAGE are two separate registers: mode_r[ch] (3 bits) and page_ebr[ch] (8 bits). MODE_PAGE is their logical concatenation."
 ---
 kind: bitfield
 name: flags_bitfield
@@ -227,18 +154,18 @@ entries:
   - {value: 3, name: "RUN",  description: "Start microprogram (arg: entry point)"}
   - {value: 4, name: "JUMP", description: "Next 2 words = new stream pointer (arg: -)"}
 notes:
-  - "В combined_code.txt loader отсутствует (есть только bootloader.hex для microcode_rom). Если loader реализован вне combined_code.txt — сверить с ним."
+  - "Loader is not implemented in RTL. Reserved for future extension."
 ---
 kind: memmap
 name: memory_map
 title: "Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})"
 width: 24
 regions:
-  - {name: "PAGE 0x00",  start: 0x000000, end: 0x01FFFF, access: rw, purpose: "Page 0 (128 KB, 2 bytes per word × 65536 words)"}
+  - {name: "PAGE 0x00",  start: 0x000000, end: 0x01FFFF, access: rw, purpose: "Page 0 (128 KB)"}
   - {name: "...",        start: 0x020000, end: 0xFDFFFF, access: rw, purpose: "Pages 1..254 (each 128 KB)"}
   - {name: "PAGE 0xFF",  start: 0xFE0000, end: 0xFFFFFF, access: rw, purpose: "Page 255 (last 128 KB)"}
 notes:
-  - "В RTL addr24 = {page[7:0], word[14:0], 1'b0}. Адресное пространство — 16 МБ, разбито на 256 страниц по 128 КБ. Отдельных ROM/DATA/SDRAM регионов в wb_adr нет — ROM это microcode_rom (отдельная BRAM, не в wb-пространстве)."
+  - "In RTL addr24 = {page[7:0], word[14:0], 1'b0}. Address space is 16 MB, divided into 256 pages of 128 KB each."
 ---
 kind: fsm
 name: cache_fsm
@@ -255,7 +182,8 @@ transitions:
   - {from: "C_WB_REQ",   to: "C_IDLE",     when: "wb_ack_i"}
   - {from: "C_IDLE",     to: "C_IDLE",     when: "flush_req && !(valid && dirty)", do: "valid=0, dirty=0, flush_done=1"}
 notes:
-  - "Переход C_IDLE → C_IDLE — flush_noop: flush запрошен, но канал невалиден или чист, WB не нужен."
+  - "C_IDLE -> C_IDLE is flush_noop: flush requested but channel invalid or clean, no WB needed."
+  - "gc is a 4-channel single-word buffer, not a classic cache. Writing N consecutive words requires FLUSH after each word."
 ---
 kind: timing
 name: pixel_read_timing
@@ -285,3 +213,119 @@ entries:
   - {value: 3, name: "gc_rdata",     description: "16-bit data from cache"}
   - {value: 4, name: "pb_pixel_out", description: "16-bit pixel from blender"}
   - {value: 5, name: "wdata",        description: "Written to destination register"}
+---
+kind: timing
+name: timing_regfile
+title: "regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]"
+signals:
+  - {name: clk,     type: clock}
+  - {name: we,      states: ["0", "1", "0", "0", "0"]}
+  - {name: wa,      states: ["-", "R5", "-", "-", "-"]}
+  - {name: wdata,   states: ["-", "1234", "-", "-", "-"]}
+  - {name: mem_R5,  states: ["oldR5", "oldR5", "1234", "1234", "1234"]}
+  - {name: ra,      states: ["R5", "R5", "R5", "R5", "R5"]}
+  - {name: rdata_a, states: ["oldR5", "oldR5", "1234", "1234", "1234"]}
+notes:
+  - "q_a/q_b/bypass removed: regfile is on flip-flops, read is combinational."
+---
+kind: timing
+name: timing_alu
+title: "alu: combinational compute (0 cyc), MHI registered on MUL (1 cyc)"
+signals:
+  - {name: clk,  type: clock}
+  - {name: op,   states: ["MOV", "MUL", "ADD", "AND", "SUB"]}
+  - {name: a,    states: ["0010", "03E8", "0001", "FF00", "1000"]}
+  - {name: b,    states: ["0020", "03E8", "0001", "0FF0", "2000"]}
+  - {name: res,  states: ["0020", "4240", "0002", "0F00", "F000"]}
+  - {name: mhi,  states: ["0000", "000F", "000F", "000F", "000F"]}
+  - {name: z,    states: ["0", "0", "0", "0", "0"]}
+  - {name: c,    states: ["0", "0", "0", "0", "0"]}
+---
+kind: timing
+name: timing_sequencer
+title: "sequencer: PC fetch and next-PC (1 cyc per instruction)"
+signals:
+  - {name: clk,       type: clock}
+  - {name: ack,       states: ["1", "1", "1", "0", "1", "1"]}
+  - {name: pc,        states: ["100", "101", "102", "102", "102", "103"]}
+  - {name: imm_class, states: ["00", "00", "10", "10", "10", "00"]}
+  - {name: reg_op,    states: ["-", "-", "JMP", "JMP", "JMP", "-"]}
+  - {name: cond,      states: ["AL", "AL", "AL", "AL", "AL", "AL"]}
+  - {name: pc_next,   states: ["101", "102", "200", "200", "200", "103"]}
+---
+kind: timing
+name: timing_microcode_rom
+title: "microcode_rom: synchronous read, latched on ack"
+signals:
+  - {name: clk,  type: clock}
+  - {name: ack,  states: ["0", "1", "0", "1", "1", "1", "0", "1"]}
+  - {name: addr, states: ["100", "100", "100", "101", "102", "103", "103", "104"]}
+  - {name: data, states: ["----", "1000", "1000", "1001", "1002", "1003", "1003", "1004"]}
+---
+kind: timing
+name: timing_gpu_cache
+title: "gpu_cache: hit (1 cyc), miss/fill (3+ cyc)"
+signals:
+  - {name: clk,         type: clock}
+  - {name: access,      states: ["0", "1", "1", "0", "0", "1", "1", "0"]}
+  - {name: hit,         states: ["-", "1", "0", "0", "0", "0", "1", "1"]}
+  - {name: state,       states: ["IDLE", "IDLE", "FILL", "FILL", "IDLE", "IDLE", "IDLE", "IDLE"]}
+  - {name: wb_cyc_o,    states: ["0", "0", "1", "1", "0", "0", "0", "0"]}
+  - {name: wb_ack_i,    states: ["0", "0", "0", "1", "0", "0", "0", "0"]}
+  - {name: access_done, states: ["0", "1", "0", "0", "1", "0", "1", "0"]}
+---
+kind: timing
+name: timing_pixel_blender
+title: "pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)"
+signals:
+  - {name: clk,        type: clock}
+  - {name: start,      states: ["0", "1", "0", "0", "0", "1", "0"]}
+  - {name: bstate,     states: ["IDLE", "CAPTURE", "FREE", "IDLE", "IDLE", "CAPTURE", "FREE"]}
+  - {name: pixel_out,  states: ["----", "1234", "1234", "1234", "----", "5678", "5678"]}
+  - {name: word_out,   states: ["----", "----", "ABCD", "ABCD", "----", "----", "EF01"]}
+  - {name: ack,        states: ["0", "0", "1", "0", "0", "0", "1"]}
+---
+kind: timing
+name: timing_alu_pipeline
+title: "ALU instruction: combinational read/compute/write within 1 cyc"
+signals:
+  - {name: clk,     type: clock}
+  - {name: insn,    states: ["ADD R5,R7", "-", "-", "-", "-"]}
+  - {name: ra,      states: ["R5", "-", "-", "-", "-"]}
+  - {name: rb,      states: ["R7", "-", "-", "-", "-"]}
+  - {name: mem_R5,  states: ["oldR5", "oldR5", "R5+R7", "R5+R7", "R5+R7"]}
+  - {name: mem_R7,  states: ["oldR7", "oldR7", "oldR7", "oldR7", "oldR7"]}
+  - {name: rdata_a, states: ["oldR5", "R5", "R5", "R5", "R5"]}
+  - {name: rdata_b, states: ["oldR7", "R7", "R7", "R7", "R7"]}
+  - {name: alu_res, states: ["oldADD", "R5+R7", "R5+R7", "R5+R7", "R5+R7"]}
+  - {name: we,      states: ["0", "1", "0", "0", "0"]}
+  - {name: wa,      states: ["-", "R5", "-", "-", "-"]}
+  - {name: wdata,   states: ["-", "R5+R7", "-", "-", "-"]}
+---
+kind: timing
+name: timing_top_data
+title: "top: DATA read (3 cyc: cache + blender)"
+signals:
+  - {name: clk,            type: clock}
+  - {name: pc,             states: ["100", "100", "100", "100", "101"]}
+  - {name: gc_access,      states: ["0", "1", "1", "0", "0"]}
+  - {name: gc_access_done, states: ["0", "0", "1", "0", "0"]}
+  - {name: pb_start,       states: ["0", "0", "1", "0", "0"]}
+  - {name: pb_ack,         states: ["0", "0", "0", "1", "0"]}
+  - {name: ack,            states: ["0", "0", "0", "1", "1"]}
+---
+kind: timing
+name: timing_flush
+title: "FLUSH: one-cycle en, then C_WB_REQ -> C_IDLE"
+signals:
+  - {name: clk,         type: clock}
+  - {name: pc,          states: ["...", "00A", "00B", "00C", "..."]}
+  - {name: insn,        states: ["...", "FLUSH", "MOV", "SUB", "..."]}
+  - {name: gc_flush_en, states: ["0", "1", "0", "0", "0"]}
+  - {name: gc_flush_ch, states: ["0", "1", "0", "0", "0"]}
+  - {name: gc.cstate,   states: ["IDLE", "IDLE", "WB_REQ", "IDLE", "IDLE"]}
+  - {name: wb_cyc,      states: ["0", "0", "1", "0", "0"]}
+  - {name: wb_we,       states: ["0", "0", "1", "0", "0"]}
+  - {name: flush_done,  states: ["0", "0", "0", "1", "0"]}
+notes:
+  - "flush_en is combinational from insn (is_flush). gc latches it into flush_req on the next posedge, then performs C_WB_REQ and waits for wb_ack. flush_done is a one-cycle strobe."

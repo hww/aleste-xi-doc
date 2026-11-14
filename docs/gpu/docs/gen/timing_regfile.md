@@ -1,4 +1,4 @@
-# regfile: write mem_R5 (t2), read q_a (t2), bypass (t1, same-cycle)
+# regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]
 
-![regfile: write mem_R5 (t2), read q_a (t2), bypass (t1, same-cycle)](gen/timing_regfile.svg)
+![regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]](gen/timing_regfile.svg)
 

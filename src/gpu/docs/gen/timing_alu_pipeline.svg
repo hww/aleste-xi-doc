@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="912.4" height="728" viewBox="0 0 912.4 728">
+<svg xmlns="http://www.w3.org/2000/svg" width="766" height="644" viewBox="0 0 766 644">
 <defs>
 <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
 <rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
@@ -8,20 +8,20 @@
 <path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
 </defs>
 <style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
-<rect width="912.4" height="728" fill="#FFFFFF"/>
-<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">ALU instruction: read (t1), compute (comb, 0 cyc), write (t2), result holds (t3)</text>
+<rect width="766" height="644" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">ALU instruction: combinational read/compute/write within 1 cyc</text>
 <text x="32" y="62" font-size="14" fill="#555555">5 ticks</text>
-<line x1="94.6" y1="108" x2="94.6" y2="700" stroke="#CCCCCC" stroke-width="1"/>
+<line x1="94.6" y1="108" x2="94.6" y2="616" stroke="#CCCCCC" stroke-width="1"/>
 <text x="130.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
-<line x1="166.6" y1="108" x2="166.6" y2="700" stroke="#CCCCCC" stroke-width="1"/>
+<line x1="166.6" y1="108" x2="166.6" y2="616" stroke="#CCCCCC" stroke-width="1"/>
 <text x="202.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
-<line x1="238.6" y1="108" x2="238.6" y2="700" stroke="#CCCCCC" stroke-width="1"/>
+<line x1="238.6" y1="108" x2="238.6" y2="616" stroke="#CCCCCC" stroke-width="1"/>
 <text x="274.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
-<line x1="310.6" y1="108" x2="310.6" y2="700" stroke="#CCCCCC" stroke-width="1"/>
+<line x1="310.6" y1="108" x2="310.6" y2="616" stroke="#CCCCCC" stroke-width="1"/>
 <text x="346.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
-<line x1="382.6" y1="108" x2="382.6" y2="700" stroke="#CCCCCC" stroke-width="1"/>
+<line x1="382.6" y1="108" x2="382.6" y2="616" stroke="#CCCCCC" stroke-width="1"/>
 <text x="418.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
-<line x1="454.6" y1="108" x2="454.6" y2="700" stroke="#CCCCCC" stroke-width="1"/>
+<line x1="454.6" y1="108" x2="454.6" y2="616" stroke="#CCCCCC" stroke-width="1"/>
 <text x="82.6" y="138" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
 <path d="M94.6 145 L94.6 121 L130.6 121 L130.6 145 L166.6 145 M166.6 145 L166.6 121 L202.6 121 L202.6 145 L238.6 145 M238.6 145 L238.6 121 L274.6 121 L274.6 145 L310.6 145 M310.6 145 L310.6 121 L346.6 121 L346.6 145 L382.6 145 M382.6 145 L382.6 121 L418.6 121 L418.6 145 L454.6 145" fill="none" stroke="#000000" stroke-width="2"/>
 <text x="82.6" y="180" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">insn</text>
@@ -79,7 +79,7 @@
 <text x="346.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">oldR7</text>
 <polygon points="388.6,331 448.6,331 454.6,343 448.6,355 388.6,355 382.6,343" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="418.6" y="347.2" font-size="12" text-anchor="middle" fill="#000000">oldR7</text>
-<text x="82.6" y="390" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">q_a</text>
+<text x="82.6" y="390" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">rdata_a</text>
 <polygon points="100.6,373 160.6,373 166.6,385 160.6,397 100.6,397 94.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="130.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
 <polygon points="172.6,373 232.6,373 238.6,385 232.6,397 172.6,397 166.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
@@ -90,7 +90,7 @@
 <text x="346.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
 <polygon points="388.6,373 448.6,373 454.6,385 448.6,397 388.6,397 382.6,385" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="418.6" y="389.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
-<text x="82.6" y="432" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">q_b</text>
+<text x="82.6" y="432" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">rdata_b</text>
 <polygon points="100.6,415 160.6,415 166.6,427 160.6,439 100.6,439 94.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="130.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">oldR7</text>
 <polygon points="172.6,415 232.6,415 238.6,427 232.6,439 172.6,439 166.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
@@ -101,67 +101,45 @@
 <text x="346.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">R7</text>
 <polygon points="388.6,415 448.6,415 454.6,427 448.6,439 388.6,439 382.6,427" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="418.6" y="431.2" font-size="12" text-anchor="middle" fill="#000000">R7</text>
-<text x="82.6" y="474" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">rdata_a</text>
+<text x="82.6" y="474" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">alu_res</text>
 <polygon points="100.6,457 160.6,457 166.6,469 160.6,481 100.6,481 94.6,469" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="130.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">oldR5</text>
+<text x="130.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">oldADD</text>
 <polygon points="172.6,457 232.6,457 238.6,469 232.6,481 172.6,481 166.6,469" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="202.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<text x="202.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
 <polygon points="244.6,457 304.6,457 310.6,469 304.6,481 244.6,481 238.6,469" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="274.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<text x="274.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
 <polygon points="316.6,457 376.6,457 382.6,469 376.6,481 316.6,481 310.6,469" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="346.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
+<text x="346.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
 <polygon points="388.6,457 448.6,457 454.6,469 448.6,481 388.6,481 382.6,469" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="418.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
-<text x="82.6" y="516" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">rdata_b</text>
-<polygon points="100.6,499 160.6,499 166.6,511 160.6,523 100.6,523 94.6,511" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="130.6" y="515.2" font-size="12" text-anchor="middle" fill="#000000">oldR7</text>
-<polygon points="172.6,499 232.6,499 238.6,511 232.6,523 172.6,523 166.6,511" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="202.6" y="515.2" font-size="12" text-anchor="middle" fill="#000000">R7</text>
-<polygon points="244.6,499 304.6,499 310.6,511 304.6,523 244.6,523 238.6,511" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="274.6" y="515.2" font-size="12" text-anchor="middle" fill="#000000">R7</text>
-<polygon points="316.6,499 376.6,499 382.6,511 376.6,523 316.6,523 310.6,511" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="346.6" y="515.2" font-size="12" text-anchor="middle" fill="#000000">R7</text>
-<polygon points="388.6,499 448.6,499 454.6,511 448.6,523 388.6,523 382.6,511" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="418.6" y="515.2" font-size="12" text-anchor="middle" fill="#000000">R7</text>
-<text x="82.6" y="558" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">alu_res</text>
+<text x="418.6" y="473.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
+<text x="82.6" y="516" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">we</text>
+<line x1="94.6" y1="523" x2="166.6" y2="523" stroke="#000000" stroke-width="2"/>
+<line x1="166.6" y1="499" x2="238.6" y2="499" stroke="#000000" stroke-width="2"/>
+<line x1="166.6" y1="499" x2="166.6" y2="523" stroke="#000000" stroke-width="2"/>
+<line x1="238.6" y1="523" x2="310.6" y2="523" stroke="#000000" stroke-width="2"/>
+<line x1="238.6" y1="499" x2="238.6" y2="523" stroke="#000000" stroke-width="2"/>
+<line x1="310.6" y1="523" x2="382.6" y2="523" stroke="#000000" stroke-width="2"/>
+<line x1="382.6" y1="523" x2="454.6" y2="523" stroke="#000000" stroke-width="2"/>
+<text x="82.6" y="558" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wa</text>
 <polygon points="100.6,541 160.6,541 166.6,553 160.6,565 100.6,565 94.6,553" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="130.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">oldADD</text>
+<text x="130.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
 <polygon points="172.6,541 232.6,541 238.6,553 232.6,565 172.6,565 166.6,553" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="202.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
+<text x="202.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
 <polygon points="244.6,541 304.6,541 310.6,553 304.6,565 244.6,565 238.6,553" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="274.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
+<text x="274.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
 <polygon points="316.6,541 376.6,541 382.6,553 376.6,565 316.6,565 310.6,553" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="346.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
+<text x="346.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
 <polygon points="388.6,541 448.6,541 454.6,553 448.6,565 388.6,565 382.6,553" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="418.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
-<text x="82.6" y="600" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">we</text>
-<line x1="94.6" y1="607" x2="166.6" y2="607" stroke="#000000" stroke-width="2"/>
-<line x1="166.6" y1="583" x2="238.6" y2="583" stroke="#000000" stroke-width="2"/>
-<line x1="166.6" y1="583" x2="166.6" y2="607" stroke="#000000" stroke-width="2"/>
-<line x1="238.6" y1="607" x2="310.6" y2="607" stroke="#000000" stroke-width="2"/>
-<line x1="238.6" y1="583" x2="238.6" y2="607" stroke="#000000" stroke-width="2"/>
-<line x1="310.6" y1="607" x2="382.6" y2="607" stroke="#000000" stroke-width="2"/>
-<line x1="382.6" y1="607" x2="454.6" y2="607" stroke="#000000" stroke-width="2"/>
-<text x="82.6" y="642" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wa</text>
-<polygon points="100.6,625 160.6,625 166.6,637 160.6,649 100.6,649 94.6,637" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="130.6" y="641.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<polygon points="172.6,625 232.6,625 238.6,637 232.6,649 172.6,649 166.6,637" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="202.6" y="641.2" font-size="12" text-anchor="middle" fill="#000000">R5</text>
-<polygon points="244.6,625 304.6,625 310.6,637 304.6,649 244.6,649 238.6,637" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="274.6" y="641.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<polygon points="316.6,625 376.6,625 382.6,637 376.6,649 316.6,649 310.6,637" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="346.6" y="641.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<polygon points="388.6,625 448.6,625 454.6,637 448.6,649 388.6,649 382.6,637" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="418.6" y="641.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<text x="82.6" y="684" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wdata</text>
-<polygon points="100.6,667 160.6,667 166.6,679 160.6,691 100.6,691 94.6,679" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="130.6" y="683.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<polygon points="172.6,667 232.6,667 238.6,679 232.6,691 172.6,691 166.6,679" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="202.6" y="683.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
-<polygon points="244.6,667 304.6,667 310.6,679 304.6,691 244.6,691 238.6,679" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="274.6" y="683.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<polygon points="316.6,667 376.6,667 382.6,679 376.6,691 316.6,691 310.6,679" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="346.6" y="683.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
-<polygon points="388.6,667 448.6,667 454.6,679 448.6,691 388.6,691 382.6,679" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="418.6" y="683.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<text x="418.6" y="557.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<text x="82.6" y="600" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wdata</text>
+<polygon points="100.6,583 160.6,583 166.6,595 160.6,607 100.6,607 94.6,595" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="599.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="172.6,583 232.6,583 238.6,595 232.6,607 172.6,607 166.6,595" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="599.2" font-size="12" text-anchor="middle" fill="#000000">R5+R7</text>
+<polygon points="244.6,583 304.6,583 310.6,595 304.6,607 244.6,607 238.6,595" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="599.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="316.6,583 376.6,583 382.6,595 376.6,607 316.6,607 310.6,595" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="599.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="388.6,583 448.6,583 454.6,595 448.6,607 388.6,607 382.6,595" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="599.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
 </svg>

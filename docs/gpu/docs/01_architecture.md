@@ -10,8 +10,8 @@
 4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)"; the port turns a pixel index into a word address.
 5. **Pixel formats: 1, 2, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.**
 6. **No hardware scrolling.** Replaced by fast block copying.
-7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm12, LDI24, control.
-8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`.
+7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm11, LDI16, control.
+8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`. Any ALU op can be issued with `WRITE=0` to discard the result while still updating flags.
 9. **`SHADOW` — return address + flags**; `CALL` writes it, `RET` uses PC only, `JMPR` for indirect return.
 10. **`LOOP` register** — count + target, `L` bit drives it.
 11. **Ports stall the sequencer in hardware**; the model does not simulate cycle counts.
@@ -27,93 +27,90 @@ GPU → Wishbone → VideoMemoryArbiter. The arbiter is out of scope; raster sca
 
 ## 3. Microinstruction (32 bit)
 
-The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four formats: REG-REG, REG-IMM12, LDI24, CONTROL.
+The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four formats: REG-REG, REG-IMM11, LDI16, CONTROL.
 
-![INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)](gen/insn_reg.svg)
+![J=0 I=0 REG-REG](gen/insn_reg.svg)
 
-*Figure 7 — INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)*
+*Figure 7 — J=0 I=0 REG-REG*
 
-**Table 12 — INSTRUCTION · 32 BIT · J=0 I=0 REG-REG (d = d op s)**
+**Table 12 — J=0 I=0 REG-REG**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 0 |
 | <a id="I"></a>**I** | [29] | 1 | = 0 |
-| <a id="DST"></a>**DST** | [28:24] | 5 | Destination operand, low 5 bits |
-| <a id="DS"></a>**DS** | [23] | 1 | DST bank: 0 = R0..R31, 1 = special operand |
-| <a id="COND"></a>**COND** | [22:19] | 4 | Condition; false = no register write, no port access [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [18] | 1 | 1 = update flags |
-| <a id="OP"></a>**OP** | [17:13] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
-| <a id="SRC"></a>**SRC** | [12:7] | 6 | Second operand {S, n[4:0]} [`operand_map`](gen/operand_map.md) |
-| <a id="RSV"></a>**RSV** | [6:0] | 7 | Reserved, must be 0 |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | 1 = write result; 0 = do not write (flags still update if F=1) |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | 1 = update flags |
+| <a id="OP"></a>**OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
+| <a id="SRC"></a>**SRC** | [11:6] | 6 | Second operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | Reserved, must be 0 |
 
 
-![INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)](gen/insn_imm12.svg)
+![J=1 I=1 REG-IMM11](gen/insn_imm11.svg)
 
-*Figure 8 — INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)*
+*Figure 8 — J=1 I=1 REG-IMM11*
 
-**Table 13 — INSTRUCTION · 32 BIT · J=1 I=1 REG-IMM12 (d = d op imm)**
+**Table 13 — J=1 I=1 REG-IMM11**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 1 |
 | <a id="I"></a>**I** | [29] | 1 | = 1 |
-| <a id="DST"></a>**DST** | [28:24] | 5 | Destination operand, low 5 bits |
-| <a id="DS"></a>**DS** | [23] | 1 | DST bank |
-| <a id="COND"></a>**COND** | [22:19] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [18] | 1 | Update flags |
-| <a id="OP"></a>**OP** | [17:13] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
-| <a id="SX"></a>**SX** | [12] | 1 | 1 = sign-extend IMM, 0 = zero-extend |
-| <a id="IMM"></a>**IMM** | [11:0] | 12 | 12-bit immediate, operand B |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | 1 = write result; 0 = do not write |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | Update flags |
+| <a id="OP"></a>**OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
+| <a id="SX"></a>**SX** | [11] | 1 | 1 = sign-extend IMM11, 0 = zero-extend |
+| <a id="IMM"></a>**IMM** | [10:0] | 11 | 11-bit immediate, operand B |
 
 
-![INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)](gen/insn_ldi24.svg)
 
-*Figure 9 — INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)*
+![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-**Table 14 — INSTRUCTION · 32 BIT · J=0 I=1 LDI24 (R[DST] = imm24)**
+*Figure 9 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-| Field | Bits | Width | Description |
-| --- | --- | --- | --- |
-| <a id="L"></a>**L** | [31] | 1 | Loop flag |
-| <a id="J"></a>**J** | [30] | 1 | = 0 |
-| <a id="I"></a>**I** | [29] | 1 | = 1 |
-| <a id="DST"></a>**DST** | [28:24] | 5 | R0..R31 only |
-| <a id="IMM24"></a>**IMM24** | [23:0] | 24 | 24-bit constant; unconditional, flags untouched |
-
-
-![INSTRUCTION · 32 BIT · J=1 I=0 CONTROL](gen/insn_ctrl.svg)
-
-*Figure 10 — INSTRUCTION · 32 BIT · J=1 I=0 CONTROL*
-
-**Table 15 — INSTRUCTION · 32 BIT · J=1 I=0 CONTROL**
+**Table 14 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 1 |
 | <a id="I"></a>**I** | [29] | 1 | = 0 |
-| <a id="DST"></a>**DST** | [28:24] | 5 | Unused |
-| <a id="DS"></a>**DS** | [23] | 1 | Unused |
-| <a id="COND"></a>**COND** | [22:19] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [18] | 1 | Unused |
-| <a id="OP"></a>**OP** | [17:13] | 5 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
-| <a id="REG"></a>**REG** | [12:7] | 6 | Operand for JMPR (any operand, including special) |
-| <a id="ADDR"></a>**ADDR** | [11:0] | 12 | Target address (JMP/CALL), halt code (HALT), IRQ code (IRQ) |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Unused for non-JMPR CTRL [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused for CTRL |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | Unused for CTRL (must be 0) |
+| <a id="OP"></a>**OP** | [16:12] | 5 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="SX"></a>**SX** | [11] | 1 | Unused in CTRL |
+| <a id="ADDR"></a>**ADDR** | [10:0] | 11 | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
 
 
-**Classes (J, I):**
+![J=1 I=0 CTRL (JMPR)](gen/insn_ctrl_jmpr.svg)
 
-| J | I | Class | Layout of low bits |
-|---|---|---|---|
-| 0 | 0 | reg-reg | `SRC[5:0]` in [12:7], `RSV[6:0]` in [6:0] |
-| 1 | 1 | reg-imm12 | `SX` in [12], `IMM[11:0]` in [11:0] |
-| 0 | 1 | LDI24 | `IMM24[23:0]` in [23:0]; only R0..R31; no COND/F; unconditional |
-| 1 | 0 | control | `REG[5:0]` in [12:7], `ADDR[11:0]` in [11:0]; `OP` = CTRL |
+*Figure 10 — J=1 I=0 CTRL (JMPR)*
 
-**Field overlap in control words.** Bits [11:7] belong to both `ADDR[11:0]` and `REG[5:0]`. This is intentional: for `JMPR` the target register is encoded in the same position as `SRC` in reg-reg words, while `ADDR` supplies the immediate target for `JMP`/`CALL`. The two interpretations are mutually exclusive per opcode; the assembler rejects combinations that would need both.
+**Table 15 — J=1 I=0 CTRL (JMPR)**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | = 1 |
+| <a id="I"></a>**I** | [29] | 1 | = 0 |
+| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Source register for target address [`operand_map`](gen/operand_map.md) |
+| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused |
+| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="F"></a>**F** | [17] | 1 | Unused |
+| <a id="OP"></a>**OP** | [16:12] | 5 | = JMPR [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="REG"></a>**REG** | [11:6] | 6 | Source operand code (0..63) [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | Unused |
+
+
+**Field overlap in control words.** Bits [11:6] belong to both `ADDR[11:0]` and `REG[5:0]`. This is intentional: for `JMPR` the target register is encoded in the same position as `SRC` in reg-reg words, while `ADDR` supplies the immediate target for `JMP`/`CALL`. The two interpretations are mutually exclusive per opcode; the assembler rejects combinations that would need both.
 
 **Execution order.** One instruction per cycle (model). The ALU reads its two operands A and B at the start of the cycle and writes the result at the end. Flags come from the previous instruction.
 
@@ -143,9 +140,9 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ROM is synchronous: `data_r <= mem[addr]` latches on `ack`, so the instruction is available one cycle after `addr`. The `pc` is stable during the whole cycle, and the `ack` from the previous instruction gates the read.
 
-![microcode_rom: synchronous read latched on ack; data holds during stall](gen/timing_microcode_rom.svg)
+![microcode_rom: synchronous read, latched on ack](gen/timing_microcode_rom.svg)
 
-*Figure 11 — microcode_rom: synchronous read latched on ack; data holds during stall*
+*Figure 11 — microcode_rom: synchronous read, latched on ack*
 
 
 ## 4. ALU
@@ -164,42 +161,37 @@ The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arith
 | 5 | <a id="ORN"></a>**ORN** | cls=00, fn=10, inv=1: d = d \| ~s |
 | 6 | <a id="XOR"></a>**XOR** | cls=00, fn=11, inv=0: d = d ^ s |
 | 7 | <a id="XNOR"></a>**XNOR** | cls=00, fn=11, inv=1: d = d ^ ~s |
-| 8 | <a id="ADD"></a>**ADD** | cls=01, fn=00, cin=0: d = d + s |
-| 9 | <a id="ADC"></a>**ADC** | cls=01, fn=00, cin=C: d = d + s + C |
-| 10 | <a id="SUB"></a>**SUB** | cls=01, fn=01, cin=1: d = d - s; C = not borrow |
-| 11 | <a id="SBC"></a>**SBC** | cls=01, fn=01, cin=C: d = d - s - (1-C) |
-| 12 | <a id="ROR"></a>**ROR** | cls=10, fn=00: 16-bit rotate right by s[3:0] |
-| 13 | <a id="reserved"></a>**reserved** | cls=10, fn=00, op[0]=1 — reserved |
-| 14 | <a id="SHR"></a>**SHR** | cls=10, fn=01: ROR with zero fill |
-| 15 | <a id="reserved"></a>**reserved** | cls=10, fn=01, op[0]=1 — reserved |
-| 16 | <a id="SAR"></a>**SAR** | cls=10, fn=10: ROR with bit 15 fill (arithmetic) |
-| 17 | <a id="reserved"></a>**reserved** | cls=10, fn=10, op[0]=1 — reserved |
-| 18..23 | <a id="reserved"></a>**reserved** | cls=10, fn=11 and others — reserved |
+| 8 | <a id="ADD"></a>**ADD** | cls=01, fn=00, sub=0, cin_sel=0: d = d + s |
+| 10 | <a id="ADC"></a>**ADC** | cls=01, fn=01, sub=0, cin_sel=1: d = d + s + C |
+| 13 | <a id="SUB"></a>**SUB** | cls=01, fn=10, sub=1, cin_sel=0: d = d - s; C = not borrow |
+| 15 | <a id="SBC"></a>**SBC** | cls=01, fn=11, sub=1, cin_sel=1: d = d - s - (1-C) |
+| 16 | <a id="ROR"></a>**ROR** | cls=10, fn=00: 16-bit rotate right by s[3:0] |
+| 18 | <a id="SHR"></a>**SHR** | cls=10, fn=01: logical shift right |
+| 20 | <a id="SAR"></a>**SAR** | cls=10, fn=10: arithmetic shift right |
 | 24 | <a id="MUL"></a>**MUL** | cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI |
-| 25..27 | <a id="reserved"></a>**reserved** | cls=11, fn=00, op[0]=1 or fn=01 — reserved |
 | 28 | <a id="TST"></a>**TST** | cls=11, fn=10: d & s, result discarded, flags written |
-| 29 | <a id="reserved"></a>**reserved** | cls=11, fn=10, op[0]=1 — reserved |
 | 30 | <a id="CMP"></a>**CMP** | cls=11, fn=11: d - s, result discarded, flags written |
-| 31 | <a id="reserved"></a>**reserved** | cls=11, fn=11, op[0]=1 — reserved |
 
 **Notes:**
 
 - Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
+- TST/CMP are encoded in the assembler with WRITE=0; dedicated opcodes 28/30 are equivalent to AND/SUB with WRITE=0.
 
 
 **Notes:**
 - Writing to ZERO discards the result. NOP = MOV ZERO, ZERO.
-- Flags are written only if F=1 (CMP/TST always).
+- Flags are written only if F=1 (CMP/TST always write flags).
+- Any ALU operation may be issued with `WRITE=0` — the result is discarded, but flags are still updated if `F=1`. TST/CMP are encoded as AND/SUB with `WRITE=0`.
 - `ROR`/`SHR`/`SAR` do not update C.
 - `MUL` is multi-cycle in RTL (DSP); 1 cycle in the model.
 - **`MUL` width.** RTL (`alu.sv`) computes `a_signed * b_signed` over 16×16 → 32 bits (low 16 to result, high 16 to MHI). The model agrees.
 - **`SHR`/`SAR` with shift ≥ 16.** RTL uses a 4-stage barrel shifter over `b[3:0]` (mod 16). Shift counts ≥ 16 wrap to `b[3:0]`. This behaviour is normative.
 
-An ALU instruction takes two cycles from "instruction available" to "result in register". In cycle 1 the register file reads `q_a`/`q_b`; in cycle 2 the writeback writes `mem[wa] <= wdata`. The ALU itself is combinational (0 cycles), so `pc` advances every cycle; only the register write is delayed by one cycle. `MUL` additionally registers `mhi` on the next `posedge clk`.
+An ALU instruction takes two cycles from "instruction available" to "result in register". In cycle 1 the register file reads `rdata_a`/`rdata_b`; in cycle 2 the writeback writes `mem[wa] <= wdata`. The ALU itself is combinational (0 cycles), so `pc` advances every cycle; only the register write is delayed by one cycle. `MUL` additionally registers `mhi` on the next `posedge clk`.
 
-![ALU instruction: read (t1), compute (comb, 0 cyc), write (t2), result holds (t3)](gen/timing_alu_pipeline.svg)
+![ALU instruction: combinational read/compute/write within 1 cyc](gen/timing_alu_pipeline.svg)
 
-*Figure 12 — ALU instruction: read (t1), compute (comb, 0 cyc), write (t2), result holds (t3)*
+*Figure 12 — ALU instruction: combinational read/compute/write within 1 cyc*
 
 
 ## 5. Control
@@ -211,19 +203,20 @@ Control-class instructions (J=1, I=0) implement NOP, JMP, CALL, RET, JMPR, HALT,
 | Value | Name | Description |
 | --- | --- | --- |
 | 0 | <a id="NOP"></a>**NOP** | Nothing |
-| 1 | <a id="JMP"></a>**JMP** | PC = ADDR |
+| 1 | <a id="JMP"></a>**JMP** | PC = ADDR (11 bits) |
 | 2 | <a id="CALL"></a>**CALL** | SHADOW[15:12] = flags, SHADOW[11:0] = PC+1; PC = ADDR |
 | 3 | <a id="RET"></a>**RET** | PC = SHADOW[11:0]; flags not restored |
-| 4 | <a id="JMPR"></a>**JMPR** | PC = operand[REG][11:0] |
+| 4 | <a id="JMPR"></a>**JMPR** | PC = operand[DST_CODE][11:0] |
 | 5 | <a id="HALT"></a>**HALT** | ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code) |
 | 6 | <a id="IRQ"></a>**IRQ** | Raise IRQ, code = ADDR |
-| 7 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel imm12[1:0] |
+| 7 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel ADDR[1:0] |
 
 
 **Notes:**
 - `CALL` writes `SHADOW = {v, c, n, z, pc+1}`. Nested calls: save SHADOW to a register first.
-- **`L` bit and control words.** `L` is forbidden on control-class words (the assembler rejects it). It is allowed on all data-processing classes (reg-reg, reg-imm12, LDI24). After the word, if count > 1 then count--, PC = loop target; else fall through. The loop update runs even if `COND` is false.
+- **`L` bit and control words.** `L` is forbidden on control-class words (the assembler rejects it). It is allowed on all data-processing classes (reg-reg, reg-imm11, LDI16). After the word, if count > 1 then count--, PC = loop target; else fall through. The loop update runs even if `COND` is false.
 - `STM` is read-only.
+- **Branch flush.** After any taken branch/jump/jmpr/ret/loop, the sequencer inserts a 1-cycle bubble: `insn = mem[old pc]` is not executed (its `FLUSH`-equivalent `valid` is suppressed). `pc` has already been loaded on the previous cycle.
 
 ## 6. Operand map
 
@@ -332,7 +325,7 @@ BRAM 0–31 holds the loader; writing there → `HALT 1`. Each packet starts wit
 
 **Notes:**
 
-- В combined_code.txt loader отсутствует (есть только bootloader.hex для microcode_rom). Если loader реализован вне combined_code.txt — сверить с ним.
+- Loader is not implemented in RTL. Reserved for future extension.
 
 
 `CODE`: 32-bit microinstruction = 2 words. `RUN`: entry point. `JUMP`: new `STM.PTR`.
@@ -350,7 +343,7 @@ HALT 0              ; IDLE
 | Command | Single function | What it does not do |
 |---|---|---|
 | `JMP`, `CALL`, `RET`, `JMPR` | control flow | |
-| `LDI24` | load 24-bit constant into R0..R31 | does not touch flags |
+| `LDI16` | load 16-bit constant into R0..R31 (conditional) | does not touch flags |
 | `FLUSH` (via MOV) | make memory coherent | does not interrupt CPU |
 | `IRQ` | raise an event | does not flush memory, does not stop the core |
 | `HALT X` | `X=0` → IDLE; `X!=0` → ERROR(code) | does not interrupt CPU |
@@ -376,10 +369,10 @@ PIX:  MOV T0, SRC.PIX      ; read source pixel
 **Affine mode** — source sampled per pixel:
 
 ```
-      LDI24 T0, sidx
+      LDI16 T0, sidx
       MOV SRC.IDX, T0
       MOV T0, SRC.PIX
-      LDI24 T1, didx
+      LDI16 T1, didx
       MOV DST.IDX, T1
       MOV DST.PIX, T0
 ```
@@ -417,3 +410,23 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 10. **Integration with `machine.cpp`** — `gpu_mmio` (page 3), `set_line(5)`, `tick(t)` — in progress.
 11. **`PAGE`** — 8 bits; low 16 bits of `base` optional (FPGA: 8 bits, simulator: 24 bits).
 12. **`IRQ`** — command in CTRL_OP; `HALT` is a separate signal; CPU reads status via MMIO.
+```
+
+## Changes made vs the version you pasted
+
+- Section 1, item 7: `reg-imm12, LDI24` → `reg-imm11, LDI16`.
+- Section 1, item 8: added note about `WRITE=0` for any ALU op.
+- Section 3: `REG-IMM12, LDI24` → `REG-IMM11, LDI16`.
+- Section 3 auto-references: `insn_imm12` → `insn_imm11`, `insn_ldi24` → `insn_ldi16`, `insn_ctrl` → `insn_ctrl_jmp` (all **three** occurrences of `insn_ctrl` fixed).
+- Section 3 class table: rewritten to match the new RTL bit positions (DST_CODE `[28:23]`, WRITE `[22]`, COND `[21:18]`, F `[17]`, OP `[16:12]`, SRC/REG `[11:6]`).
+- Section 3 overlap paragraph: `[11:7]` → `[11:6]`.
+- Section 4 notes: added `WRITE=0` rule, updated `q_a`/`q_b` → `rdata_a`/`rdata_b`.
+- Section 5 notes: added branch-flush paragraph.
+- Section 10 table: `LDI24` → `LDI16`.
+- Section 11 affine example: `LDI24` → `LDI16` (both occurrences).
+
+Paste this as `docs/01_architecture.md`. Then:
+
+```bash
+lx docs/01_architecture.md
+```
