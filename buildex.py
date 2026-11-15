@@ -33,15 +33,18 @@ import hashlib
 import html
 import math
 import os
+import posixpath
 import re
 import shutil
 import sys
 import time
+import urllib.parse
 from pathlib import Path
 from types import SimpleNamespace as NS
 
 import yaml
 
+VERSION = "1.5"
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUT = ROOT / "out"
@@ -150,8 +153,7 @@ def sync_tree(src_dir, dst_dir, produced):
     for f in sorted(src_dir.rglob("*")):
         if not f.is_file():
             continue
-        rel = f.relative_to(src_dir)
-        dst = dst_dir / rel
+        dst = dst_dir / f.relative_to(src_dir)
         produced.add(dst.resolve())
         if dst.exists() and _hash(dst) == _hash(f):
             continue
@@ -963,7 +965,7 @@ def v_memmap(spec, P):
             P.diag.err(rw, "region needs 'name'")
             continue
         rw = f"{where} region '{r['name']}'"
-        check_keys(r, ["name", "start", "end", "size", "access", "purpose", "description", "group"], rw, P, "region key")
+        check_keys(r, ["name", "start", "end", "size", "access", "purpose", "description", "group", "width"], rw, P, "region key")
         st = as_int(r.get("start"))
         en = as_int(r.get("end"))
         sz = as_int(r.get("size"))
@@ -978,7 +980,7 @@ def v_memmap(spec, P):
         if en >= (1 << aw):
             P.diag.err(rw, f"end {hex(en)} outside {aw}-bit address space")
         regs.append(NS(name=str(r["name"]), start=st, end=en, access=r.get("access"),
-                       purpose=r.get("purpose") or r.get("description"), group=r.get("group")))
+                       purpose=r.get("purpose") or r.get("description"), group=r.get("group"), width=r.get("width")))
     regs.sort(key=lambda r: r.start)
     for a, b in zip(regs, regs[1:]):
         if b.start <= a.end:
@@ -1008,7 +1010,7 @@ def d_memmap(spec, P):
     bw = 340
     y = 96
     for it in items:
-        h = 26 if getattr(it, "gap", False) else (58 if it.purpose else 44)
+        h = 34 if getattr(it, "gap", False) else (58 if it.purpose else 44)
         top_a, bot_a = (it.end, it.start) if spec.get("order", "desc") == "desc" else (it.start, it.end)
         if getattr(it, "gap", False):
             svg.rect(x0, y, bw, h, fill="#FFFFFF", stroke="#888888", sw=1, dash="4,3")
@@ -1038,10 +1040,13 @@ def t_memmap(spec, P):
         return None
     dig = (spec["_aw"] + 3) // 4
     ha = any(r.access for r in spec["_regions"])
-    hd = ["Range", "Name", "Size"] + (["Access"] if ha else []) + ["Purpose"]
+    hw = any(r.width is not None for r in spec["_regions"])
+    hd = ["Range", "Name", "Size"] + (["Width"] if hw else []) + (["Access"] if ha else []) + ["Purpose"]
     rows = []
     for r in spec["_regions"]:
         row = [f"`0x{r.start:0{dig}X}`–`0x{r.end:0{dig}X}`", f'<a id="{anchor_id(r.name)}"></a>**{r.name}**', fmt_size(r.end - r.start + 1)]
+        if hw:
+            row.append(r.width)
         if ha:
             row.append(r.access)
         row.append(r.purpose)
@@ -1058,7 +1063,7 @@ def a_memmap(spec):
 # =============================================================================
 def v_timing(spec, P):
     where = W_(spec)
-    check_keys(spec, BASE_KEYS + ["signals", "arrows", "ticks", "tick_width"], where, P)
+    check_keys(spec, BASE_KEYS + ["signals", "arrows", "ticks", "tick_width", "width"], where, P)
     sigs_raw = as_list(spec.get("signals"))
     if not sigs_raw:
         P.diag.err(where, "'signals' must be a non-empty list")
@@ -1137,8 +1142,13 @@ def d_timing(spec, P):
         return None
     sigs, nt = spec["_sigs"], spec["_nt"]
     left = max([90] + [tw(s.name, 13, mono=True, bold=True) + 40 for s in sigs])
-    col_w = spec.get("tick_width") or max(36, min(72, (960 - left) / nt))
-    row_h, top = 42, 112
+    if spec.get("tick_width"):
+        col_w = spec["tick_width"]
+    elif as_int(spec.get("width")):
+        col_w = max(20, (as_int(spec["width"]) - left - 32) / nt)
+    else:
+        col_w = max(36, min(72, (960 - left) / nt))
+    row_h, top = 46, 112
     svg = Svg()
     H = top + len(sigs) * row_h
     labels = spec.get("ticks")
@@ -1180,11 +1190,18 @@ def d_timing(spec, P):
                 svg.line(x, ym, x + w, ym, "#666666", 2, dash="5,3")
             prev = r
     for a in spec["_arrows"]:
-        x1, y1 = left + a.t1 * col_w, top + a.s1 * row_h + row_h / 2
-        x2, y2 = left + a.t2 * col_w, top + a.s2 * row_h + row_h / 2
-        svg.path(f"M{n(x1)} {n(y1)} L{n(x2)} {n(y2)}", stroke="#B00020", sw=1.5, marker=True)
+        # концы стрелки — у краёв строк, обращённых друг к другу, чтобы не лезть на сами волны
+        d = 1 if a.s2 > a.s1 else (-1 if a.s2 < a.s1 else 0)
+        x1, x2 = left + a.t1 * col_w, left + a.t2 * col_w
+        y1 = top + a.s1 * row_h + row_h / 2 + d * row_h * 0.32
+        y2 = top + a.s2 * row_h + row_h / 2 - d * row_h * 0.32
+        if d == 0:
+            y1 = y2 = top + a.s1 * row_h + row_h / 2
+        svg.path(f"M{n(x1)} {n(y1)} L{n(x2)} {n(y2)}", stroke="#B00020", sw=1.4, marker=True)
+        svg.circle(x1, y1, 2.5, fill="#B00020", stroke="#B00020", sw=0.5)
         if a.text:
-            svg.text((x1 + x2) / 2 + 6, (y1 + y2) / 2 - 4, a.text, 11, "start", fill="#B00020", halo=True)
+            lx, ly = (x1 + x2) / 2, (y1 + y2) / 2
+            svg.text(lx + 7, ly + 4, a.text, 11, "start", fill="#B00020", halo=True)
     return svg_doc(left + nt * col_w + 40, H + 28, spec.get("title", spec["name"]), spec.get("subtitle", f"{nt} ticks"), svg.inner())
 
 
@@ -1263,28 +1280,39 @@ def d_fsm(spec, P):
     N = len(states)
     size = {}
     for s in states:
-        hw = max(48, (tw(s.name, 14, bold=True) + 30) / 2)
+        hw = max(50, (max(tw(s.name, 14, bold=True), tw(str(s.out or ""), 10.5, mono=True)) + 34) / 2)
         hh = 28 if s.out else 22
         size[s.name] = (hw, hh)
     maxw = max(v[0] for v in size.values()) * 2
+
+    def label_of(t):
+        return " ".join(x for x in (str(t.when) if t.when else "", f"/ {t.do}" if t.do else "") if x)
+
+    maxlab = max([tw(label_of(t), 11) for t in trans] + [0])
     pos = {}
     if N == 1:
         pos[states[0].name] = (0, 0)
     elif N == 2:
-        pos[states[0].name], pos[states[1].name] = (-(maxw / 2 + 90), 0), (maxw / 2 + 90, 0)
+        gap = maxw + maxlab + 90
+        pos[states[0].name], pos[states[1].name] = (-gap / 2, 0), (gap / 2, 0)
     else:
-        R = max(150, N * (maxw + 80) / (2 * math.pi))
-        # начальное состояние слева
+        R = max(190, N * (maxw + 0.55 * maxlab + 70) / (2 * math.pi))
         init_i = [s.name for s in states].index(init)
         for i in range(N):
             a = math.pi + 2 * math.pi * ((i - init_i) % N) / N
-            pos[states[i].name] = (R * math.cos(a), 0.78 * R * math.sin(a))
+            pos[states[i].name] = (R * math.cos(a), 0.85 * R * math.sin(a))
     svg = Svg()
     bb = [1e9, 1e9, -1e9, -1e9]
 
     def grow(x, y, w=0, h=0):
         bb[0], bb[1] = min(bb[0], x - w), min(bb[1], y - h)
         bb[2], bb[3] = max(bb[2], x + w), max(bb[3], y + h)
+
+    def outward(name):
+        x, y = pos[name]
+        if abs(x) < 1e-6 and abs(y) < 1e-6:
+            return -math.pi / 2
+        return math.atan2(y, x)
 
     for s in states:
         cx, cy = pos[s.name]
@@ -1296,56 +1324,65 @@ def d_fsm(spec, P):
         else:
             svg.text(cx, cy + 5, s.name, 14, bold=True)
         grow(cx, cy, hw, hh)
+
+    def put_lines(x, y, lines, anchor="middle", up=True):
+        for i, l in enumerate(lines):
+            yy = y - (len(lines) - 1 - i) * 14 if up else y + i * 14
+            svg.text(x, yy, l, 11, anchor, halo=True)
+            tw_ = tw(l, 11)
+            grow(x + (tw_ / 2 if anchor == "start" else -tw_ / 2 if anchor == "end" else 0), yy, tw_ / 2, 8)
+
     groups = {}
     for t in trans:
         groups.setdefault((t.a, t.b), []).append(t)
+    loops = {a for (a, b) in groups if a == b}
     for (a, b), ts in groups.items():
-        lines = []
-        for t in ts:
-            txt = " ".join(x for x in (str(t.when) if t.when else "", f"/ {t.do}" if t.do else "") if x)
-            if txt:
-                lines.append(txt)
+        lines = [label_of(t) for t in ts if label_of(t)]
         ax, ay = pos[a]
         bx, by = pos[b]
         if a == b:
             hw, hh = size[a]
-            x1, x2, yt = ax + hw * 0.45, ax - hw * 0.45, ay - hh
-            svg.path(f"M{n(x1)} {n(yt)} C{n(x1 + 10)} {n(yt - 52)} {n(x2 - 10)} {n(yt - 52)} {n(x2)} {n(yt)}", marker=True, sw=1.6)
-            for i, l in enumerate(lines):
-                yy = yt - 48 - (len(lines) - 1 - i) * 14
-                svg.text(ax, yy, l, 11, halo=True)
-                grow(ax, yy, tw(l, 11) / 2, 8)
-            grow(ax, yt - 56)
+            th = outward(a)
+            ca, sa = math.cos(th), math.sin(th)
+            p1 = _clip(ax, ay, hw + 1, hh + 1, ax + math.cos(th - 0.42) * 100, ay + math.sin(th - 0.42) * 100)
+            p2 = _clip(ax, ay, hw + 3, hh + 3, ax + math.cos(th + 0.42) * 100, ay + math.sin(th + 0.42) * 100)
+            k = 62
+            svg.path(f"M{n(p1[0])} {n(p1[1])} C{n(p1[0] + ca * k)} {n(p1[1] + sa * k)} {n(p2[0] + ca * k)} {n(p2[1] + sa * k)} {n(p2[0])} {n(p2[1])}", marker=True, sw=1.6)
+            bxy = _clip(ax, ay, hw, hh, ax + ca * 100, ay + sa * 100)
+            lx, ly = bxy[0] + ca * 58, bxy[1] + sa * 58
+            if ca > 0.4:
+                put_lines(lx + 4, ly + 4, lines, "start", up=sa < 0.4)
+            elif ca < -0.4:
+                put_lines(lx - 4, ly + 4, lines, "end", up=sa < 0.4)
+            else:
+                put_lines(lx, ly if sa < 0 else ly + 10, lines, "middle", up=sa < 0)
+            grow(lx, ly, 10, 10)
             continue
         mx, my = (ax + bx) / 2, (ay + by) / 2
         dx, dy = bx - ax, by - ay
         L = math.hypot(dx, dy) or 1
         px, py = -dy / L, dx / L
         curved = (b, a) in groups
-        cv = 38 if curved else 0
+        cv = 42 if curved else 0
         cx_, cy_ = mx + px * cv, my + py * cv
         s0 = _clip(ax, ay, size[a][0] + 2, size[a][1] + 2, cx_, cy_)
         e0 = _clip(bx, by, size[b][0] + 3, size[b][1] + 3, cx_, cy_)
         svg.path(f"M{n(s0[0])} {n(s0[1])} Q{n(cx_)} {n(cy_)} {n(e0[0])} {n(e0[1])}", marker=True, sw=1.6)
         lx, ly = 0.25 * s0[0] + 0.5 * cx_ + 0.25 * e0[0], 0.25 * s0[1] + 0.5 * cy_ + 0.25 * e0[1]
-        ox, oy = px * 12, py * 12
+        ox, oy = px * 13, py * 13
         if not curved and oy > 0:
             ox, oy = -ox, -oy
-        for i, l in enumerate(lines):
-            yy = ly + oy - (len(lines) - 1 - i) * 14
-            svg.text(lx + ox, yy, l, 11, halo=True)
-            grow(lx + ox, yy, tw(l, 11) / 2, 8)
+        put_lines(lx + ox, ly + oy, lines)
         grow(cx_, cy_)
-    # начальный маркер
+    # начальный маркер: наружу от центра; если у состояния есть петля — со смещением
     ix, iy = pos[init]
-    ox, oy = (ix, iy) if (ix or iy) else (0, -1)
-    L = math.hypot(ox, oy) or 1
-    ux, uy = ox / L, oy / L
-    if N <= 2:
-        ux, uy = (-1.0, 0.0) if (N == 1 or init == states[0].name) else (1.0, 0.0)
+    th = outward(init) if N > 1 else math.pi
+    if init in loops:
+        th += 1.15
+    ux, uy = math.cos(th), math.sin(th)
     hw, hh = size[init]
     ex, ey = _clip(ix, iy, hw + 3, hh + 3, ix + ux * 100, iy + uy * 100)
-    dx_, dy_ = ex + ux * 38, ey + uy * 38
+    dx_, dy_ = ex + ux * 40, ey + uy * 40
     svg.circle(dx_, dy_, 5, fill=INK)
     svg.path(f"M{n(dx_)} {n(dy_)} L{n(ex)} {n(ey)}", marker=True, sw=1.6)
     grow(dx_, dy_, 8, 8)
@@ -1406,7 +1443,7 @@ def d_pins(spec, P):
     pins = spec["_pins"]
     left = [p for p in pins if p.dir == "in"]
     right = [p for p in pins if p.dir != "in"]
-    pitch = 30
+    pitch = 38
     rows = max(len(left), len(right))
     bh = rows * pitch + 36
     lw = max([0] + [tw(_pname(p), 13, mono=True) for p in left])
@@ -1523,18 +1560,42 @@ KINDS = {
 # =============================================================================
 #  Совместимость со старым форматом (code_list, output: [svg, md])
 # =============================================================================
-def legacy(spec):
+_RANGE_SPLIT = re.compile(r"\s*(?:\.\.\.?|\u2013|\u2014|-)\s*")
+
+
+def legacy(spec, P):
+    """Старый формат → новый. Предупреждения — в P.diag."""
     if "output" in spec and "view" not in spec:
         m = {"svg": "diagram", "md": "table"}
         spec["view"] = [m.get(x, x) for x in as_list(spec.pop("output"))]
-    if spec.get("kind") != "code_list":
+    kind = spec.get("kind")
+    if kind == "memspace":
+        spec["kind"] = "memmap"
+        regions = spec.get("regions") or []
+        mx = 0
+        for r in regions:
+            if isinstance(r, dict) and "range" in r and "start" not in r:
+                parts = _RANGE_SPLIT.split(str(r["range"]), maxsplit=1)
+                lo, hi = (as_int(parts[0]), as_int(parts[1])) if len(parts) == 2 else (None, None)
+                if lo is not None and hi is not None:
+                    r.pop("range")
+                    r["start"], r["end"] = lo, hi
+            if isinstance(r, dict) and as_int(r.get("end")) is not None:
+                mx = max(mx, as_int(r["end"]))
+        if "width" not in spec:
+            spec["width"] = max(1, mx.bit_length())
         return
-    entries = spec.get("entries") or []
-    if "width" in spec and any(isinstance(e, dict) and ("ref" in e or "fields" in e) for e in entries):
+    if kind != "code_list":
+        return
+    entries = [e for e in (spec.get("entries") or []) if isinstance(e, dict)]
+    fields = spec.get("fields") or []
+    if "width" in spec and any(("ref" in e or "fields" in e) for e in entries):
         spec["kind"] = "regmap"
+        keys = ([fields[0]] if fields else []) + ["addr", "index", "code", "offset"]
         regs = []
-        for e in registers:
-            r = {"offset": e.get("addr", e.get("index", 0)), "name": e.get("name", "?")}
+        for i, e in enumerate(entries):
+            off = next((e[k] for k in keys if k in e), i)
+            r = {"offset": off, "name": e.get("name", "?")}
             for k in ("ref", "fields", "access", "reset", "description"):
                 if k in e:
                     r[k] = e[k]
@@ -1544,16 +1605,22 @@ def legacy(spec):
         spec.pop("fields", None)
         return
     spec["kind"] = "enum"
-    fields = spec.pop("fields", None) or ["code", "name", "description"]
-    vk = fields[0]
+    cols = fields or ["code", "name", "description"]
+    vk = cols[0]
     ne = []
-    for e in registers:
+    for e in entries:
         e = dict(e)
         if vk in e and vk != "value":
             e["value"] = e.pop(vk)
+        e.setdefault("name", str(e.get("value")))
         ne.append(e)
     spec["entries"] = ne
-    spec["columns"] = [{"key": "value", "title": str(vk).capitalize()}] + [f for f in fields[1:]]
+    spec["columns"] = [{"key": "value", "title": str(vk).capitalize()}] + [f for f in cols[1:]]
+    spec.pop("fields", None)
+    if "diagram" in as_list(spec.get("view")):
+        spec["view"] = [v for v in as_list(spec["view"]) if v != "diagram"] or ["table"]
+        P.diag.warn(W_(spec), "svg for a plain code list is not supported any more — table only "
+                    "(for a picture use kind: regmap with registers, or bitfield)")
 
 
 # =============================================================================
@@ -1567,6 +1634,7 @@ class Project:
         self.REG = {}
         self.consts = {}
         self.anchors = {}
+        self.files = {}
         self.lang = "en"
         cfg = pdir / "buildex.yaml"
         if cfg.exists():
@@ -1612,26 +1680,41 @@ def views_of(spec):
 # =============================================================================
 #  Директивы в Markdown
 # =============================================================================
-DIRECTIVE = re.compile(r"\{\{\s*([a-z]+)\s*:\s*([^{}]+?)\s*\}\}")
-LEGACY_INC = re.compile(r"\[(?:include|insert)\]\(([^)]+)\)")
+DIRECTIVE = re.compile(r"\{\{\s*(?P<d>[a-z]+)\s*:\s*(?P<arg>[^{}]+?)\s*\}\}")
+LEGACY_INC = re.compile(r"\[(?:include|insert)\]\((?P<lpath>[^)]+)\)")
+IMG_GEN = re.compile(r"!\[(?P<alt>[^\]]*)\]\((?P<path>(?:\./|(?:\.\./)+)?gen/(?P<img>[^)/\s]+)\.svg)\)")
+COMBINED = re.compile(DIRECTIVE.pattern + "|" + IMG_GEN.pattern + "|" + LEGACY_INC.pattern)
+
+
 MD_IMG = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
+_CODE_SPANS = re.compile(r"```.*?```|`[^`\n]*`", re.S)
+
+
+def check_images(text, where, md_dir, docs_in, docs_out, P):
+    """Все ![](путь) должны указывать на существующие файлы (путь — от папки самого .md)."""
+    for m in MD_IMG.finditer(_CODE_SPANS.sub("", text)):
+        raw = m.group(1).strip()
+        path = raw.split()[0].strip("<>") if raw else ""
+        if not path or path.startswith(("http://", "https://", "#", "data:", "mailto:")):
+            continue
+        path = urllib.parse.unquote(path.split("#")[0].split("?")[0])
+        if path and not ((docs_in / md_dir / path).exists() or (docs_out / md_dir / path).exists()):
+            P.diag.err(where, f"image '{path}': file not found (looked in {docs_in / md_dir})")
+
 
 class Ctx:
     def __init__(self, P, where, docdir, numbered=True):
         self.P, self.where, self.docdir, self.numbered = P, where, docdir, numbered
         self.count = {"figure": 0, "table": 0}
 
-def check_images(text, where, src_docs, out_docs, P):
-    """Проверяет, что все ![](path) ссылаются на реально существующие файлы."""
-    for m in MD_IMG.finditer(text):
-        path = m.group(1).strip()
-        if path.startswith(("http://", "https://", "#", "data:")):
-            continue
-        if not ((src_docs / path).exists() or (out_docs / path).exists()):
-            P.diag.err(where, f"image '{path}': file not found")
+    def rel(self, target):
+        return posixpath.relpath(target, self.docdir or ".")
+
 
 def expand(text, ctx, stack=()):
     P = ctx.P
+    # экранирование: \{{...}} и \[include](...) выводятся буквально (без обратной косой)
+    text = text.replace("\\{{", "\x00L\x00").replace("\\[include]", "\x00I\x00").replace("\\[insert]", "\x00S\x00")
 
     def link(arg):
         name, _, fld = arg.partition(".")
@@ -1642,13 +1725,21 @@ def expand(text, ctx, stack=()):
         if fld and fld not in P.anchors.get(name, set()):
             P.diag.err(ctx.where, f"{{{{ref:{arg}}}}}: '{name}' has no '{fld}'")
             return f"`{arg}`"
-        url = f"gen/{name}.md" + (f"#{anchor_id(fld)}" if fld else "")
+        url = ctx.rel(f"gen/{name}.md") + (f"#{anchor_id(fld)}" if fld else "")
         return f"[`{fld or name}`]({url})"
+
+    def why(name, view):
+        spec = P.REG.get(name)
+        if spec is None:
+            m = difflib.get_close_matches(name, list(P.REG), n=1)
+            return (f"'{name}' is not defined in any spec file of this project" + (f" — did you mean '{m[0]}'?" if m else "")
+                    + f" (loaded specs: {', '.join(sorted(P.files)) or 'none'})")
+        return f"'{name}' ({spec['kind']}) has no {view}; its views: {', '.join(views_of(spec))}"
 
     def figure(name):
         spec = P.REG.get(name)
         if not spec or not spec.get("_has_svg"):
-            P.diag.err(ctx.where, f"figure '{name}': no diagram (unknown name or view without 'diagram')")
+            P.diag.err(ctx.where, f"{{{{figure:{name}}}}}: " + why(name, "diagram"))
             return ""
         title = spec.get("title", name)
         cap = CAPTIONS[P.lang]["figure"]
@@ -1657,12 +1748,12 @@ def expand(text, ctx, stack=()):
             c = f"*{cap} {ctx.count['figure']} — {title}*"
         else:
             c = f"*{title}*"
-        return f"![{title}](gen/{name}.svg)\n\n{c}\n"
+        return f"![{title}]({ctx.rel(f'gen/{name}.svg')})\n\n{c}\n"
 
     def table(name):
         spec = P.REG.get(name)
         if not spec or "_table_md" not in spec:
-            P.diag.err(ctx.where, f"table '{name}': no table (unknown name or view without 'table')")
+            P.diag.err(ctx.where, f"{{{{table:{name}}}}}: " + why(name, "table"))
             return ""
         title = spec.get("title", name)
         cap = CAPTIONS[P.lang]["table"]
@@ -1674,7 +1765,22 @@ def expand(text, ctx, stack=()):
         return f"{c}\n\n{spec['_table_md']}"
 
     def repl(m):
-        d, arg = m.group(1), m.group(2).strip()
+        if m.group("lpath"):
+            return legacy_repl(m)
+        if m.group("img"):                       # обычная картинка ![..](gen/NAME.svg)
+            name = m.group("img")
+            spec = P.REG.get(name)
+            if not spec or not spec.get("_has_svg"):
+                P.diag.err(ctx.where, f"image {m.group('path')}: " + why(name, "diagram"))
+                return m.group(0)
+            if re.match(r"\n+\*", m.string[m.end():m.end() + 8]):   # подпись уже есть
+                return m.group(0)
+            title = spec.get("title", name)
+            ctx.count["figure"] += 1 if ctx.numbered else 0
+            cap = CAPTIONS[P.lang]["figure"]
+            c = f"*{cap} {ctx.count['figure']} — {title}*" if ctx.numbered else f"*{title}*"
+            return f"{m.group(0)}\n\n{c}"
+        d, arg = m.group("d"), m.group("arg").strip()
         if d == "ref":
             return link(arg)
         if d == "figure":
@@ -1684,7 +1790,7 @@ def expand(text, ctx, stack=()):
         if d == "auto":
             spec = P.REG.get(arg)
             if not spec:
-                P.diag.err(ctx.where, f"auto '{arg}': not found")
+                P.diag.err(ctx.where, f"{{{{auto:{arg}}}}}: " + why(arg, "view"))
                 return ""
             parts = []
             if spec.get("_has_svg"):
@@ -1700,7 +1806,7 @@ def expand(text, ctx, stack=()):
         if d == "include":
             p = (P.dir / "docs" / arg)
             if not p.exists():
-                P.diag.err(ctx.where, f"include '{arg}': file not found")
+                P.diag.err(ctx.where, f"include '{arg}': file not found (looked for {p})")
                 return ""
             rp = p.resolve()
             if rp in stack:
@@ -1711,18 +1817,22 @@ def expand(text, ctx, stack=()):
         return m.group(0)
 
     def legacy_repl(m):
-        rel = m.group(1)
+        rel = m.group("lpath")
         rel = rel[2:] if rel.startswith("./") else rel
+        if rel.startswith("gen/"):
+            rel = rel[4:]
         if rel.endswith("-table.md"):
-            base = rel[4:] if rel.startswith("gen/") else rel
-            return expand("{{" + "table:" + base[:-9] + "}}", ctx, stack)
+            return expand("{{" + "table:" + rel[:-9] + "}}", ctx, stack)
+        if rel.endswith(".md") and "_table_md" in P.REG.get(rel[:-3], {}):
+            return expand("{{" + "table:" + rel[:-3] + "}}", ctx, stack)
         if rel.endswith(".svg"):
-            base = rel[4:] if rel.startswith("gen/") else rel
-            return expand("{{" + "figure:" + base[:-4] + "}}", ctx, stack)
+            return expand("{{" + "figure:" + rel[:-4] + "}}", ctx, stack)
         return expand("{{" + "include:" + rel + "}}", ctx, stack)
 
-    text = LEGACY_INC.sub(legacy_repl, text)
-    return DIRECTIVE.sub(repl, text)
+    out = COMBINED.sub(repl, text)
+    if not stack:
+        out = out.replace("\x00L\x00", "{{").replace("\x00I\x00", "[include]").replace("\x00S\x00", "[insert]")
+    return out
 
 
 # =============================================================================
@@ -1730,27 +1840,26 @@ def expand(text, ctx, stack=()):
 # =============================================================================
 def build_project(pdir):
     P = Project(pdir)
-    print(f"\n=== {P.name} ===")
-    spec_dir  = pdir / "spec"
-    docs_in   = pdir / "docs"
-    imgs_in   = docs_in / "images"
-    gen_in    = docs_in / "gen"
-
-    proj_out  = OUT / P.name
-    docs_out  = proj_out / "docs"
-    imgs_out  = docs_out / "images"
-    gen_out   = docs_out / "gen"
-
-    produced = set()
+    print(f"\n=== {P.name} ===  (buildex {VERSION}, {Path(__file__).resolve()})")
+    spec_dir, docs_dir = pdir / "spec", pdir / "docs"
+    out_docs = OUT / P.name / "docs"
+    gen_src = docs_dir / "gen"          # сгенерированное лежит рядом с исходником
+    gen_out = out_docs / "gen"
+    imgs_in, imgs_out = docs_dir / "images", out_docs / "images"
+    produced = set()                    # все файлы, которые должны остаться (и в src/gen, и в out/)
 
     def emit_pair(rel_name, content):
-        write_if_changed(gen_in  / rel_name, content, produced)
+        write_if_changed(gen_src / rel_name, content, produced)
         write_if_changed(gen_out / rel_name, content, produced)
 
     # 1. загрузка
     items = load_specs(P, spec_dir) if spec_dir.exists() else []
+    for it in items:
+        P.files[it["_file"]] = P.files.get(it["_file"], 0) + 1
+    print(f"  specs: " + (", ".join(f"{f} ({c})" for f, c in sorted(P.files.items())) or f"none found in {spec_dir}"))
+    print(f"  output: {out_docs}  (gen/ inside)")
     for s in items:
-        legacy(s)
+        legacy(s, P)
         nm, kd = s.get("name"), s.get("kind")
         if not nm:
             P.diag.err(f"{s['_file']}:{s['_line']}", "document without 'name'")
@@ -1794,70 +1903,47 @@ def build_project(pdir):
         P.diag.report()
         return False
 
-    # страницы сущностей и индекс
+    # NAME.md — таблица (или рисунок, если таблицы нет); index.md — список всего
     gctx = Ctx(P, "gen", "gen", numbered=False)
-    for nm, s in sorted(P.REG.items()):
+    for nm, s_ in sorted(P.REG.items()):
         gctx.where = f"gen/{nm}.md"
-        page = f"# {s.get('title', nm)}\n\n"
-        if s.get("description"):
-            page += f"{s['description']}\n\n"
-        if s.get("_has_svg"):
-            page += f"![{s.get('title', nm)}](gen/{nm}.svg)\n\n"
-        if "_table_md" in s:
-            page += s["_table_md"]
-            emit_pair(f"{nm}.md", expand(s["_table_md"], gctx))
-        emit_pair(f"{nm}.md", expand(page, gctx))
+        title = s_.get("title", nm)
+        body = s_["_table_md"] if "_table_md" in s_ else f"![{title}]({nm}.svg)\n"
+        emit_pair(f"{nm}.md", expand(f"**{title}**\n\n{body}", gctx))
     idx = "# Specification index\n\n"
     for kd in KINDS:
-        group = [(nm, s) for nm, s in sorted(P.REG.items()) if s["kind"] == kd]
+        group = [(nm, s_) for nm, s_ in sorted(P.REG.items()) if s_["kind"] == kd]
         if group:
-            idx += f"## {kd}\n\n" + "".join(f"- [{s.get('title', nm)}]({nm}.md) — `{nm}`\n" for nm, s in group) + "\n"
+            idx += f"## {kd}\n\n" + "".join(f"- [{s_.get('title', nm)}]({nm}.md) — `{nm}`\n" for nm, s_ in group) + "\n"
     emit_pair("index.md", idx)
-
-    # 3b. зеркалим images -> out/docs/images (по md5)
+    # зеркалим images -> out/docs/images (по md5)
     sync_tree(imgs_in, imgs_out, produced)
 
     # 4. документы
-    if docs_in.exists():
-        for f in sorted(docs_in.rglob("*")):
+    if docs_dir.exists():
+        for f in sorted(docs_dir.rglob("*")):
             if not f.is_file():
                 continue
-            rel = f.relative_to(docs_in)
+            rel = f.relative_to(docs_dir)
             if rel.parts[0] in ("gen", "images"):
                 continue
             if f.suffix.lower() == ".md":
                 ctx = Ctx(P, f"docs/{rel.as_posix()}", rel.parent.as_posix() if str(rel.parent) != "." else "")
                 expanded = expand(f.read_text(encoding="utf-8"), ctx)
-                check_images(expanded, ctx.where, docs_in, docs_out, P)
-                write_if_changed(docs_out / rel, expand(f.read_text(encoding="utf-8"), ctx), produced)
+                check_images(expanded, ctx.where, rel.parent, docs_dir, out_docs, P)
+                write_if_changed(out_docs / rel, expanded, produced)
             else:
-                smart_copy(f, docs_out / rel, produced)
+                smart_copy(f, out_docs / rel, produced)
 
-    # 5. вычистить устаревшее в gen (и в src, и в out)
-    for g in (gen_in, gen_out):
-        if g.exists():
-            for f in list(g.rglob("*")):
-                if f.is_file() and f.resolve() not in produced:
-                    f.unlink()
-                    print(f"  🧹 removed stale {f.relative_to(g).as_posix()}")
-            for d in sorted([x for x in g.rglob("*") if x.is_dir()], reverse=True):
-                if not any(d.iterdir()):
-                    d.rmdir()
-
-    # 5b. вычистить устаревшее в out/docs (только .md и прочее вне gen/images)
-    if docs_out.exists():
-        for f in list(docs_out.rglob("*")):
-            if not f.is_file():
-                continue
-            rel = f.relative_to(docs_out)
-            if rel.parts[0] in ("gen", "images"):
-                continue
-            if f.resolve() not in produced:
+    # 5. вычистить устаревшее: в src/.../gen и во всём out/.../docs
+    for root, label in ((gen_src, "src gen/"), (out_docs, "")):
+        if not root.exists():
+            continue
+        for f in list(root.rglob("*")):
+            if f.is_file() and f.resolve() not in produced:
                 f.unlink()
-                print(f"  🧹 removed stale {rel.as_posix()}")
-        for d in sorted([x for x in docs_out.rglob("*") if x.is_dir()], reverse=True):
-            if d.name in ("gen", "images"):
-                continue
+                print(f"  🧹 removed stale {label}{f.relative_to(root).as_posix()}")
+        for d in sorted([x for x in root.rglob("*") if x.is_dir()], reverse=True):
             if not any(d.iterdir()):
                 d.rmdir()
 
@@ -1872,29 +1958,36 @@ def deploy():
         print("❌ No out/ directory. Run build first.")
         return
     dst = ROOT / "docs"
-    if not dst.exists():
-        dst.mkdir(parents=True)
+    dst.mkdir(parents=True, exist_ok=True)
     print(f"📦 Syncing {OUT} -> {dst}...")
-    produced = set()
-    sync_tree(OUT, dst, produced)
-    # вычистить в dst то, чего нет в OUT
-    for f in list(dst.rglob("*")):
-        if not f.is_file():
-            continue
-        rel = f.relative_to(dst)
-        if (OUT / rel).exists():
-            continue
-        f.unlink()
+    sync_tree(OUT, dst, set())
+    for f in list(dst.rglob("*")):          # убрать то, чего нет в out/
+        if f.is_file() and not (OUT / f.relative_to(dst)).exists():
+            f.unlink()
     for d in sorted([x for x in dst.rglob("*") if x.is_dir()], reverse=True):
         if not any(d.iterdir()):
             d.rmdir()
     print(f"✅ Deployed to {dst}")
 
 
+def ensure_gitignore():
+    want = ["out/", "src/*/docs/gen/"]
+    gi = ROOT / ".gitignore"
+    if not gi.exists():
+        gi.write_text("\n".join(want) + "\n", encoding="utf-8")
+        print("  created .gitignore (out/, src/*/docs/gen/)")
+        return
+    have = {ln.strip() for ln in gi.read_text(encoding="utf-8").splitlines()}
+    miss = [w for w in want if w not in have]
+    if miss:
+        print(f"  💡 add to .gitignore: {', '.join(miss)}")
+
+
 def build_all(projects):
     if not SRC.exists():
         print("No src/ directory")
         return False
+    ensure_gitignore()
     ok = True
     for pdir in sorted(SRC.iterdir()):
         if pdir.is_dir() and (not projects or pdir.name in projects):
@@ -1932,7 +2025,7 @@ name: NAME
 title: "Operation codes"
 width: 3        # необязательно: проверка, что значения влезают; нужна для radix: bin/hex
 radix: dec      # dec | hex | bin
-registers:
+entries:
   - {value: 0, name: NOP, description: "Nothing"}
   - {value: 1, name: ADD, description: "d = d + s"}
   - {value: "2..7", name: reserved}"""),

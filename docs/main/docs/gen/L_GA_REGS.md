@@ -1,4 +1,4 @@
-# Gate Array register select (D7, D6)
+**Gate Array register select (D7, D6)**
 
 | Value | Name | Description |
 | --- | --- | --- |

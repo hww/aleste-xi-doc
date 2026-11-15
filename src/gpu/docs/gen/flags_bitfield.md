@@ -1,6 +1,4 @@
-# FLAGS Register
-
-![FLAGS Register](gen/flags_bitfield.svg)
+**FLAGS Register**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

@@ -1,6 +1,4 @@
-# Rev. A: Global Registers Map
-
-![Rev. A: Global Registers Map](gen/ms2a_global_map.svg)
+**Rev. A: Global Registers Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |

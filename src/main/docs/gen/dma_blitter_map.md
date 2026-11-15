@@ -1,4 +1,4 @@
-# Blitter Register Map (lx_dma.sv)
+**Blitter Register Map (lx_dma.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

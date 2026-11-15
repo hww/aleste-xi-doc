@@ -1,4 +1,4 @@
-# Register file · R0–R31 (16 bit)
+**Register file · R0–R31 (16 bit)**
 
 | Value | Name | Description |
 | --- | --- | --- |

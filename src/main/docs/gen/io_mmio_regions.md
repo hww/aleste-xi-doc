@@ -1,4 +1,4 @@
-# MMIO Regions
+**MMIO Regions**
 
 | Value | Name | Description |
 | --- | --- | --- |

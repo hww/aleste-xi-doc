@@ -1,4 +1,4 @@
-# CHANNEL FORMAT (fmt, 3 bits)
+**CHANNEL FORMAT (fmt, 3 bits)**
 
 | Value | Name | Description |
 | --- | --- | --- |

@@ -6,7 +6,7 @@ The pixel engine (`pixel_engine`) holds a pixel index (19 bits: 15 integer, 4 fr
 
 Five formats are supported: 1, 2, 4, 8, and 16 bpp, plus three pass-through modes (LO8/HI8/16). The format defines `k` (shift) and `mask` (position mask). Each format has its own pixels-per-word count.
 
-**Table 3 — CHANNEL FORMAT (fmt, 3 bits)**
+**Table 1 — CHANNEL FORMAT (fmt, 3 bits)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ The index (`idx_stored`) is 19 bits. The upper 15 bits are the word, the lower 4
 
 The pixel path goes through several stages, from index to destination register.
 
-**Table 4 — Pixel Path Stages**
+**Table 2 — Pixel Path Stages**
 
 | Stage | Signal | Description |
 | --- | --- | --- |
@@ -47,14 +47,14 @@ The timing diagram below shows a single pixel read operation.
 
 ![Pixel Read Timing](gen/pixel_read_timing.svg)
 
-*Figure 3 — Pixel Read Timing*
+*Figure 1 — Pixel Read Timing*
 
 
 The blender is a 3-state FSM: `B_IDLE → B_CAPTURE → B_FREE → B_IDLE`. `start` captures the inputs, `B_CAPTURE` computes `pixel_out` / `word_out`, and `B_FREE` asserts `ack` for one cycle. Total latency from `start` to `ack` is 3 cycles.
 
 ![pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)](gen/timing_pixel_blender.svg)
 
-*Figure 4 — pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)*
+*Figure 2 — pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)*
 
 
 *Fig. 14. Pixel read timing.*

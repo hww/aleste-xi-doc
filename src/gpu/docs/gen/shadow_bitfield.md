@@ -1,6 +1,4 @@
-# SHADOW Register Format
-
-![SHADOW Register Format](gen/shadow_bitfield.svg)
+**SHADOW Register Format**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

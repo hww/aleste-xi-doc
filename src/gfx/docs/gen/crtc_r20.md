@@ -1,6 +1,4 @@
-# R20 — Address Mode (0x14)
-
-![R20 — Address Mode (0x14)](gen/crtc_r20.svg)
+**R20 — Address Mode (0x14)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

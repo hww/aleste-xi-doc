@@ -1,4 +1,4 @@
-# Control Registers (Ports F0–FF, E0–EF)
+**Control Registers (Ports F0–FF, E0–EF)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |

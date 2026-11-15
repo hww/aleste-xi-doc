@@ -1,4 +1,4 @@
-# supervisor_mode (GLOBAL_CTRL[0])
+**supervisor_mode (GLOBAL_CTRL[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |

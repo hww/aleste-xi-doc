@@ -38,7 +38,7 @@ edge-sensitive, with a priority encoder (bit 15 highest, bit 0 lowest).
 The PIC has **8 registers**, 8 bits each, at offsets `0x0`–`0x8` from
 the base address.
 
-**Table 2 — PIC Register Map (wb_z80_pic.sv)**
+**Table 1 — PIC Register Map (wb_z80_pic.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

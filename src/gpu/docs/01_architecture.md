@@ -110,18 +110,102 @@ The channel format (`MODE`) selects how many pixels per 16-bit word: 1 bpp (16 p
 
 ## 9. Loader and packets
 
-BRAM 0–31 holds the loader; writing there → `HALT 1`. Each packet starts with a 16-bit header `{kind[15:12], arg[11:0]}`.
+The loader is a small microprogram permanently stored in microcode ROM words 0–31. It reads a stream of 16-bit words from memory and executes it packet by packet. Writing to ROM addresses 0–31 stops the core with `HALT 1`, so a faulty `CODE` packet cannot destroy the loader.
 
-{{table:commands}}
+CPU uses the registers to setup the address of the program. Additionaly it has register of status and command.
 
-`CODE`: 32-bit microinstruction = 2 words. `RUN`: entry point. `JUMP`: new `STM.PTR`.
+{{auto:gpu_interface}}
 
-End of a task:
+### 9.1 Starting the loader
+
+The host does not execute any command to start the loader. It writes the **24-bit byte address of the first packet** into the host-side start-address registers and then raises `start`. The address must be word-aligned (bit 0 is ignored). The host may change it only while the GPU is in IDLE.
+
+{{auto:gpu_interface}}
+
+{{auto:gpu_interface_result}}
+
+{{auto:gpu_interface_commands}}
+
+On `start` the hardware presets the stream channel (CH0 in the reference loader):
+
+| Channel register | Value                                 |
+| ---------------- | ------------------------------------- |
+| `PAGE`           | `address[23:16]`                      |
+| `IDX`            | `address[15:1]` (word index in page)  |
+| `MODE`           | 16 bpp (one pixel = one word)         |
+| `STEP`           | +1 (one word)                         |
+
+and starts the loader at ROM address 0. From this point the loader reads packet words with `MOV Rn, DATA0`; each read advances the stream pointer by one word.
+
+### 9.2 Packet header
+
+The header is followed by the payload, if the packet kind has one, and then immediately by the next header.
+
+{{table:gpu_interface_package}}
+
+### 9.3 Packet formats
+
+**END** (`kind=0`). No payload. The loader flushes all channels (all dirty words are written back to memory) and stops with `HALT 0`: the GPU goes to IDLE.
+
+**ENDI** (`kind=1`). No payload. Same as `END`, plus an interrupt: after the flush completes, the loader raises `IRQ` with code `arg` and stops with `HALT 0`. The flush comes first so that the CPU sees consistent memory when it handles the interrupt.
+
+**CODE** (`kind=2`). Loads microcode into ROM:
 
 ```
-MOV FLUSH, ZERO     ; flush all dirty words
-MOV IRQ, Rcode      ; optional: raise IRQ with code
-HALT 0              ; IDLE
+word 0        header          {2, N}   N = number of instructions, 1..4095
+word 1        address         ROM address of the first instruction (bits 11:0)
+word 2        instruction 0   low 16 bits
+word 3        instruction 0   high 16 bits
+word 4        instruction 1   low 16 bits
+...
+word 2N+1     instruction N-1 high 16 bits
+```
+
+The loader writes the address to `ROMA`, then for each instruction writes `ROML` (low word) and `ROMH` (high word). The write to `ROMH` stores the 32-bit word in ROM and increments `ROMA`. The block must not cross the end of ROM (address 4095) and must not touch words 0–31.
+
+**RUN** (`kind=3`). No payload. `PC = arg`: control passes to the microprogram. The loader does not regain control, so the microprogram has to finish with the end-of-task sequence (section 9.5).
+
+**JUMP** (`kind=4`). Two payload words, a 24-bit byte address in the same layout as the host start address:
+
+```
+word 0   header   {4, 0}
+word 1   address[15:0]               (bit 0 ignored)
+word 2   {8'h00, address[23:16]}
+```
+
+The loader sets the stream channel to the new `PAGE` and `IDX` (word index = `address[15:1]`) and continues reading packets from there. It is used to skip over data or to chain packet blocks in different pages.
+
+**Unknown kind** (`5..15`). The loader stops with `HALT 2` (ERROR, code 2).
+
+### 9.4 Example
+
+A stream that loads a two-instruction microprogram at ROM address `0x040` and runs it:
+
+```
+0x2002          CODE, 2 instructions
+0x0040          load at ROM address 0x040
+<insn0 low>     ROM[0x040][15:0]
+<insn0 high>    ROM[0x040][31:16]
+<insn1 low>     ROM[0x041][15:0]
+<insn1 high>    ROM[0x041][31:16]
+0x3040          RUN, entry point 0x040
+```
+
+### 9.5 End of a task
+
+A microprogram started with `RUN` ends with the same sequence the loader uses for `END`/`ENDI`:
+
+```
+FLUSH 0xF     ; write back all dirty words (bit i of the mask = channel i)
+IRQ   code    ; optional: raise IRQ with the given code
+HALT  0       ; IDLE
+```
+
+`FLUSH` must come before `IRQ` and `HALT`: a dirty word that has not been written back is lost when the host reads the memory.
+
+### 9.6 What the loader does not do
+
+There are no checksums, no retries, no relocation and no bounds checking beyond the protection of ROM words 0–31. The host is responsible for the stream being correct and word-aligned.
 ```
 
 ## 10. System commands

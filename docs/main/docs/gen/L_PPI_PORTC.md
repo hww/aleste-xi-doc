@@ -1,6 +1,4 @@
-# 8255 PPI Port C — PSG Control, Cassette, Keyboard
-
-![8255 PPI Port C — PSG Control, Cassette, Keyboard](gen/L_PPI_PORTC.svg)
+**8255 PPI Port C — PSG Control, Cassette, Keyboard**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

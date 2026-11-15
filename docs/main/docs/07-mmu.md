@@ -71,7 +71,7 @@ The two bits `supervisor_mode` and `native_mode` in `GLOBAL_CTRL` (F0h)
 determine the current operating mode. Their values are described in the
 following enums:
 
-**Table 8 — supervisor_mode (GLOBAL_CTRL[0])**
+**Table 1 — supervisor_mode (GLOBAL_CTRL[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ following enums:
 | 1 | <a id="Supervisor"></a>**Supervisor** | Kernel code; full access to all resources; hardware trap entry |
 
 
-**Table 9 — native_mode (GLOBAL_CTRL[1])**
+**Table 2 — native_mode (GLOBAL_CTRL[1])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -107,9 +107,9 @@ supervisor, bit 1 = native).
 
 ![Logical Slots (16-bit Z80 address space)](gen/mmu_slots.svg)
 
-*Figure 3 — Logical Slots (16-bit Z80 address space)*
+*Figure 1 — Logical Slots (16-bit Z80 address space)*
 
-**Table 10 — Logical Slots (16-bit Z80 address space)**
+**Table 3 — Logical Slots (16-bit Z80 address space)**
 
 | Range | Name | Size | Purpose |
 | --- | --- | --- | --- |
@@ -144,7 +144,7 @@ in `mmu_native.sv`. This is a **24-bit address**: 2 (slot) + 8 (bank) +
 There are **16 internal mapper registers**, organized as 4 slots × 4
 pages:
 
-**Table 11 — Internal Mapper Registers (16 × 8-bit)**
+**Table 4 — Internal Mapper Registers (16 × 8-bit)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |
@@ -190,7 +190,7 @@ I/O access.
 
 All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
-**Table 12 — Control Registers (Ports F0–FF, E0–EF)**
+**Table 5 — Control Registers (Ports F0–FF, E0–EF)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |
@@ -223,9 +223,9 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 
 ![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
 
-*Figure 4 — GLOBAL_CTRL (F0h)*
+*Figure 2 — GLOBAL_CTRL (F0h)*
 
-**Table 13 — GLOBAL_CTRL (F0h)**
+**Table 6 — GLOBAL_CTRL (F0h)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -504,7 +504,7 @@ mechanism is). See §10.
 The reset values of all MMU registers are given in the `Reset` column
 of the control register table:
 
-**Table 14 — Control Registers (Ports F0–FF, E0–EF)**
+**Table 7 — Control Registers (Ports F0–FF, E0–EF)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |

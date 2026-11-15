@@ -1,6 +1,4 @@
-# Gate Array R0 — Palette Index
-
-![Gate Array R0 — Palette Index](gen/L_GA_R0.svg)
+**Gate Array R0 — Palette Index**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

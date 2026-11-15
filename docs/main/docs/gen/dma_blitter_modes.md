@@ -1,4 +1,4 @@
-# Blitter Modes (CTRL[2:1])
+**Blitter Modes (CTRL[2:1])**
 
 | Value | Name | Description |
 | --- | --- | --- |

@@ -1,6 +1,4 @@
-# R18 — Video Control (0x12)
-
-![R18 — Video Control (0x12)](gen/crtc_r18.svg)
+**R18 — Video Control (0x12)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

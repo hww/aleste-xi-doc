@@ -12,9 +12,9 @@ The cache has three states: `C_IDLE`, `C_FILL_REQ`, `C_WB_REQ`. A `flush_noop` t
 
 ![Cache FSM](gen/cache_fsm.svg)
 
-*Figure 3 — Cache FSM*
+*Figure 1 — Cache FSM*
 
-**Table 2 — Cache FSM**
+**Table 1 — Cache FSM**
 
 | State | Output | Description |
 | --- | --- | --- |
@@ -44,4 +44,4 @@ A cache hit produces `access_done` one cycle after `access`. A cache miss goes `
 
 ![gpu_cache: hit (1 cyc), miss/fill (3+ cyc)](gen/timing_gpu_cache.svg)
 
-*Figure 4 — gpu_cache: hit (1 cyc), miss/fill (3+ cyc)*
+*Figure 2 — gpu_cache: hit (1 cyc), miss/fill (3+ cyc)*

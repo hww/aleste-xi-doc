@@ -1,4 +1,4 @@
-# PPI Manufacturer Bits (Port B bits 3–1)
+**PPI Manufacturer Bits (Port B bits 3–1)**
 
 | Value | Name | Description |
 | --- | --- | --- |

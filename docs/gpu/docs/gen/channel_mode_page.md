@@ -1,6 +1,4 @@
-# CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])
-
-![CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])](gen/channel_mode_page.svg)
+**CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

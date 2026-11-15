@@ -6,11 +6,103 @@ Instructions are 32-bit, fixed-format. The instruction class is determined by fi
 
 The format is fixed; all fields have strict positions. This simplifies decoding: all fields are available combinationally from `insn`.
 
+![INSTRUCTION · 32 BIT](gen/insn.svg)
+
+*Figure 1 — INSTRUCTION · 32 BIT*
+
+**Table 1 — INSTRUCTION · 32 BIT**
+
+| Format | Selector | Description |
+| --- | --- | --- |
+| <a id="reg-reg"></a>**REG-REG** | `J=0 I=0` | — |
+| <a id="reg-imm11"></a>**REG-IMM11** | `J=1 I=1` | — |
+| <a id="ldi16"></a>**LDI16** | `J=0 I=1` | — |
+| <a id="control"></a>**CONTROL** | `J=1 I=0 R=0` | — |
+| <a id="control_rjump"></a>**CONTROL RJUMP** | `J=1 I=0 R=1` | — |
+
+**REG-REG** (`J=0 I=0`)
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | 0 | Format selector, high |
+| <a id="I"></a>**I** | [29] | 1 | 0 | Format selector, low |
+| <a id="COND"></a>**COND** | [28:25] | 4 | — | [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | — | 1 = write result; 0 = do not write, disables only write back |
+| <a id="F"></a>**F** | [23] | 1 | — | 1 = update flags |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | — | Destination operand (6 bits) |
+| <a id="ALU_OP"></a>**ALU_OP** | [16:12] | 5 | — | [`alu_ops`](gen/alu_ops.md) |
+| <a id="SRC"></a>**SRC** | [11:6] | 6 | — | [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | — | Reserved |
+
+**REG-IMM11** (`J=1 I=1`)
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | 1 | Format selector, high |
+| <a id="I"></a>**I** | [29] | 1 | 1 | Format selector, low |
+| <a id="COND"></a>**COND** | [28:25] | 4 | — | [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | — | 1 = write result; 0 = do not write, disables only write back |
+| <a id="F"></a>**F** | [23] | 1 | — | 1 = update flags |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | — | Destination operand (6 bits) |
+| <a id="ALUOP"></a>**ALUOP** | [16:12] | 5 | — | [`alu_ops`](gen/alu_ops.md) |
+| <a id="SX"></a>**SX** | [11] | 1 | — | 1 = sign-extend, 0 = zero-extend |
+| <a id="IMM"></a>**IMM** | [10:0] | 11 | — | 11-bit immediate |
+
+**LDI16** (`J=0 I=1`)
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | 0 | Format selector, high |
+| <a id="I"></a>**I** | [29] | 1 | 1 | Format selector, low |
+| <a id="COND"></a>**COND** | [28:25] | 4 | — | [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | — | Unused for LDI, must be 1 |
+| <a id="F"></a>**F** | [23] | 1 | — | Unused for LDI, must be 0 |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | — | Destination operand (6 bits) |
+| <a id="RSV"></a>**RSV** | [16] | 1 | — | Reserved |
+| <a id="IMM16"></a>**IMM16** | [15:0] | 16 | — | 16-bit constant |
+
+**CONTROL** (`J=1 I=0 R=0`)
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | 1 | Format selector, high |
+| <a id="I"></a>**I** | [29] | 1 | 0 | Format selector, low |
+| <a id="COND"></a>**COND** | [28:25] | 4 | — | [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | — | Unused for CTRL, must be 0 |
+| <a id="F"></a>**F** | [23] | 1 | — | Unused for CTRL (must be 0) |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | — | Destination operand (6 bits) |
+| <a id="R"></a>**R** | [16] | 1 | 0 | Jump/Call by register |
+| <a id="CTRL_OP"></a>**CTRL_OP** | [15:12] | 4 | — | [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="ADDR"></a>**ADDR** | [11:0] | 12 | — | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
+
+**CONTROL RJUMP** (`J=1 I=0 R=1`)
+
+| Field | Bits | Width | Fixed | Description |
+| --- | --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | — | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | 1 | Format selector, high |
+| <a id="I"></a>**I** | [29] | 1 | 0 | Format selector, low |
+| <a id="COND"></a>**COND** | [28:25] | 4 | — | [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | — | Unused for CTRL, must be 0 |
+| <a id="F"></a>**F** | [23] | 1 | — | Unused for CTRL (must be 0) |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | — | Destination operand (6 bits) |
+| <a id="R"></a>**R** | [16] | 1 | 1 | Jump/Call 0-by immediate, 1-by src register |
+| <a id="CTRLOP"></a>**CTRLOP** | [15:12] | 4 | — | [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="SRC"></a>**SRC** | [11:6] | 6 | — | [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | — | Reserved |
+
+
+## Instruction Kinds
+
 ![J=0 I=0 REG-REG](gen/insn_reg.svg)
 
-*Figure 5 — J=0 I=0 REG-REG*
+*Figure 2 — J=0 I=0 REG-REG*
 
-**Table 8 — J=0 I=0 REG-REG**
+**Table 2 — J=0 I=0 REG-REG**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -28,9 +120,9 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ![J=1 I=1 REG-IMM11](gen/insn_imm11.svg)
 
-*Figure 6 — J=1 I=1 REG-IMM11*
+*Figure 3 — J=1 I=1 REG-IMM11*
 
-**Table 9 — J=1 I=1 REG-IMM11**
+**Table 3 — J=1 I=1 REG-IMM11**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -48,9 +140,9 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 7 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
+*Figure 4 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-**Table 10 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
+**Table 4 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -68,9 +160,9 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ![J=1 I=0 CTRL (JMPR)](gen/insn_ctrl_jmpr.svg)
 
-*Figure 8 — J=1 I=0 CTRL (JMPR)*
+*Figure 5 — J=1 I=0 CTRL (JMPR)*
 
-**Table 11 — J=1 I=0 CTRL (JMPR)**
+**Table 5 — J=1 I=0 CTRL (JMPR)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -92,7 +184,7 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ALU instructions (class `00` and `01`) perform logical and arithmetic operations. The result is written to `DST` if `nowrite = 0`. Flags (`Z`, `N`, `C`, `V`) are updated according to `F` and the opcode.
 
-**Table 12 — ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
+**Table 6 — ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -112,8 +204,6 @@ ALU instructions (class `00` and `01`) perform logical and arithmetic operations
 | 18 | <a id="SHR"></a>**SHR** | cls=10, fn=01: logical shift right |
 | 20 | <a id="SAR"></a>**SAR** | cls=10, fn=10: arithmetic shift right |
 | 24 | <a id="MUL"></a>**MUL** | cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI |
-| 28 | <a id="TST"></a>**TST** | cls=11, fn=10: d & s, result discarded, flags written |
-| 30 | <a id="CMP"></a>**CMP** | cls=11, fn=11: d - s, result discarded, flags written |
 
 **Notes:**
 
@@ -127,7 +217,7 @@ ALU instructions (class `00` and `01`) perform logical and arithmetic operations
 
 CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JMPR` change `PC`. `HALT` stops the processor. `IRQ` sets the interrupt flag. `FLUSH` starts a background cache flush.
 
-**Table 13 — CTRL OP (J=1, I=0)**
+**Table 7 — CTRL OP (J=1, I=0)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -135,10 +225,10 @@ CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JM
 | 1 | <a id="JMP"></a>**JMP** | PC = ADDR (11 bits) |
 | 2 | <a id="CALL"></a>**CALL** | SHADOW[15:12] = flags, SHADOW[11:0] = PC+1; PC = ADDR |
 | 3 | <a id="RET"></a>**RET** | PC = SHADOW[11:0]; flags not restored |
-| 4 | <a id="JMPR"></a>**JMPR** | PC = operand[DST_CODE][11:0] |
-| 5 | <a id="HALT"></a>**HALT** | ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code) |
-| 6 | <a id="IRQ"></a>**IRQ** | Raise IRQ, code = ADDR |
-| 7 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel ADDR[1:0] |
+| 4 | <a id="HALT"></a>**HALT** | ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code) |
+| 5 | <a id="IRQ"></a>**IRQ** | Raise IRQ, code = ADDR |
+| 6 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel ADDR[1:0] |
+| 7 | <a id="RESERVED"></a>**RESERVED** | Nothing |
 
 
 *Fig. 11. CTRL opcode map.*
@@ -147,7 +237,7 @@ CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JM
 
 Conditions (`COND`) determine whether an instruction executes. If the condition is false, the instruction does not change state (except `PC`).
 
-**Table 14 — COND (4 bits, ARM-style)**
+**Table 8 — COND (4 bits, ARM-style)**
 
 | Value | Name | Description |
 | --- | --- | --- |

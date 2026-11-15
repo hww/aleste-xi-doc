@@ -1,6 +1,4 @@
-# Logical Slots (16-bit Z80 address space)
-
-![Logical Slots (16-bit Z80 address space)](gen/mmu_slots.svg)
+**Logical Slots (16-bit Z80 address space)**
 
 | Range | Name | Size | Purpose |
 | --- | --- | --- | --- |

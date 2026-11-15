@@ -1,6 +1,4 @@
-# RMR — Control, ROM Mapping, Graphics Mode
-
-![RMR — Control, ROM Mapping, Graphics Mode](gen/L_RMR.svg)
+**RMR — Control, ROM Mapping, Graphics Mode**
 
 | Field | Bits | Width | Fixed | Description |
 | --- | --- | --- | --- | --- |

@@ -1,4 +1,4 @@
-# Native Mode Port Map
+**Native Mode Port Map**
 
 | Value | Name | Description |
 | --- | --- | --- |

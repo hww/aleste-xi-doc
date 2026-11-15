@@ -1,4 +1,4 @@
-# Gate Array Register Select (7Fxx)
+**Gate Array Register Select (7Fxx)**
 
 | Value | Name | Description |
 | --- | --- | --- |

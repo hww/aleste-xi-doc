@@ -93,9 +93,9 @@ When the DMA reads memory and the memory controller returns a timeout (watchdog)
 ### 3.1 Global registers
 ![Rev. A: Global Registers Map](gen/ms2a_global_map.svg)
 
-*Figure 3 — Rev. A: Global Registers Map*
+*Figure 1 — Rev. A: Global Registers Map*
 
-**Table 3 — Rev. A: Global Registers Map**
+**Table 1 — Rev. A: Global Registers Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -171,9 +171,7 @@ When the DMA reads memory and the memory controller returns a timeout (watchdog)
 | <a id="CTRL"></a>**CTRL** | [7:0] | 8 | Timer control |
 
 
-# Rev. A: Global Registers Map
-
-![Rev. A: Global Registers Map](gen/ms2a_global_map.svg)
+**Table 2 — Rev. A: Global Registers Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -254,9 +252,9 @@ Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, chan
 
 ![Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2a_channel_map.svg)
 
-*Figure 4 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
+*Figure 2 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
 
-**Table 4 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
+**Table 3 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -379,9 +377,7 @@ Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, chan
 | <a id="STEP"></a>**STEP** | [7:0] | 8 | Step integer [23:16] |
 
 
-# Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)
-
-![Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2a_channel_map.svg)
+**Table 4 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

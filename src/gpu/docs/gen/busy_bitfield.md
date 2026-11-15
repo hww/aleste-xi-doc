@@ -1,6 +1,4 @@
-# BUSY Register
-
-![BUSY Register](gen/busy_bitfield.svg)
+**BUSY Register**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

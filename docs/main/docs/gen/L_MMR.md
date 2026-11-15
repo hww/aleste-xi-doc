@@ -1,6 +1,4 @@
-# MMR — RAM Memory Mapping
-
-![MMR — RAM Memory Mapping](gen/L_MMR.svg)
+**MMR — RAM Memory Mapping**
 
 | Field | Bits | Width | Fixed | Description |
 | --- | --- | --- | --- | --- |

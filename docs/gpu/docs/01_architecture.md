@@ -31,9 +31,9 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ![J=0 I=0 REG-REG](gen/insn_reg.svg)
 
-*Figure 7 — J=0 I=0 REG-REG*
+*Figure 1 — J=0 I=0 REG-REG*
 
-**Table 12 — J=0 I=0 REG-REG**
+**Table 1 — J=0 I=0 REG-REG**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -51,9 +51,9 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ![J=1 I=1 REG-IMM11](gen/insn_imm11.svg)
 
-*Figure 8 — J=1 I=1 REG-IMM11*
+*Figure 2 — J=1 I=1 REG-IMM11*
 
-**Table 13 — J=1 I=1 REG-IMM11**
+**Table 2 — J=1 I=1 REG-IMM11**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -72,9 +72,9 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 9 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
+*Figure 3 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-**Table 14 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
+**Table 3 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -92,9 +92,9 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ![J=1 I=0 CTRL (JMPR)](gen/insn_ctrl_jmpr.svg)
 
-*Figure 10 — J=1 I=0 CTRL (JMPR)*
+*Figure 4 — J=1 I=0 CTRL (JMPR)*
 
-**Table 15 — J=1 I=0 CTRL (JMPR)**
+**Table 4 — J=1 I=0 CTRL (JMPR)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 **Condition and flags.** Z, N, C, V from the previous flag-writing instruction. `COND` selects; false = no register write, no port access.
 
-**Table 16 — COND (4 bits, ARM-style)**
+**Table 5 — COND (4 bits, ARM-style)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -142,14 +142,14 @@ ROM is synchronous: `data_r <= mem[addr]` latches on `ack`, so the instruction i
 
 ![microcode_rom: synchronous read, latched on ack](gen/timing_microcode_rom.svg)
 
-*Figure 11 — microcode_rom: synchronous read, latched on ack*
+*Figure 5 — microcode_rom: synchronous read, latched on ack*
 
 
 ## 4. ALU
 
 The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arithmetic (ADD/ADC/SUB/SBC), shift (ROR/SHR/SAR), and other (MUL/TST/CMP). The operation is selected by `op[4:0]`.
 
-**Table 17 — ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
+**Table 6 — ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -169,8 +169,6 @@ The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arith
 | 18 | <a id="SHR"></a>**SHR** | cls=10, fn=01: logical shift right |
 | 20 | <a id="SAR"></a>**SAR** | cls=10, fn=10: arithmetic shift right |
 | 24 | <a id="MUL"></a>**MUL** | cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI |
-| 28 | <a id="TST"></a>**TST** | cls=11, fn=10: d & s, result discarded, flags written |
-| 30 | <a id="CMP"></a>**CMP** | cls=11, fn=11: d - s, result discarded, flags written |
 
 **Notes:**
 
@@ -191,14 +189,14 @@ An ALU instruction takes two cycles from "instruction available" to "result in r
 
 ![ALU instruction: combinational read/compute/write within 1 cyc](gen/timing_alu_pipeline.svg)
 
-*Figure 12 — ALU instruction: combinational read/compute/write within 1 cyc*
+*Figure 6 — ALU instruction: combinational read/compute/write within 1 cyc*
 
 
 ## 5. Control
 
 Control-class instructions (J=1, I=0) implement NOP, JMP, CALL, RET, JMPR, HALT, IRQ, and FLUSH. They are all selected by `reg_op` (CTRL op).
 
-**Table 18 — CTRL OP (J=1, I=0)**
+**Table 7 — CTRL OP (J=1, I=0)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -206,10 +204,10 @@ Control-class instructions (J=1, I=0) implement NOP, JMP, CALL, RET, JMPR, HALT,
 | 1 | <a id="JMP"></a>**JMP** | PC = ADDR (11 bits) |
 | 2 | <a id="CALL"></a>**CALL** | SHADOW[15:12] = flags, SHADOW[11:0] = PC+1; PC = ADDR |
 | 3 | <a id="RET"></a>**RET** | PC = SHADOW[11:0]; flags not restored |
-| 4 | <a id="JMPR"></a>**JMPR** | PC = operand[DST_CODE][11:0] |
-| 5 | <a id="HALT"></a>**HALT** | ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code) |
-| 6 | <a id="IRQ"></a>**IRQ** | Raise IRQ, code = ADDR |
-| 7 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel ADDR[1:0] |
+| 4 | <a id="HALT"></a>**HALT** | ADDR=0 -> IDLE; ADDR!=0 -> ERROR(code) |
+| 5 | <a id="IRQ"></a>**IRQ** | Raise IRQ, code = ADDR |
+| 6 | <a id="FLUSH"></a>**FLUSH** | Flush cache channel ADDR[1:0] |
+| 7 | <a id="RESERVED"></a>**RESERVED** | Nothing |
 
 
 **Notes:**
@@ -222,22 +220,27 @@ Control-class instructions (J=1, I=0) implement NOP, JMP, CALL, RET, JMPR, HALT,
 
 The 6-bit operand field selects 64 slots: R0..R31 (general-purpose), 32..39 (system), 40..43 (DATA), 44..47 (reserved), 48..63 (pixel engine channels).
 
-**Table 19 — Operand map (6 bits, 0..63)**
+**Table 8 — Operand map (6 bits, 0..63)**
 
 | Code | Name | Read | Write |
 | --- | --- | --- | --- |
 | 0..31 | <a id="R0..R31"></a>**R0..R31** | 16-bit value | 16-bit value |
 | 32 | <a id="ZERO"></a>**ZERO** | 0 | Ignored |
 | 33 | <a id="FLAGS"></a>**FLAGS** | [3:0] = V C N Z | [3:0] |
-| 34 | <a id="SHADOW"></a>**SHADOW** | [15:12] flags, [11:0] PC+1 | [11:0] PC |
-| 35 | <a id="LOOP_CNT"></a>**LOOP_CNT** | Loop counter | Loop counter |
-| 36 | <a id="LOOP_TGT"></a>**LOOP_TGT** | Loop target | Loop target |
-| 37 | <a id="BUSY"></a>**BUSY** | {wb_cyc, flush_done, access_done, hit} | - |
-| 38 | <a id="MHI"></a>**MHI** | Upper 16 bits of MUL | - |
-| 39 | <a id="reserved"></a>**reserved** | 0 | - |
-| 40..43 | <a id="DATA_0..3_"></a>**DATA[0..3]** | pixel_out from channel ch | pixel_in to channel ch |
-| 44..47 | <a id="reserved"></a>**reserved** | 0 | - |
-| 48..63 | <a id="CH_ch___IDX_IDXH_STEP_MODE_PAGE_"></a>**CH[ch]_{IDX,IDXH,STEP,MODE_PAGE}** | - | Write-only channel register |
+| 34 | <a id="BUSY"></a>**BUSY** | {wb_cyc, flush_done, access_done, hit} | - |
+| 35 | <a id="SHADOW"></a>**SHADOW** | [15:12] flags, [11:0] PC+1 | [11:0] PC |
+| 36 | <a id="LOOP_CNT"></a>**LOOP_CNT** | Loop counter | Loop counter |
+| 37 | <a id="LOOP_TGT"></a>**LOOP_TGT** | Loop target | Loop target |
+| 38 | <a id="ROML"></a>**ROML** | Lover 16 bits of ROM | Lover 16 bits of ROM |
+| 39 | <a id="ROMH"></a>**ROMH** | Upper 16 bits of ROM | Upper 16 bits of ROM, ROMA++ |
+| 40 | <a id="ROMA"></a>**ROMA** | - | ROM Access address with |
+| 41 | <a id="MHI"></a>**MHI** | Upper 16 bits of MUL | - |
+| 42..43 | <a id="reserved"></a>**reserved** | 0 | - |
+| 44..47 | <a id="DATA_0..3_"></a>**DATA[0..3]** | pixel_out from channel ch | pixel_in to channel ch, operand[1..0] is channel number |
+| 48..51 | <a id="IDX_0..3_"></a>**IDX[0..3]** | - | Write-only channel IDX registers, operand[1..0] is channel number |
+| 52..55 | <a id="IDXH_0..3_"></a>**IDXH[0..3]** | - | Write-only channel IDXH registers, operand[1..0] is channel number |
+| 56..59 | <a id="STEP_0..3_"></a>**STEP[0..3]** | - | Write-only channel STEP registers, operand[1..0] is channel number |
+| 60..63 | <a id="MODE_PAGE_0..3_"></a>**MODE_PAGE[0..3]** | - | Write-only channel PAGE registers, operand[1..0] is channel number |
 
 
 **Notes:**
@@ -249,7 +252,7 @@ The 6-bit operand field selects 64 slots: R0..R31 (general-purpose), 32..39 (sys
 
 The register file holds 32 general-purpose registers R0..R31. R0 is a normal register (not hardwired to zero); the ZERO operand (`32`) provides the constant 0.
 
-**Table 20 — Register file · R0–R31 (16 bit)**
+**Table 9 — Register file · R0–R31 (16 bit)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -293,7 +296,7 @@ The register file holds 32 general-purpose registers R0..R31. R0 is a normal reg
 
 The channel format (`MODE`) selects how many pixels per 16-bit word: 1 bpp (16 px), 2 bpp (8), 4 bpp (4), 8 bpp (2), 16 bpp (1). Pass-through modes LO8/HI8/16 bypass packing.
 
-**Table 21 — CHANNEL FORMAT (fmt, 3 bits)**
+**Table 10 — CHANNEL FORMAT (fmt, 3 bits)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -311,31 +314,176 @@ The channel format (`MODE`) selects how many pixels per 16-bit word: 1 bpp (16 p
 
 ## 9. Loader and packets
 
-BRAM 0–31 holds the loader; writing there → `HALT 1`. Each packet starts with a 16-bit header `{kind[15:12], arg[11:0]}`.
+The loader is a small microprogram permanently stored in microcode ROM words 0–31. It reads a stream of 16-bit words from memory and executes it packet by packet. Writing to ROM addresses 0–31 stops the core with `HALT 1`, so a faulty `CODE` packet cannot destroy the loader.
 
-**Table 22 — Loader packet headers**
+CPU uses the registers to setup the address of the program. Additionaly it has register of status and command.
+
+**Table 11 — GPU Interface**
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="GPU_ADDR0"></a>**GPU_ADDR0** | A[7:0] Address of GPU programm in the memory |
+| `0x01` | <a id="GPU_ADDR1"></a>**GPU_ADDR1** | A[15:8] Address of GPU programm in the memory |
+| `0x02` | <a id="GPU_ADDR2"></a>**GPU_ADDR2** | A[23:16] Address of GPU programm in the memory |
+| `0x03` | <a id="COMMAND"></a>**COMMAND** | — |
+| `0x04` | <a id="STATUS"></a>**STATUS** | — |
+
+**COMMAND** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="RESERVED"></a>**RESERVED** | [7:2] | 6 | Reserved |
+| <a id="GPU_COMMAND"></a>**GPU_COMMAND** | [1:0] | 2 | GPU command |
+
+**STATUS** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="GPU_HALT"></a>**GPU_HALT** | [7] | 1 | 1-GPU is in HALT state, that means free or error |
+| <a id="GPU_RESULT"></a>**GPU_RESULT** | [6:0] | 7 | The result code (HALT Command's argument) |
+
+
+### 9.1 Starting the loader
+
+The host does not execute any command to start the loader. It writes the **24-bit byte address of the first packet** into the host-side start-address registers and then raises `start`. The address must be word-aligned (bit 0 is ignored). The host may change it only while the GPU is in IDLE.
+
+**Table 12 — GPU Interface**
+
+| Offset | Name | Description |
+| --- | --- | --- |
+| `0x00` | <a id="GPU_ADDR0"></a>**GPU_ADDR0** | A[7:0] Address of GPU programm in the memory |
+| `0x01` | <a id="GPU_ADDR1"></a>**GPU_ADDR1** | A[15:8] Address of GPU programm in the memory |
+| `0x02` | <a id="GPU_ADDR2"></a>**GPU_ADDR2** | A[23:16] Address of GPU programm in the memory |
+| `0x03` | <a id="COMMAND"></a>**COMMAND** | — |
+| `0x04` | <a id="STATUS"></a>**STATUS** | — |
+
+**COMMAND** (`0x03`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="RESERVED"></a>**RESERVED** | [7:2] | 6 | Reserved |
+| <a id="GPU_COMMAND"></a>**GPU_COMMAND** | [1:0] | 2 | GPU command |
+
+**STATUS** (`0x04`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="GPU_HALT"></a>**GPU_HALT** | [7] | 1 | 1-GPU is in HALT state, that means free or error |
+| <a id="GPU_RESULT"></a>**GPU_RESULT** | [6:0] | 7 | The result code (HALT Command's argument) |
+
+
+**Table 13 — GPU Error**
+
+| Name | Value | Description |
+| --- | --- | --- |
+| <a id="OK"></a>**OK** | 0 | No error |
+| <a id="WRERR"></a>**WRERR** | 1 | Write to protected ROM |
+| <a id="IDXOVERFLOW"></a>**IDXOVERFLOW** | 2 | IDX overflow 65K page |
+| <a id="BADFMT"></a>**BADFMT** | 3 | Unsuported pixel format |
+| <a id="RESERVED"></a>**RESERVED** | 4 | Reserved |
+| <a id="WBWDT"></a>**WBWDT** | 5 | WB timeout |
+
+
+**Table 14 — GPU Commands**
 
 | Value | Name | Description |
 | --- | --- | --- |
-| 0 | <a id="END"></a>**END** | End, IDLE (arg: -) |
-| 1 | <a id="ENDI"></a>**ENDI** | End with interrupt (arg: IRQ code) |
-| 2 | <a id="CODE"></a>**CODE** | Load microcode: start address, then 2 packet words per instruction (arg: word count) |
-| 3 | <a id="RUN"></a>**RUN** | Start microprogram (arg: entry point) |
-| 4 | <a id="JUMP"></a>**JUMP** | Next 2 words = new stream pointer (arg: -) |
-
-**Notes:**
-
-- Loader is not implemented in RTL. Reserved for future extension.
+| 0 | <a id="GPU_NOP"></a>**GPU_NOP** | Has no effect. |
+| 1 | <a id="GPU_START"></a>**GPU_START** | Reset GPU and start it's bootloader |
+| 2 | <a id="GPU_RESET"></a>**GPU_RESET** | Reset GPU and hold it in HALT |
 
 
-`CODE`: 32-bit microinstruction = 2 words. `RUN`: entry point. `JUMP`: new `STM.PTR`.
+On `start` the hardware presets the stream channel (CH0 in the reference loader):
 
-End of a task:
+| Channel register | Value                                 |
+| ---------------- | ------------------------------------- |
+| `PAGE`           | `address[23:16]`                      |
+| `IDX`            | `address[15:1]` (word index in page)  |
+| `MODE`           | 16 bpp (one pixel = one word)         |
+| `STEP`           | +1 (one word)                         |
+
+and starts the loader at ROM address 0. From this point the loader reads packet words with `MOV Rn, DATA0`; each read advances the stream pointer by one word.
+
+### 9.2 Packet header
+
+The header is followed by the payload, if the packet kind has one, and then immediately by the next header.
+
+**Table 15 — Loader packet headers**
+
+| Value | Name | Description |
+| --- | --- | --- |
+| 0 | <a id="SIZE"></a>**SIZE** | Number of words in packet. |
+| 1 | <a id="START"></a>**START** | Start address for programm in ROM |
+| 2 | <a id="DATA0"></a>**DATA0** | Low 16-bits of opcode 0. |
+| 3 | <a id="DATA0"></a>**DATA0** | Hi 16-bits of opcode 0. |
+| 4 | <a id="DATA1"></a>**DATA1** | Low 16-bits of opcode 1. |
+| 5 | <a id="DATA2"></a>**DATA2** | Hi 16-bits of opcode 1. |
+| 6 | <a id="..."></a>**...** | Rest of opcodes. |
+
+
+### 9.3 Packet formats
+
+**END** (`kind=0`). No payload. The loader flushes all channels (all dirty words are written back to memory) and stops with `HALT 0`: the GPU goes to IDLE.
+
+**ENDI** (`kind=1`). No payload. Same as `END`, plus an interrupt: after the flush completes, the loader raises `IRQ` with code `arg` and stops with `HALT 0`. The flush comes first so that the CPU sees consistent memory when it handles the interrupt.
+
+**CODE** (`kind=2`). Loads microcode into ROM:
 
 ```
-MOV FLUSH, ZERO     ; flush all dirty words
-MOV IRQ, Rcode      ; optional: raise IRQ with code
-HALT 0              ; IDLE
+word 0        header          {2, N}   N = number of instructions, 1..4095
+word 1        address         ROM address of the first instruction (bits 11:0)
+word 2        instruction 0   low 16 bits
+word 3        instruction 0   high 16 bits
+word 4        instruction 1   low 16 bits
+...
+word 2N+1     instruction N-1 high 16 bits
+```
+
+The loader writes the address to `ROMA`, then for each instruction writes `ROML` (low word) and `ROMH` (high word). The write to `ROMH` stores the 32-bit word in ROM and increments `ROMA`. The block must not cross the end of ROM (address 4095) and must not touch words 0–31.
+
+**RUN** (`kind=3`). No payload. `PC = arg`: control passes to the microprogram. The loader does not regain control, so the microprogram has to finish with the end-of-task sequence (section 9.5).
+
+**JUMP** (`kind=4`). Two payload words, a 24-bit byte address in the same layout as the host start address:
+
+```
+word 0   header   {4, 0}
+word 1   address[15:0]               (bit 0 ignored)
+word 2   {8'h00, address[23:16]}
+```
+
+The loader sets the stream channel to the new `PAGE` and `IDX` (word index = `address[15:1]`) and continues reading packets from there. It is used to skip over data or to chain packet blocks in different pages.
+
+**Unknown kind** (`5..15`). The loader stops with `HALT 2` (ERROR, code 2).
+
+### 9.4 Example
+
+A stream that loads a two-instruction microprogram at ROM address `0x040` and runs it:
+
+```
+0x2002          CODE, 2 instructions
+0x0040          load at ROM address 0x040
+<insn0 low>     ROM[0x040][15:0]
+<insn0 high>    ROM[0x040][31:16]
+<insn1 low>     ROM[0x041][15:0]
+<insn1 high>    ROM[0x041][31:16]
+0x3040          RUN, entry point 0x040
+```
+
+### 9.5 End of a task
+
+A microprogram started with `RUN` ends with the same sequence the loader uses for `END`/`ENDI`:
+
+```
+FLUSH 0xF     ; write back all dirty words (bit i of the mask = channel i)
+IRQ   code    ; optional: raise IRQ with the given code
+HALT  0       ; IDLE
+```
+
+`FLUSH` must come before `IRQ` and `HALT`: a dirty word that has not been written back is lost when the host reads the memory.
+
+### 9.6 What the loader does not do
+
+There are no checksums, no retries, no relocation and no bounds checking beyond the protection of ROM words 0–31. The host is responsible for the stream being correct and word-aligned.
 ```
 
 ## 10. System commands

@@ -1,4 +1,4 @@
-# ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])
+**ALU OP (5 bits, class = op[4:3], fn = op[2:1], flag = op[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -18,8 +18,6 @@
 | 18 | <a id="SHR"></a>**SHR** | cls=10, fn=01: logical shift right |
 | 20 | <a id="SAR"></a>**SAR** | cls=10, fn=10: arithmetic shift right |
 | 24 | <a id="MUL"></a>**MUL** | cls=11, fn=00: d = (d * s)[15:0] signed; high 16 to MHI |
-| 28 | <a id="TST"></a>**TST** | cls=11, fn=10: d & s, result discarded, flags written |
-| 30 | <a id="CMP"></a>**CMP** | cls=11, fn=11: d - s, result discarded, flags written |
 
 **Notes:**
 

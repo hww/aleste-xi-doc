@@ -1,4 +1,4 @@
-# PSG function select (BDIR, BC1)
+**PSG function select (BDIR, BC1)**
 
 | Value | Name | Description |
 | --- | --- | --- |

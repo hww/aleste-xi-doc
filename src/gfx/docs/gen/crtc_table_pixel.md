@@ -1,4 +1,4 @@
-# Pixel Strobe Generation
+**Pixel Strobe Generation**
 
 | Value | Name | Description |
 | --- | --- | --- |

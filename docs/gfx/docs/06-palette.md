@@ -19,9 +19,9 @@ The following register map shows the unified native mode interface:
 
 ![Palette Controller Register Map](gen/palette_regmap.svg)
 
-*Figure 3 — Palette Controller Register Map*
+*Figure 1 — Palette Controller Register Map*
 
-**Table 3 — Palette Controller Register Map**
+**Table 1 — Palette Controller Register Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -82,9 +82,7 @@ The following register map shows the unified native mode interface:
 | <a id="MODIFIER"></a>**MODIFIER** | [7:0] | 8 | Значение для OR/XOR модификации |
 
 
-# Palette Controller Register Map
-
-![Palette Controller Register Map](gen/palette_regmap.svg)
+**Table 2 — Palette Controller Register Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -151,9 +149,9 @@ The Control Register (0x05) configures the palette behavior:
 
 ![Palette Control Register (0x05)](gen/palette_control.svg)
 
-*Figure 4 — Palette Control Register (0x05)*
+*Figure 2 — Palette Control Register (0x05)*
 
-**Table 4 — Palette Control Register (0x05)**
+**Table 3 — Palette Control Register (0x05)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -164,9 +162,7 @@ The Control Register (0x05) configures the palette behavior:
 | <a id="write_mode"></a>**write_mode** | [1:0] | 2 | 00=12-bit, 01=CPC, 10=MSX, 11=YJK |
 
 
-# Palette Control Register (0x05)
-
-![Palette Control Register (0x05)](gen/palette_control.svg)
+**Table 4 — Palette Control Register (0x05)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -181,7 +177,7 @@ The Control Register (0x05) configures the palette behavior:
 
 The palette supports multiple color conversion modes:
 
-# Color Modes
+**Table 5 — Color Modes**
 
 | Value | Name | Description |
 | --- | --- | --- |

@@ -1,6 +1,4 @@
-# Logical Slots
-
-![Logical Slots](gen/io_slots.svg)
+**Logical Slots**
 
 | Range | Name | Size | Purpose |
 | --- | --- | --- | --- |

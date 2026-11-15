@@ -1,4 +1,4 @@
-# MMU Registers (Ports E0–FF)
+**MMU Registers (Ports E0–FF)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

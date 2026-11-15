@@ -1,6 +1,4 @@
-# Gate Array R2 — Mode, ROM Enable, LEDs
-
-![Gate Array R2 — Mode, ROM Enable, LEDs](gen/L_GA_R2.svg)
+**Gate Array R2 — Mode, ROM Enable, LEDs**
 
 | Field | Bits | Width | Fixed | Description |
 | --- | --- | --- | --- | --- |

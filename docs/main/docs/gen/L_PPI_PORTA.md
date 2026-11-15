@@ -1,6 +1,4 @@
-# 8255 PPI Port A — PSG Data Bus
-
-![8255 PPI Port A — PSG Data Bus](gen/L_PPI_PORTA.svg)
+**8255 PPI Port A — PSG Data Bus**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

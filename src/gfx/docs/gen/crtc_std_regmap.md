@@ -1,6 +1,4 @@
-# Standard MC6845 Registers (R0–R17)
-
-![Standard MC6845 Registers (R0–R17)](gen/crtc_std_regmap.svg)
+**Standard MC6845 Registers (R0–R17)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

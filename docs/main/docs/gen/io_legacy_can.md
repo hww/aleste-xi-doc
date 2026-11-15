@@ -1,4 +1,4 @@
-# Legacy Software CAN
+**Legacy Software CAN**
 
 | Value | Name | Description |
 | --- | --- | --- |

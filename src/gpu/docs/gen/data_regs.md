@@ -1,4 +1,4 @@
-# DATA[0..3] (40..43)
+**DATA[0..3] (40..43)**
 
 | Value | Name | Description |
 | --- | --- | --- |

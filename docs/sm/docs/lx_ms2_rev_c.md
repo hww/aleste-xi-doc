@@ -90,9 +90,9 @@ Magic Sound 2 (rev. C) fixes all four:
 
 ![Rev. C: Global Registers Map](gen/ms2c_global_map.svg)
 
-*Figure 3 — Rev. C: Global Registers Map*
+*Figure 1 — Rev. C: Global Registers Map*
 
-**Table 3 — Rev. C: Global Registers Map**
+**Table 1 — Rev. C: Global Registers Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -158,9 +158,7 @@ Magic Sound 2 (rev. C) fixes all four:
 | <a id="TMR_HI"></a>**TMR_HI** | [7:0] | 8 | Timer period high |
 
 
-# Rev. C: Global Registers Map
-
-![Rev. C: Global Registers Map](gen/ms2c_global_map.svg)
+**Table 2 — Rev. C: Global Registers Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -231,9 +229,9 @@ Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, chan
 
 ![Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2c_channel_map.svg)
 
-*Figure 4 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
+*Figure 2 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
 
-**Table 4 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
+**Table 3 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -356,9 +354,7 @@ Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, chan
 | <a id="PLAYING"></a>**PLAYING** | [0] | 1 | Playing |
 
 
-# Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)
-
-![Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2c_channel_map.svg)
+**Table 4 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

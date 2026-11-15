@@ -1,6 +1,4 @@
-# EXTPORT (FABF) — 520EX Extension
-
-![EXTPORT (FABF) — 520EX Extension](gen/L_520EX_EXTPORT.svg)
+**EXTPORT (FABF) — 520EX Extension**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

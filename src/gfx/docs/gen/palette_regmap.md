@@ -1,6 +1,4 @@
-# Palette Controller Register Map
-
-![Palette Controller Register Map](gen/palette_regmap.svg)
+**Palette Controller Register Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |

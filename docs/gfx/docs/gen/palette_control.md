@@ -1,6 +1,4 @@
-# Palette Control Register (0x05)
-
-![Palette Control Register (0x05)](gen/palette_control.svg)
+**Palette Control Register (0x05)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

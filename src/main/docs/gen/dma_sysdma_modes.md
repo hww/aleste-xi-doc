@@ -1,4 +1,4 @@
-# SysDMA Transfer Modes
+**SysDMA Transfer Modes**
 
 | Value | Name | Description |
 | --- | --- | --- |

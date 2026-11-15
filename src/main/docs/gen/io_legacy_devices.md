@@ -1,4 +1,4 @@
-# Legacy Device Sub-registers
+**Legacy Device Sub-registers**
 
 | Value | Name | Description |
 | --- | --- | --- |

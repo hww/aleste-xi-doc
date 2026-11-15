@@ -1,4 +1,4 @@
-# CRTC 6845 Ports
+**CRTC 6845 Ports**
 
 | Value | Name | Description |
 | --- | --- | --- |

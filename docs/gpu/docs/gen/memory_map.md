@@ -1,6 +1,4 @@
-# Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})
-
-![Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})](gen/memory_map.svg)
+**Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})**
 
 | Range | Name | Size | Access | Purpose |
 | --- | --- | --- | --- | --- |

@@ -1,4 +1,4 @@
-# Internal Mapper Registers (16 × 8-bit)
+**Internal Mapper Registers (16 × 8-bit)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |

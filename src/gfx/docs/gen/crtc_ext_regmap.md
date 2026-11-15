@@ -1,6 +1,4 @@
-# Extended Native Registers (R18–R21)
-
-![Extended Native Registers (R18–R21)](gen/crtc_ext_regmap.svg)
+**Extended Native Registers (R18–R21)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

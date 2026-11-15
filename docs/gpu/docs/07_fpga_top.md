@@ -18,7 +18,7 @@ Each instruction executes on `ack`. When an instruction is latched into the inst
 
 Processor registers are split into three groups: general (R0..R31), system (32..39), and pixel engine channels (48..63). The register map is shown below.
 
-**Table 4 — Register file · R0–R31 (16 bit)**
+**Table 1 — Register file · R0–R31 (16 bit)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ Processor registers are split into three groups: general (R0..R31), system (32..
 
 *Fig. 2. General-purpose registers.*
 
-**Table 5 — System Registers (32..38, 39 reserved)**
+**Table 2 — System Registers (32..38, 39 reserved)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -80,9 +80,9 @@ All instructions are 32-bit. Fields are fixed: `L`, `I`, `DST`, `DS`, `COND`, `F
 
 ![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 2 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
+*Figure 1 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-**Table 6 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
+**Table 3 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

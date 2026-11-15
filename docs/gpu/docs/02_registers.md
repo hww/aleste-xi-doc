@@ -6,7 +6,7 @@ There are 64 operand slots (6 bits) in total. Slots 0..31 are general-purpose re
 
 Registers R0..R31 serve as source and destination in most instructions. R0 is a normal register; the constant zero comes from the ZERO operand (`32`).
 
-**Table 5 — Register file · R0–R31 (16 bit)**
+**Table 1 — Register file · R0–R31 (16 bit)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -50,14 +50,14 @@ A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cy
 
 ![regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]](gen/timing_regfile.svg)
 
-*Figure 2 — regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]*
+*Figure 1 — regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]*
 
 
 ## System Registers
 
 System registers (32..38, 39 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, and cache status.
 
-**Table 6 — System Registers (32..38, 39 reserved)**
+**Table 2 — System Registers (32..38, 39 reserved)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -77,25 +77,25 @@ System registers (32..38, 39 reserved) are available as a source in any instruct
 
 Channels (48..63) are 4 sets of 4 registers each: IDX, IDXH, STEP, MODE_PAGE. They are write-only via `MOV`.
 
-**Table 7 — Pixel Engine Channels (48..63)**
+**Table 3 — Pixel Engine Channels (48..63)**
 
 | Value | Name | Description |
 | --- | --- | --- |
 | 48 | <a id="CH0_IDX"></a>**CH0_IDX** | Pixel index |
-| 49 | <a id="CH0_IDXH"></a>**CH0_IDXH** | Upper 3 bits of index |
-| 50 | <a id="CH0_STEP"></a>**CH0_STEP** | Step (12.4) |
-| 51 | <a id="CH0_MODE_PAGE"></a>**CH0_MODE_PAGE** | MODE and PAGE |
 | 52 | <a id="CH1_IDX"></a>**CH1_IDX** | Pixel index |
-| 53 | <a id="CH1_IDXH"></a>**CH1_IDXH** | Upper 3 bits of index |
-| 54 | <a id="CH1_STEP"></a>**CH1_STEP** | Step (12.4) |
-| 55 | <a id="CH1_MODE_PAGE"></a>**CH1_MODE_PAGE** | MODE and PAGE |
 | 56 | <a id="CH2_IDX"></a>**CH2_IDX** | Pixel index |
-| 57 | <a id="CH2_IDXH"></a>**CH2_IDXH** | Upper 3 bits of index |
-| 58 | <a id="CH2_STEP"></a>**CH2_STEP** | Step (12.4) |
-| 59 | <a id="CH2_MODE_PAGE"></a>**CH2_MODE_PAGE** | MODE and PAGE |
 | 60 | <a id="CH3_IDX"></a>**CH3_IDX** | Pixel index |
+| 49 | <a id="CH0_IDXH"></a>**CH0_IDXH** | Upper 3 bits of index |
+| 53 | <a id="CH1_IDXH"></a>**CH1_IDXH** | Upper 3 bits of index |
+| 57 | <a id="CH2_IDXH"></a>**CH2_IDXH** | Upper 3 bits of index |
 | 61 | <a id="CH3_IDXH"></a>**CH3_IDXH** | Upper 3 bits of index |
+| 50 | <a id="CH0_STEP"></a>**CH0_STEP** | Step (12.4) |
+| 54 | <a id="CH1_STEP"></a>**CH1_STEP** | Step (12.4) |
+| 58 | <a id="CH2_STEP"></a>**CH2_STEP** | Step (12.4) |
 | 62 | <a id="CH3_STEP"></a>**CH3_STEP** | Step (12.4) |
+| 51 | <a id="CH0_MODE_PAGE"></a>**CH0_MODE_PAGE** | MODE and PAGE |
+| 55 | <a id="CH1_MODE_PAGE"></a>**CH1_MODE_PAGE** | MODE and PAGE |
+| 59 | <a id="CH2_MODE_PAGE"></a>**CH2_MODE_PAGE** | MODE and PAGE |
 | 63 | <a id="CH3_MODE_PAGE"></a>**CH3_MODE_PAGE** | MODE and PAGE |
 
 
@@ -105,7 +105,7 @@ Channels (48..63) are 4 sets of 4 registers each: IDX, IDXH, STEP, MODE_PAGE. Th
 
 DATA[0..3] (40..43) are pixel engine temporary registers. Reading triggers a pixel read operation; writing triggers a pixel write operation.
 
-**Table 8 — DATA[0..3] (40..43)**
+**Table 4 — DATA[0..3] (40..43)**
 
 | Value | Name | Description |
 | --- | --- | --- |

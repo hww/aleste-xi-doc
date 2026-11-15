@@ -4,9 +4,9 @@
 
 ![EXTPORT (FABF) — 520EX Extension](gen/L_520EX_EXTPORT.svg)
 
-*Figure 12 — EXTPORT (FABF) — 520EX Extension*
+*Figure 1 — EXTPORT (FABF) — 520EX Extension*
 
-**Table 34 — EXTPORT (FABF) — 520EX Extension**
+**Table 1 — EXTPORT (FABF) — 520EX Extension**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -42,9 +42,9 @@
 
 ![Gate Array R0 — Palette Index](gen/L_GA_R0.svg)
 
-*Figure 13 — Gate Array R0 — Palette Index*
+*Figure 2 — Gate Array R0 — Palette Index*
 
-**Table 35 — Gate Array R0 — Palette Index**
+**Table 2 — Gate Array R0 — Palette Index**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -59,9 +59,9 @@
 
 ![Gate Array R2 — Mode, ROM Enable, LEDs](gen/L_GA_R2.svg)
 
-*Figure 14 — Gate Array R2 — Mode, ROM Enable, LEDs*
+*Figure 3 — Gate Array R2 — Mode, ROM Enable, LEDs*
 
-**Table 36 — Gate Array R2 — Mode, ROM Enable, LEDs**
+**Table 3 — Gate Array R2 — Mode, ROM Enable, LEDs**
 
 | Field | Bits | Width | Fixed | Description |
 | --- | --- | --- | --- | --- |
@@ -78,7 +78,7 @@
 
 ## Gate Array Register Select
 
-**Table 37 — Gate Array register select (D7, D6)**
+**Table 4 — Gate Array register select (D7, D6)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -94,9 +94,9 @@
 
 ![MMR — RAM Memory Mapping](gen/L_MMR.svg)
 
-*Figure 15 — MMR — RAM Memory Mapping*
+*Figure 4 — MMR — RAM Memory Mapping*
 
-**Table 38 — MMR — RAM Memory Mapping**
+**Table 5 — MMR — RAM Memory Mapping**
 
 | Field | Bits | Width | Fixed | Description |
 | --- | --- | --- | --- | --- |
@@ -116,7 +116,7 @@
 
 ## PPI Manufacturer Bits
 
-**Table 39 — PPI Manufacturer Bits (Port B bits 3–1)**
+**Table 6 — PPI Manufacturer Bits (Port B bits 3–1)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -136,9 +136,9 @@
 
 ![8255 PPI Port A — PSG Data Bus](gen/L_PPI_PORTA.svg)
 
-*Figure 16 — 8255 PPI Port A — PSG Data Bus*
+*Figure 5 — 8255 PPI Port A — PSG Data Bus*
 
-**Table 40 — 8255 PPI Port A — PSG Data Bus**
+**Table 7 — 8255 PPI Port A — PSG Data Bus**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -151,9 +151,9 @@
 
 ![8255 PPI Port B — VSYNC, Cassette, Printer](gen/L_PPI_PORTB.svg)
 
-*Figure 17 — 8255 PPI Port B — VSYNC, Cassette, Printer*
+*Figure 6 — 8255 PPI Port B — VSYNC, Cassette, Printer*
 
-**Table 41 — 8255 PPI Port B — VSYNC, Cassette, Printer**
+**Table 8 — 8255 PPI Port B — VSYNC, Cassette, Printer**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -171,9 +171,9 @@
 
 ![8255 PPI Port C — PSG Control, Cassette, Keyboard](gen/L_PPI_PORTC.svg)
 
-*Figure 18 — 8255 PPI Port C — PSG Control, Cassette, Keyboard*
+*Figure 7 — 8255 PPI Port C — PSG Control, Cassette, Keyboard*
 
-**Table 42 — 8255 PPI Port C — PSG Control, Cassette, Keyboard**
+**Table 9 — 8255 PPI Port C — PSG Control, Cassette, Keyboard**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -188,7 +188,7 @@
 
 ## PSG Function Select
 
-**Table 43 — PSG function select (BDIR, BC1)**
+**Table 10 — PSG function select (BDIR, BC1)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -204,9 +204,9 @@
 
 ![RMR — Control, ROM Mapping, Graphics Mode](gen/L_RMR.svg)
 
-*Figure 19 — RMR — Control, ROM Mapping, Graphics Mode*
+*Figure 8 — RMR — Control, ROM Mapping, Graphics Mode*
 
-**Table 44 — RMR — Control, ROM Mapping, Graphics Mode**
+**Table 11 — RMR — Control, ROM Mapping, Graphics Mode**
 
 | Field | Bits | Width | Fixed | Description |
 | --- | --- | --- | --- | --- |
@@ -229,7 +229,7 @@
 
 ## Blitter Register Map (lx_dma.sv)
 
-**Table 45 — Blitter Register Map (lx_dma.sv)**
+**Table 12 — Blitter Register Map (lx_dma.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -366,7 +366,7 @@
 
 ## SysDMA Register Map (wb_dma.sv)
 
-**Table 46 — SysDMA Register Map (wb_dma.sv)**
+**Table 13 — SysDMA Register Map (wb_dma.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -452,7 +452,7 @@
 
 ## CRTC 6845 Ports
 
-**Table 47 — CRTC 6845 Ports**
+**Table 14 — CRTC 6845 Ports**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -466,7 +466,7 @@
 
 ## FDC 765 Ports
 
-**Table 48 — FDC 765 Ports**
+**Table 15 — FDC 765 Ports**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -479,7 +479,7 @@
 
 ## Gate Array Register Select (7Fxx)
 
-**Table 49 — Gate Array Register Select (7Fxx)**
+**Table 16 — Gate Array Register Select (7Fxx)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -493,7 +493,7 @@
 
 ## Legacy Software CAN
 
-**Table 50 — Legacy Software CAN**
+**Table 17 — Legacy Software CAN**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -506,7 +506,7 @@
 
 ## Legacy Software CANNOT
 
-**Table 51 — Legacy Software CANNOT**
+**Table 18 — Legacy Software CANNOT**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -519,7 +519,7 @@
 
 ## Legacy Device Sub-registers
 
-**Table 52 — Legacy Device Sub-registers**
+**Table 19 — Legacy Device Sub-registers**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -539,7 +539,7 @@
 
 ## MMIO_LO Page Map
 
-**Table 53 — MMIO_LO Page Map**
+**Table 20 — MMIO_LO Page Map**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -554,7 +554,7 @@
 
 ## MMIO Regions
 
-**Table 54 — MMIO Regions**
+**Table 21 — MMIO Regions**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -566,7 +566,7 @@
 
 ## MMU Registers (Ports E0–FF)
 
-**Table 55 — MMU Registers (Ports E0–FF)**
+**Table 22 — MMU Registers (Ports E0–FF)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -587,7 +587,7 @@
 
 ## Native Mode Port Map
 
-**Table 56 — Native Mode Port Map**
+**Table 23 — Native Mode Port Map**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -600,7 +600,7 @@
 
 ## PPI 8255 Ports
 
-**Table 57 — PPI 8255 Ports**
+**Table 24 — PPI 8255 Ports**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -616,9 +616,9 @@
 
 ![Logical Slots](gen/io_slots.svg)
 
-*Figure 20 — Logical Slots*
+*Figure 9 — Logical Slots*
 
-**Table 58 — Logical Slots**
+**Table 25 — Logical Slots**
 
 | Range | Name | Size | Purpose |
 | --- | --- | --- | --- |
@@ -640,9 +640,9 @@ MARKDOWN_TABLE_HERE
 
 ![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
 
-*Figure 21 — GLOBAL_CTRL (F0h)*
+*Figure 10 — GLOBAL_CTRL (F0h)*
 
-**Table 59 — GLOBAL_CTRL (F0h)**
+**Table 26 — GLOBAL_CTRL (F0h)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -658,7 +658,7 @@ MARKDOWN_TABLE_HERE
 
 ## Internal Mapper Registers (16 × 8-bit)
 
-**Table 60 — Internal Mapper Registers (16 × 8-bit)**
+**Table 27 — Internal Mapper Registers (16 × 8-bit)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |
@@ -684,7 +684,7 @@ MARKDOWN_TABLE_HERE
 
 ## Operating Modes
 
-**Table 61 — supervisor_mode (GLOBAL_CTRL[0])**
+**Table 28 — supervisor_mode (GLOBAL_CTRL[0])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -692,7 +692,7 @@ MARKDOWN_TABLE_HERE
 | 1 | <a id="Supervisor"></a>**Supervisor** | Kernel code; full access to all resources; hardware trap entry |
 
 
-**Table 62 — native_mode (GLOBAL_CTRL[1])**
+**Table 29 — native_mode (GLOBAL_CTRL[1])**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -704,7 +704,7 @@ MARKDOWN_TABLE_HERE
 
 ## Control Registers (Ports F0–FF, E0–EF)
 
-**Table 63 — Control Registers (Ports F0–FF, E0–EF)**
+**Table 30 — Control Registers (Ports F0–FF, E0–EF)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |
@@ -725,7 +725,7 @@ MARKDOWN_TABLE_HERE
 
 ## Reset State (RTL)
 
-**Table 64 — Control Registers (Ports F0–FF, E0–EF)**
+**Table 31 — Control Registers (Ports F0–FF, E0–EF)**
 
 | Offset | Name | Access | Reset | Description |
 | --- | --- | --- | --- | --- |
@@ -748,9 +748,9 @@ MARKDOWN_TABLE_HERE
 
 ![Logical Slots (16-bit Z80 address space)](gen/mmu_slots.svg)
 
-*Figure 22 — Logical Slots (16-bit Z80 address space)*
+*Figure 11 — Logical Slots (16-bit Z80 address space)*
 
-**Table 65 — Logical Slots (16-bit Z80 address space)**
+**Table 32 — Logical Slots (16-bit Z80 address space)**
 
 | Range | Name | Size | Purpose |
 | --- | --- | --- | --- |
@@ -764,7 +764,7 @@ MARKDOWN_TABLE_HERE
 
 ## PIC Register Map (wb_z80_pic.sv)
 
-**Table 66 — PIC Register Map (wb_z80_pic.sv)**
+**Table 33 — PIC Register Map (wb_z80_pic.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

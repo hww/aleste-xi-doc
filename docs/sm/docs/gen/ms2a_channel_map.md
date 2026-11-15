@@ -1,6 +1,4 @@
-# Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)
-
-![Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2a_channel_map.svg)
+**Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

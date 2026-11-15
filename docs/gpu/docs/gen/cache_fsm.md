@@ -1,6 +1,4 @@
-# Cache FSM
-
-![Cache FSM](gen/cache_fsm.svg)
+**Cache FSM**
 
 | State | Output | Description |
 | --- | --- | --- |

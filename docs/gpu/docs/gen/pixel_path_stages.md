@@ -1,4 +1,4 @@
-# Pixel Path Stages
+**Pixel Path Stages**
 
 | Stage | Signal | Description |
 | --- | --- | --- |

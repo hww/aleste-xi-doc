@@ -4,9 +4,9 @@
 
 ![Extended Native Registers (R18–R21)](gen/crtc_ext_regmap.svg)
 
-*Figure 8 — Extended Native Registers (R18–R21)*
+*Figure 1 — Extended Native Registers (R18–R21)*
 
-**Table 8 — Extended Native Registers (R18–R21)**
+**Table 1 — Extended Native Registers (R18–R21)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -54,9 +54,9 @@
 
 ![R18 — Video Control (0x12)](gen/crtc_r18.svg)
 
-*Figure 9 — R18 — Video Control (0x12)*
+*Figure 2 — R18 — Video Control (0x12)*
 
-**Table 9 — R18 — Video Control (0x12)**
+**Table 2 — R18 — Video Control (0x12)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -72,9 +72,9 @@
 
 ![R20 — Address Mode (0x14)](gen/crtc_r20.svg)
 
-*Figure 10 — R20 — Address Mode (0x14)*
+*Figure 3 — R20 — Address Mode (0x14)*
 
-**Table 10 — R20 — Address Mode (0x14)**
+**Table 3 — R20 — Address Mode (0x14)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -91,9 +91,9 @@
 
 ![R21 — Pixel Control (0x15)](gen/crtc_r21.svg)
 
-*Figure 11 — R21 — Pixel Control (0x15)*
+*Figure 4 — R21 — Pixel Control (0x15)*
 
-**Table 11 — R21 — Pixel Control (0x15)**
+**Table 4 — R21 — Pixel Control (0x15)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -107,9 +107,9 @@
 
 ![Standard MC6845 Registers (R0–R17)](gen/crtc_std_regmap.svg)
 
-*Figure 12 — Standard MC6845 Registers (R0–R17)*
+*Figure 5 — Standard MC6845 Registers (R0–R17)*
 
-**Table 12 — Standard MC6845 Registers (R0–R17)**
+**Table 5 — Standard MC6845 Registers (R0–R17)**
 
 | Offset | Name | Description |
 | --- | --- | --- |
@@ -258,9 +258,9 @@
 
 ![Palette Control Register (0x05)](gen/palette_control.svg)
 
-*Figure 13 — Palette Control Register (0x05)*
+*Figure 6 — Palette Control Register (0x05)*
 
-**Table 13 — Palette Control Register (0x05)**
+**Table 6 — Palette Control Register (0x05)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
@@ -281,9 +281,9 @@
 
 ![Palette Controller Register Map](gen/palette_regmap.svg)
 
-*Figure 14 — Palette Controller Register Map*
+*Figure 7 — Palette Controller Register Map*
 
-**Table 14 — Palette Controller Register Map**
+**Table 7 — Palette Controller Register Map**
 
 | Offset | Name | Description |
 | --- | --- | --- |

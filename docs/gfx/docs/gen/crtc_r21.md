@@ -1,6 +1,4 @@
-# R21 — Pixel Control (0x15)
-
-![R21 — Pixel Control (0x15)](gen/crtc_r21.svg)
+**R21 — Pixel Control (0x15)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |

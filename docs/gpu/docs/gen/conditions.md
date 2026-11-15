@@ -1,4 +1,4 @@
-# COND (4 bits, ARM-style)
+**COND (4 bits, ARM-style)**
 
 | Value | Name | Description |
 | --- | --- | --- |

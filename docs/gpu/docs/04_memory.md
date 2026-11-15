@@ -8,9 +8,9 @@ The 24-bit address space is `{PAGE[7:0], WORD[14:0], 1'b0}` — 256 pages of 128
 
 ![Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})](gen/memory_map.svg)
 
-*Figure 2 — Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})*
+*Figure 1 — Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})*
 
-**Table 2 — Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})**
+**Table 1 — Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})**
 
 | Range | Name | Size | Access | Purpose |
 | --- | --- | --- | --- | --- |

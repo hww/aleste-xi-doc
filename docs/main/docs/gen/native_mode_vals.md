@@ -1,4 +1,4 @@
-# native_mode (GLOBAL_CTRL[1])
+**native_mode (GLOBAL_CTRL[1])**
 
 | Value | Name | Description |
 | --- | --- | --- |

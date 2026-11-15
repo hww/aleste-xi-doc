@@ -1,4 +1,4 @@
-# PIC Register Map (wb_z80_pic.sv)
+**PIC Register Map (wb_z80_pic.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

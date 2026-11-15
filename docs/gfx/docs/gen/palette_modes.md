@@ -1,4 +1,4 @@
-# Color Modes
+**Color Modes**
 
 | Value | Name | Description |
 | --- | --- | --- |

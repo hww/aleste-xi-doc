@@ -1,4 +1,4 @@
-# SysDMA Register Map (wb_dma.sv)
+**SysDMA Register Map (wb_dma.sv)**
 
 | Offset | Name | Description |
 | --- | --- | --- |

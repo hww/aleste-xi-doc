@@ -1,4 +1,4 @@
-# System Registers (32..38, 39 reserved)
+**System Registers (32..38, 39 reserved)**
 
 | Value | Name | Description |
 | --- | --- | --- |

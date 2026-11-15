@@ -1,4 +1,4 @@
-# Sync Strobe Generation
+**Sync Strobe Generation**
 
 | Value | Name | Description |
 | --- | --- | --- |
