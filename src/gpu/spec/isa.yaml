@@ -60,14 +60,6 @@ variants:
       - {name: SRC,   bits: [11,6],  enum: operand_map}
       - {name: RSV,   bits: [5,0],   reserved: true}
 ---
-kind: const
-name: limits
-title: "Limits"
-values:
-  - {name: IMM11_BITS,    value: 11, description: "Immediate width in reg-imm11"}
-  - {name: IMM16_BITS,    value: 16, description: "Immediate width in ldi16"}
-  - {name: CTRL_ADDR_BITS, value: 12, description: "Target address width in JMP/CALL (0..4095)"}
----
 kind: bitfield
 name: insn_reg
 title: "J=0 I=0 REG-REG"

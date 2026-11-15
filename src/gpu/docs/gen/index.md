@@ -5,9 +5,10 @@
 - [BUSY Register](busy_bitfield.md) — `busy_bitfield`
 - [CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])](channel_mode_page.md) — `channel_mode_page`
 - [FLAGS Register](flags_bitfield.md) — `flags_bitfield`
-- [J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](insn_ctrl_jmp.md) — `insn_ctrl_jmp`
-- [J=1 I=0 CTRL (JMPR)](insn_ctrl_jmpr.md) — `insn_ctrl_jmpr`
+- [J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](insn_ctrl.md) — `insn_ctrl`
+- [J=1 I=0 CONTROL RJUMP (R=1: JMPR)](insn_ctrl_rjump.md) — `insn_ctrl_rjump`
 - [J=1 I=1 REG-IMM11](insn_imm11.md) — `insn_imm11`
+- [J=0 I=1 LDI16](insn_ldi16.md) — `insn_ldi16`
 - [J=0 I=0 REG-REG](insn_reg.md) — `insn_reg`
 - [SHADOW Register Format](shadow_bitfield.md) — `shadow_bitfield`
 
