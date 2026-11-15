@@ -59,3 +59,91 @@ variants:
       - {name: CTRLOP,bits: [15,12], enum: ctrl_ops}
       - {name: SRC,   bits: [11,6],  enum: operand_map}
       - {name: RSV,   bits: [5,0],   reserved: true}
+---
+kind: const
+name: limits
+title: "Limits"
+values:
+  - {name: IMM11_BITS,    value: 11, description: "Immediate width in reg-imm11"}
+  - {name: IMM16_BITS,    value: 16, description: "Immediate width in ldi16"}
+  - {name: CTRL_ADDR_BITS, value: 12, description: "Target address width in JMP/CALL (0..4095)"}
+---
+kind: bitfield
+name: insn_reg
+title: "J=0 I=0 REG-REG"
+width: 32
+fields:
+  - {name: L,        bit: 31,       description: "Loop flag"}
+  - {name: J,        bit: 30,       description: "= 0"}
+  - {name: I,        bit: 29,       description: "= 0"}
+  - {name: COND,     bits: [28,25], enum: conditions, description: "Condition"}
+  - {name: WRITE,    bit: 24,       description: "1 = write result; 0 = do not write (flags still update if F=1)"}
+  - {name: F,        bit: 23,       description: "1 = update flags"}
+  - {name: DST_CODE, bits: [22,17], enum: operand_map, description: "Destination operand (6 bits)"}
+  - {name: ALU_OP,   bits: [16,12], enum: alu_ops, description: "ALU operation"}
+  - {name: SRC,      bits: [11,6],  enum: operand_map, description: "Second operand (6 bits)"}
+  - {name: RSV,      bits: [5,0],   reserved: true, description: "Reserved, must be 0"}
+---
+kind: bitfield
+name: insn_imm11
+title: "J=1 I=1 REG-IMM11"
+width: 32
+fields:
+  - {name: L,      bit: 31,       description: "Loop flag"}
+  - {name: J,      bit: 30,       description: "= 1"}
+  - {name: I,      bit: 29,       description: "= 1"}
+  - {name: COND,   bits: [28,25], enum: conditions, description: "Condition"}
+  - {name: WRITE,  bit: 24,       description: "1 = write result; 0 = do not write"}
+  - {name: F,      bit: 23,       description: "Update flags"}
+  - {name: DST_CODE, bits: [22,17], enum: operand_map, description: "Destination operand (6 bits)"}
+  - {name: ALU_OP, bits: [16,12], enum: alu_ops, description: "ALU operation"}
+  - {name: SX,     bit: 11,       description: "1 = sign-extend IMM11, 0 = zero-extend"}
+  - {name: IMM,    bits: [10,0],  description: "11-bit immediate, operand B"}
+---
+kind: bitfield
+name: insn_ldi16
+title: "J=0 I=1 LDI16"
+width: 32
+fields:
+  - {name: L,      bit: 31,       description: "Loop flag"}
+  - {name: J,      bit: 30,       description: "= 0"}
+  - {name: I,      bit: 29,       description: "= 1"}
+  - {name: COND,   bits: [28,25], enum: conditions, description: "Condition"}
+  - {name: WRITE,  bit: 24,       description: "Unused for LDI, must be 1"}
+  - {name: F,      bit: 23,       description: "Unused for LDI, must be 0"}
+  - {name: DST_CODE, bits: [22,17], enum: operand_map, description: "Destination operand (6 bits)"}
+  - {name: RSV,    bit: 16,       reserved: true, description: "Reserved, must be 0"}
+  - {name: IMM16,  bits: [15,0],  description: "16-bit constant"}
+---
+kind: bitfield
+name: insn_ctrl
+title: "J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)"
+width: 32
+fields:
+  - {name: L,       bit: 31,       description: "Loop flag"}
+  - {name: J,       bit: 30,       description: "= 1"}
+  - {name: I,       bit: 29,       description: "= 0"}
+  - {name: COND,    bits: [28,25], enum: conditions, description: "Condition"}
+  - {name: WRITE,   bit: 24,       description: "Unused for CTRL, must be 0"}
+  - {name: F,       bit: 23,       description: "Unused for CTRL (must be 0)"}
+  - {name: DST_CODE,bits: [22,17], enum: operand_map, description: "Unused for CTRL"}
+  - {name: R,       bit: 16,       description: "Jump/Call: 0 = by immediate, 1 = by source register"}
+  - {name: CTRL_OP, bits: [15,12], enum: ctrl_ops, description: "Control operation"}
+  - {name: ADDR,    bits: [11,0],  description: "Target address (JMP/CALL), halt/IRQ code, channel (FLUSH)"}
+---
+kind: bitfield
+name: insn_ctrl_rjump
+title: "J=1 I=0 CONTROL RJUMP (R=1: JMPR)"
+width: 32
+fields:
+  - {name: L,       bit: 31,       description: "Loop flag"}
+  - {name: J,       bit: 30,       description: "= 1"}
+  - {name: I,       bit: 29,       description: "= 0"}
+  - {name: COND,    bits: [28,25], enum: conditions, description: "Condition"}
+  - {name: WRITE,   bit: 24,       description: "Unused for CTRL, must be 0"}
+  - {name: F,       bit: 23,       description: "Unused for CTRL (must be 0)"}
+  - {name: DST_CODE,bits: [22,17], enum: operand_map, description: "Unused for CTRL"}
+  - {name: R,       bit: 16,       description: "= 1 (register jump)"}
+  - {name: CTRL_OP, bits: [15,12], enum: ctrl_ops, description: "= JMPR (register indirect jump)"}
+  - {name: SRC,     bits: [11,6],  enum: operand_map, description: "Source operand code (0..63)"}
+  - {name: RSV,     bits: [5,0],   reserved: true, description: "Unused, must be 0"}
