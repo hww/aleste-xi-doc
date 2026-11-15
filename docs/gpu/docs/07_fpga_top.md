@@ -78,24 +78,24 @@ Processor registers are split into three groups: general (R0..R31), system (32..
 
 All instructions are 32-bit. Fields are fixed: `L`, `I`, `DST`, `DS`, `COND`, `F`, `REG_OP`, `SRC`, `IMM12`. See the ISA section for details.
 
-![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
+![J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 1 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
+*Figure 1 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-**Table 3 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
+**Table 3 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 1 |
 | <a id="I"></a>**I** | [29] | 1 | = 0 |
-| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Unused for non-JMPR CTRL [`operand_map`](gen/operand_map.md) |
-| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused for CTRL |
-| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [17] | 1 | Unused for CTRL (must be 0) |
-| <a id="OP"></a>**OP** | [16:12] | 5 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
-| <a id="SX"></a>**SX** | [11] | 1 | Unused in CTRL |
-| <a id="ADDR"></a>**ADDR** | [10:0] | 11 | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
+| <a id="COND"></a>**COND** | [28:25] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | Unused for CTRL, must be 0 |
+| <a id="F"></a>**F** | [23] | 1 | Unused for CTRL (must be 0) |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | Unused for CTRL [`operand_map`](gen/operand_map.md) |
+| <a id="R"></a>**R** | [16] | 1 | Jump/Call: 0 = by immediate, 1 = by source register |
+| <a id="CTRL_OP"></a>**CTRL_OP** | [15:12] | 4 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="ADDR"></a>**ADDR** | [11:0] | 12 | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
 
 
 *Fig. 4. Instruction format.*

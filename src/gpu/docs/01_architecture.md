@@ -33,7 +33,6 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 {{auto:insn_imm11}}
 
-
 {{auto:insn_ctrl_jmp}}
 
 {{auto:insn_ctrl_jmpr}}

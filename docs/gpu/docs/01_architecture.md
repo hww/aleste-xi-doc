@@ -40,11 +40,11 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 0 |
 | <a id="I"></a>**I** | [29] | 1 | = 0 |
-| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
-| <a id="WRITE"></a>**WRITE** | [22] | 1 | 1 = write result; 0 = do not write (flags still update if F=1) |
-| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [17] | 1 | 1 = update flags |
-| <a id="OP"></a>**OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
+| <a id="COND"></a>**COND** | [28:25] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | 1 = write result; 0 = do not write (flags still update if F=1) |
+| <a id="F"></a>**F** | [23] | 1 | 1 = update flags |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="ALU_OP"></a>**ALU_OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
 | <a id="SRC"></a>**SRC** | [11:6] | 6 | Second operand (6 bits) [`operand_map`](gen/operand_map.md) |
 | <a id="RSV"></a>**RSV** | [5:0] | 6 | Reserved, must be 0 |
 
@@ -60,54 +60,54 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 1 |
 | <a id="I"></a>**I** | [29] | 1 | = 1 |
-| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
-| <a id="WRITE"></a>**WRITE** | [22] | 1 | 1 = write result; 0 = do not write |
-| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [17] | 1 | Update flags |
-| <a id="OP"></a>**OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
+| <a id="COND"></a>**COND** | [28:25] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | 1 = write result; 0 = do not write |
+| <a id="F"></a>**F** | [23] | 1 | Update flags |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | Destination operand (6 bits) [`operand_map`](gen/operand_map.md) |
+| <a id="ALU_OP"></a>**ALU_OP** | [16:12] | 5 | ALU operation [`alu_ops`](gen/alu_ops.md) |
 | <a id="SX"></a>**SX** | [11] | 1 | 1 = sign-extend IMM11, 0 = zero-extend |
 | <a id="IMM"></a>**IMM** | [10:0] | 11 | 11-bit immediate, operand B |
 
 
+![J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-![J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
+*Figure 3 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)*
 
-*Figure 3 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)*
-
-**Table 3 — J=1 I=0 CTRL (JMP/CALL/RET/HALT/IRQ/FLUSH)**
-
-| Field | Bits | Width | Description |
-| --- | --- | --- | --- |
-| <a id="L"></a>**L** | [31] | 1 | Loop flag |
-| <a id="J"></a>**J** | [30] | 1 | = 1 |
-| <a id="I"></a>**I** | [29] | 1 | = 0 |
-| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Unused for non-JMPR CTRL [`operand_map`](gen/operand_map.md) |
-| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused for CTRL |
-| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [17] | 1 | Unused for CTRL (must be 0) |
-| <a id="OP"></a>**OP** | [16:12] | 5 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
-| <a id="SX"></a>**SX** | [11] | 1 | Unused in CTRL |
-| <a id="ADDR"></a>**ADDR** | [10:0] | 11 | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
-
-
-![J=1 I=0 CTRL (JMPR)](gen/insn_ctrl_jmpr.svg)
-
-*Figure 4 — J=1 I=0 CTRL (JMPR)*
-
-**Table 4 — J=1 I=0 CTRL (JMPR)**
+**Table 3 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
 | <a id="L"></a>**L** | [31] | 1 | Loop flag |
 | <a id="J"></a>**J** | [30] | 1 | = 1 |
 | <a id="I"></a>**I** | [29] | 1 | = 0 |
-| <a id="DST_CODE"></a>**DST_CODE** | [28:23] | 6 | Source register for target address [`operand_map`](gen/operand_map.md) |
-| <a id="WRITE"></a>**WRITE** | [22] | 1 | Unused |
-| <a id="COND"></a>**COND** | [21:18] | 4 | Condition [`conditions`](gen/conditions.md) |
-| <a id="F"></a>**F** | [17] | 1 | Unused |
-| <a id="OP"></a>**OP** | [16:12] | 5 | = JMPR [`ctrl_ops`](gen/ctrl_ops.md) |
-| <a id="REG"></a>**REG** | [11:6] | 6 | Source operand code (0..63) [`operand_map`](gen/operand_map.md) |
-| <a id="RSV"></a>**RSV** | [5:0] | 6 | Unused |
+| <a id="COND"></a>**COND** | [28:25] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | Unused for CTRL, must be 0 |
+| <a id="F"></a>**F** | [23] | 1 | Unused for CTRL (must be 0) |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | Unused for CTRL [`operand_map`](gen/operand_map.md) |
+| <a id="R"></a>**R** | [16] | 1 | Jump/Call: 0 = by immediate, 1 = by source register |
+| <a id="CTRL_OP"></a>**CTRL_OP** | [15:12] | 4 | Control operation [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="ADDR"></a>**ADDR** | [11:0] | 12 | Target address (JMP/CALL), halt/IRQ code, channel (FLUSH) |
+
+
+![J=1 I=0 CONTROL RJUMP (R=1: JMPR)](gen/insn_ctrl_jmpr.svg)
+
+*Figure 4 — J=1 I=0 CONTROL RJUMP (R=1: JMPR)*
+
+**Table 4 — J=1 I=0 CONTROL RJUMP (R=1: JMPR)**
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="L"></a>**L** | [31] | 1 | Loop flag |
+| <a id="J"></a>**J** | [30] | 1 | = 1 |
+| <a id="I"></a>**I** | [29] | 1 | = 0 |
+| <a id="COND"></a>**COND** | [28:25] | 4 | Condition [`conditions`](gen/conditions.md) |
+| <a id="WRITE"></a>**WRITE** | [24] | 1 | Unused for CTRL, must be 0 |
+| <a id="F"></a>**F** | [23] | 1 | Unused for CTRL (must be 0) |
+| <a id="DST_CODE"></a>**DST_CODE** | [22:17] | 6 | Unused for CTRL [`operand_map`](gen/operand_map.md) |
+| <a id="R"></a>**R** | [16] | 1 | = 1 (register jump) |
+| <a id="CTRL_OP"></a>**CTRL_OP** | [15:12] | 4 | = JMPR (register indirect jump) [`ctrl_ops`](gen/ctrl_ops.md) |
+| <a id="SRC"></a>**SRC** | [11:6] | 6 | Source operand code (0..63) [`operand_map`](gen/operand_map.md) |
+| <a id="RSV"></a>**RSV** | [5:0] | 6 | Unused, must be 0 |
 
 
 **Field overlap in control words.** Bits [11:6] belong to both `ADDR[11:0]` and `REG[5:0]`. This is intentional: for `JMPR` the target register is encoded in the same position as `SRC` in reg-reg words, while `ADDR` supplies the immediate target for `JMP`/`CALL`. The two interpretations are mutually exclusive per opcode; the assembler rejects combinations that would need both.

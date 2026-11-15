@@ -28,7 +28,6 @@ variants:
       - {name: ALUOP, bits: [16,12], enum: alu_ops}
       - {name: SX,    bit: 11,       description: "1 = sign-extend, 0 = zero-extend"}
       - {name: IMM,   bits: [10,0],  description: "11-bit immediate"}
-  
   - name: ldi16
     title: "LDI16"
     when: {J: 0, I: 1}
@@ -108,7 +107,7 @@ fields:
   - {name: IMM16,  bits: [15,0],  description: "16-bit constant"}
 ---
 kind: bitfield
-name: insn_ctrl
+name: insn_ctrl_jmp
 title: "J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)"
 width: 32
 fields:
@@ -124,7 +123,7 @@ fields:
   - {name: ADDR,    bits: [11,0],  description: "Target address (JMP/CALL), halt/IRQ code, channel (FLUSH)"}
 ---
 kind: bitfield
-name: insn_ctrl_rjump
+name: insn_ctrl_jmpr
 title: "J=1 I=0 CONTROL RJUMP (R=1: JMPR)"
 width: 32
 fields:
