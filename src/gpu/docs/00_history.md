@@ -145,3 +145,31 @@ It is better to provide them with a computing machine, access to memory, and too
 We do not know in advance what graphical effects developers will want to create. And that is precisely why we do not want to limit them to a set of functions provided for during the design of the video controller.
 
 **A good graphics processor can draw many different things. But a magnificent one is the one that can draw things its creators did not even suspect.**
+
+## A Practical Validation of the Design Philosophy
+
+The current LX-GPU implementation provides a practical example of the architectural philosophy behind Aleste LX: achieving useful computing capabilities without spending FPGA resources on unnecessary hardware complexity.
+
+The current synthesis results show approximately **3,700 mapped FPGA primitives**, including:
+
+| Resource | Usage |
+|---|---:|
+| LUT4 | 2,306 |
+| PFUMX | 576 |
+| TRELLIS_FF | 586 |
+| L6MUX21 | 169 |
+| CCU2C | 52 |
+| DP16KD (Block RAM) | 10 |
+| MULT18X18D (DSP) | 1 |
+
+Despite its relatively compact hardware footprint, the processor is designed to sustain a throughput of one instruction per clock cycle once its two-cycle execution pipeline is filled. Branch instructions require two cycles.
+
+The expected operating frequency is in the range of **54–108 MHz**.
+
+Memory access is a different matter. Depending on cache behaviour and memory bus availability, an access may take approximately 7–10 cycles or more when competing for memory bandwidth. This reflects the fundamental design assumption behind LX-GPU: memory bandwidth, rather than arithmetic capability, is the primary performance constraint.
+
+Instead of investing FPGA resources in a large collection of dedicated graphics units, LX-GPU uses a compact programmable processor, a hardware multiplier, dedicated pixel-processing channels and a memory subsystem that handles much of the low-level data manipulation.
+
+This is a deliberate architectural trade-off. The objective is not to maximize the number of hardware features or computational units, but to achieve the best balance between FPGA resource consumption, programmability and useful performance.
+
+**The result demonstrates why this architectural direction makes sense:** a relatively small amount of FPGA logic can provide a programmable graphics coprocessor with substantial computational capabilities, while leaving room for the rest of the computer architecture.
