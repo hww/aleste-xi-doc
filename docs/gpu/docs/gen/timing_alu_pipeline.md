@@ -1,3 +1,3 @@
-**ALU instruction: combinational read/compute/write within 1 cyc**
+**ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)**
 
-![ALU instruction: combinational read/compute/write within 1 cyc](timing_alu_pipeline.svg)
+![ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)](timing_alu_pipeline.svg)

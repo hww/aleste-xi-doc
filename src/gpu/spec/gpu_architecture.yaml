@@ -1,7 +1,7 @@
 # ============================================================
 # LX-GPU: Architecture Description
 # Instruction format bitfields live in isa.yaml.
-# This file describes the register file, channels, flags, FSM, and timing.
+# This file describes the register file, channels, flags, FSM
 # ============================================================
 
 kind: bitfield
@@ -139,9 +139,6 @@ entries:
   - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = high nibble"}
   - {value: 3, name: "8 bpp",    description: "2 pixels per word (k=1); pos 0 = high byte"}
   - {value: 4, name: "16 bpp",   description: "1 pixel per word (k=0)"}
-  - {value: 5, name: "PASS_LO8", description: "Low byte pass-through"}
-  - {value: 6, name: "PASS_HI8", description: "High byte pass-through"}
-  - {value: 7, name: "PASS16",   description: "Whole word pass-through"}
 
 ---
 kind: memmap
@@ -173,20 +170,7 @@ notes:
   - "C_IDLE -> C_IDLE is flush_noop: flush requested but channel invalid or clean, no WB needed."
   - "gc is a 4-channel single-word buffer, not a classic cache. Writing N consecutive words requires FLUSH after each word."
 ---
-kind: timing
-name: pixel_read_timing
-title: "Pixel Read Timing"
-subtitle: "Cache miss -> fill -> blender -> register"
-signals:
-  - {name: clk, type: clock}
-  - {name: pc, states: ["001", "002", "003", "003", "003", "004", "005"]}
-  - {name: insn, states: ["70800400", "72800010", "10001400", "10001400", "10001400", "11001400", "12001400"]}
-  - {name: gc_access, states: ["0", "0", "1", "1", "1", "0", "1"]}
-  - {name: gc_access_done, states: ["0", "0", "0", "0", "1", "0", "0"]}
-  - {name: pb_start, states: ["0", "0", "0", "0", "1", "0", "0"]}
-  - {name: pb_ack, states: ["0", "0", "0", "0", "0", "0", "1"]}
-  - {name: we, states: ["0", "0", "0", "0", "0", "0", "1"]}
----
+
 kind: enum
 name: pixel_path_stages
 title: "Pixel Path Stages"
@@ -201,122 +185,6 @@ entries:
   - {value: 3, name: "gc_rdata",     description: "16-bit data from cache"}
   - {value: 4, name: "pb_pixel_out", description: "16-bit pixel from blender"}
   - {value: 5, name: "wdata",        description: "Written to destination register"}
----
-kind: timing
-name: timing_regfile
-title: "regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]"
-signals:
-  - {name: clk,     type: clock}
-  - {name: we,      states: ["0", "1", "0", "0", "0"]}
-  - {name: wa,      states: ["-", "R5", "-", "-", "-"]}
-  - {name: wdata,   states: ["-", "1234", "-", "-", "-"]}
-  - {name: mem_R5,  states: ["oldR5", "oldR5", "1234", "1234", "1234"]}
-  - {name: ra,      states: ["R5", "R5", "R5", "R5", "R5"]}
-  - {name: rdata_a, states: ["oldR5", "oldR5", "1234", "1234", "1234"]}
-notes:
-  - "q_a/q_b/bypass removed: regfile is on flip-flops, read is combinational."
----
-kind: timing
-name: timing_alu
-title: "alu: combinational compute (0 cyc), MHI registered on MUL (1 cyc)"
-signals:
-  - {name: clk,  type: clock}
-  - {name: op,   states: ["MOV", "MUL", "ADD", "AND", "SUB"]}
-  - {name: a,    states: ["0010", "03E8", "0001", "FF00", "1000"]}
-  - {name: b,    states: ["0020", "03E8", "0001", "0FF0", "2000"]}
-  - {name: res,  states: ["0020", "4240", "0002", "0F00", "F000"]}
-  - {name: mhi,  states: ["0000", "000F", "000F", "000F", "000F"]}
-  - {name: z,    states: ["0", "0", "0", "0", "0"]}
-  - {name: c,    states: ["0", "0", "0", "0", "0"]}
----
-kind: timing
-name: timing_sequencer
-title: "sequencer: PC fetch and next-PC (1 cyc per instruction)"
-signals:
-  - {name: clk,       type: clock}
-  - {name: ack,       states: ["1", "1", "1", "0", "1", "1"]}
-  - {name: pc,        states: ["100", "101", "102", "102", "102", "103"]}
-  - {name: imm_class, states: ["00", "00", "10", "10", "10", "00"]}
-  - {name: reg_op,    states: ["-", "-", "JMP", "JMP", "JMP", "-"]}
-  - {name: cond,      states: ["AL", "AL", "AL", "AL", "AL", "AL"]}
-  - {name: pc_next,   states: ["101", "102", "200", "200", "200", "103"]}
----
-kind: timing
-name: timing_microcode_rom
-title: "microcode_rom: synchronous read, latched on ack"
-signals:
-  - {name: clk,  type: clock}
-  - {name: ack,  states: ["0", "1", "0", "1", "1", "1", "0", "1"]}
-  - {name: addr, states: ["100", "100", "100", "101", "102", "103", "103", "104"]}
-  - {name: data, states: ["----", "1000", "1000", "1001", "1002", "1003", "1003", "1004"]}
----
-kind: timing
-name: timing_gpu_cache
-title: "gpu_cache: hit (1 cyc), miss/fill (3+ cyc)"
-signals:
-  - {name: clk,         type: clock}
-  - {name: access,      states: ["0", "1", "1", "0", "0", "1", "1", "0"]}
-  - {name: hit,         states: ["-", "1", "0", "0", "0", "0", "1", "1"]}
-  - {name: state,       states: ["IDLE", "IDLE", "FILL", "FILL", "IDLE", "IDLE", "IDLE", "IDLE"]}
-  - {name: wb_cyc_o,    states: ["0", "0", "1", "1", "0", "0", "0", "0"]}
-  - {name: wb_ack_i,    states: ["0", "0", "0", "1", "0", "0", "0", "0"]}
-  - {name: access_done, states: ["0", "1", "0", "0", "1", "0", "1", "0"]}
----
-kind: timing
-name: timing_pixel_blender
-title: "pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)"
-signals:
-  - {name: clk,        type: clock}
-  - {name: start,      states: ["0", "1", "0", "0", "0", "1", "0"]}
-  - {name: bstate,     states: ["IDLE", "CAPTURE", "FREE", "IDLE", "IDLE", "CAPTURE", "FREE"]}
-  - {name: pixel_out,  states: ["----", "1234", "1234", "1234", "----", "5678", "5678"]}
-  - {name: word_out,   states: ["----", "----", "ABCD", "ABCD", "----", "----", "EF01"]}
-  - {name: ack,        states: ["0", "0", "1", "0", "0", "0", "1"]}
----
-kind: timing
-name: timing_alu_pipeline
-title: "ALU instruction: combinational read/compute/write within 1 cyc"
-signals:
-  - {name: clk,     type: clock}
-  - {name: insn,    states: ["ADD R5,R7", "-", "-", "-", "-"]}
-  - {name: ra,      states: ["R5", "-", "-", "-", "-"]}
-  - {name: rb,      states: ["R7", "-", "-", "-", "-"]}
-  - {name: mem_R5,  states: ["oldR5", "oldR5", "R5+R7", "R5+R7", "R5+R7"]}
-  - {name: mem_R7,  states: ["oldR7", "oldR7", "oldR7", "oldR7", "oldR7"]}
-  - {name: rdata_a, states: ["oldR5", "R5", "R5", "R5", "R5"]}
-  - {name: rdata_b, states: ["oldR7", "R7", "R7", "R7", "R7"]}
-  - {name: alu_res, states: ["oldADD", "R5+R7", "R5+R7", "R5+R7", "R5+R7"]}
-  - {name: we,      states: ["0", "1", "0", "0", "0"]}
-  - {name: wa,      states: ["-", "R5", "-", "-", "-"]}
-  - {name: wdata,   states: ["-", "R5+R7", "-", "-", "-"]}
----
-kind: timing
-name: timing_top_data
-title: "top: DATA read (3 cyc: cache + blender)"
-signals:
-  - {name: clk,            type: clock}
-  - {name: pc,             states: ["100", "100", "100", "100", "101"]}
-  - {name: gc_access,      states: ["0", "1", "1", "0", "0"]}
-  - {name: gc_access_done, states: ["0", "0", "1", "0", "0"]}
-  - {name: pb_start,       states: ["0", "0", "1", "0", "0"]}
-  - {name: pb_ack,         states: ["0", "0", "0", "1", "0"]}
-  - {name: ack,            states: ["0", "0", "0", "1", "1"]}
----
-kind: timing
-name: timing_flush
-title: "FLUSH: one-cycle en, then C_WB_REQ -> C_IDLE"
-signals:
-  - {name: clk,         type: clock}
-  - {name: pc,          states: ["...", "00A", "00B", "00C", "..."]}
-  - {name: insn,        states: ["...", "FLUSH", "MOV", "SUB", "..."]}
-  - {name: gc_flush_en, states: ["0", "1", "0", "0", "0"]}
-  - {name: gc_flush_ch, states: ["0", "1", "0", "0", "0"]}
-  - {name: gc.cstate,   states: ["IDLE", "IDLE", "WB_REQ", "IDLE", "IDLE"]}
-  - {name: wb_cyc,      states: ["0", "0", "1", "0", "0"]}
-  - {name: wb_we,       states: ["0", "0", "1", "0", "0"]}
-  - {name: flush_done,  states: ["0", "0", "0", "1", "0"]}
-notes:
-  - "flush_en is combinational from insn (is_flush). gc latches it into flush_req on the next posedge, then performs C_WB_REQ and waits for wb_ack. flush_done is a one-cycle strobe."
 ---
 # 32-bit microinstruction. Four formats selected by (J, I).
 # Layout matches RTL: dst_code [28:23], WRITE [22], COND [21:18], F [17],

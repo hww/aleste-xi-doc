@@ -43,14 +43,14 @@
 
 - [Pixel Read Timing](pixel_read_timing.md) — `pixel_read_timing`
 - [alu: combinational compute (0 cyc), MHI registered on MUL (1 cyc)](timing_alu.md) — `timing_alu`
-- [ALU instruction: combinational read/compute/write within 1 cyc](timing_alu_pipeline.md) — `timing_alu_pipeline`
-- [FLUSH: one-cycle en, then C_WB_REQ -> C_IDLE](timing_flush.md) — `timing_flush`
-- [gpu_cache: hit (1 cyc), miss/fill (3+ cyc)](timing_gpu_cache.md) — `timing_gpu_cache`
-- [microcode_rom: synchronous read, latched on ack](timing_microcode_rom.md) — `timing_microcode_rom`
-- [pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)](timing_pixel_blender.md) — `timing_pixel_blender`
-- [regfile: write mem[wa] on posedge; combinational read rdata = mem[ra]](timing_regfile.md) — `timing_regfile`
-- [sequencer: PC fetch and next-PC (1 cyc per instruction)](timing_sequencer.md) — `timing_sequencer`
-- [top: DATA read (3 cyc: cache + blender)](timing_top_data.md) — `timing_top_data`
+- [ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)](timing_alu_pipeline.md) — `timing_alu_pipeline`
+- [FLUSH: blocking X-stage until ST_WRITEBACK completes and flush_ack_o strobes](timing_flush.md) — `timing_flush`
+- [gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)](timing_gpu_cache.md) — `timing_gpu_cache`
+- [microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)](timing_microcode_rom.md) — `timing_microcode_rom`
+- [pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](timing_pixel_blender.md) — `timing_pixel_blender`
+- [regfile: write mem[wa] on posedge; synchronous read on rd_en_i with write-through bypass](timing_regfile.md) — `timing_regfile`
+- [fetch_unit: 3-stage pipeline F -> D -> X (1 cyc/insn, 1 bubble on D-branch/L-loop)](timing_sequencer.md) — `timing_sequencer`
+- [top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)](timing_top_data.md) — `timing_top_data`
 
 ## fsm
 

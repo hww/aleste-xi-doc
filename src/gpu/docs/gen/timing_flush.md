@@ -1,3 +1,3 @@
-**FLUSH: one-cycle en, then C_WB_REQ -> C_IDLE**
+**FLUSH: blocking X-stage until ST_WRITEBACK completes and flush_ack_o strobes**
 
-![FLUSH: one-cycle en, then C_WB_REQ -> C_IDLE](timing_flush.svg)
+![FLUSH: blocking X-stage until ST_WRITEBACK completes and flush_ack_o strobes](timing_flush.svg)

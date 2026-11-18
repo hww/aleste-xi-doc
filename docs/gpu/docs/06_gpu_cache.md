@@ -42,6 +42,6 @@ The cache has three states: `C_IDLE`, `C_FILL_REQ`, `C_WB_REQ`. A `flush_noop` t
 
 A cache hit produces `access_done` one cycle after `access`. A cache miss goes `C_IDLE → C_FILL_REQ → C_IDLE`: one cycle to enter the fill state, one or more cycles waiting for `wb_ack_i`, and one cycle for `access_done` to register — at least 3 cycles total. A flush of a clean or invalid channel (`flush_noop`) completes in one cycle without a Wishbone cycle.
 
-![gpu_cache: hit (1 cyc), miss/fill (3+ cyc)](gen/timing_gpu_cache.svg)
+![gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)](gen/timing_gpu_cache.svg)
 
-*Figure 2 — gpu_cache: hit (1 cyc), miss/fill (3+ cyc)*
+*Figure 2 — gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)*

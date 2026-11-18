@@ -1,0 +1,156 @@
+kind: timing
+name: pixel_read_timing
+title: "Pixel Read Timing"
+subtitle: "Cache miss -> ST_FILL -> combinational blender -> regfile (X-stage stalled by x_busy)"
+signals:
+  - {name: clk,            type: clock}
+  - {name: fu_pc,          states: ["021", "022", "023", "023", "023", "023", "024"]}
+  - {name: x_ins_r,        states: ["LDI R5", "MOV PAGE0", "MOV R2,DATA0", "MOV R2,DATA0", "MOV R2,DATA0", "MOV R2,DATA0", "MOV DATA1,R2"]}
+  - {name: ch_stb_i,       states: ["0", "0", "1", "1", "1", "1", "0"]}
+  - {name: ch_hit_o,       states: ["-", "-", "0", "0", "1", "1", "-"]}
+  - {name: cache_state,    states: ["ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_FILL", "ST_IDLE", "ST_IDLE", "ST_IDLE"]}
+  - {name: wb_cyc_o,       states: ["0", "0", "0", "1", "0", "0", "0"]}
+  - {name: wb_ack_i,       states: ["0", "0", "0", "1", "0", "0", "0"]}
+  - {name: cache_ack_o,    states: ["0", "0", "0", "0", "0", "1", "0"]}
+  - {name: blend_ack_o,    states: ["0", "0", "0", "0", "0", "1", "0"]}
+  - {name: x_busy,         states: ["0", "0", "1", "1", "1", "0", "0"]}
+  - {name: t_rf_wr_en,     states: ["1", "0", "0", "0", "0", "1", "0"]}
+notes:
+  - "On read, pixel_blender unpacks combinatorially from frac_i and passes ack_o = cache_ack_o."
+  - "When cache_ack_o=1, x_busy drops, regfile latches R2 and pixel_engine advances IDX on posedge."
+---
+kind: timing
+name: timing_regfile
+title: "regfile: write mem[wa] on posedge; synchronous read on rd_en_i with write-through bypass"
+signals:
+  - {name: clk,        type: clock}
+  - {name: rd_en_i,    states: ["1", "1", "0", "1", "1"]}
+  - {name: we,         states: ["0", "1", "0", "0", "0"]}
+  - {name: wa,         states: ["-", "R5", "-", "-", "-"]}
+  - {name: wdata,      states: ["-", "1234", "-", "-", "-"]}
+  - {name: mem_R5,     states: ["oldR5", "oldR5", "1234", "1234", "1234"]}
+  - {name: ra,         states: ["R5", "R5", "-", "R5", "-"]}
+  - {name: opa_data_o, states: ["----", "oldR5", "1234", "1234", "1234"]}
+notes:
+  - "Two EBR copies with write-through bypass (byp_a/byp_b) when wr_addr_i == op_addr_i on rd_en_i=1."
+  - "When rd_en_i (adv) is 0 during a stall, operand outputs hold their captured values."
+---
+kind: timing
+name: timing_alu
+title: "alu: combinational compute (0 cyc), MHI registered on MUL (1 cyc)"
+signals:
+  - {name: clk,     type: clock}
+  - {name: alu_op,  states: ["MOV", "MUL", "ADD", "AND", "SUB"]}
+  - {name: a,       states: ["0010", "03E8", "0001", "FF00", "1000"]}
+  - {name: b,       states: ["0020", "03E8", "0001", "0FF0", "2000"]}
+  - {name: result,  states: ["0020", "4240", "0002", "0F00", "F000"]}
+  - {name: t_mhi_r, states: ["0000", "0000", "000F", "000F", "000F"]}
+  - {name: flag_z,  states: ["0", "0", "0", "0", "0"]}
+  - {name: flag_c,  states: ["0", "0", "0", "0", "0"]}
+---
+kind: timing
+name: timing_sequencer
+title: "fetch_unit: 3-stage pipeline F -> D -> X (1 cyc/insn, 1 bubble on D-branch/L-loop)"
+signals:
+  - {name: clk,          type: clock}
+  - {name: adv_i,        states: ["1", "1", "1", "1", "1", "1"]}
+  - {name: pc_o,         states: ["100", "101", "102", "200", "201", "202"]}
+  - {name: ir_i,         states: ["----", "INS0", "JMP 200", "BUBBLE", "INS_200", "INS_201"]}
+  - {name: d_valid_o,    states: ["0", "1", "1", "0", "1", "1"]}
+  - {name: d_taken,      states: ["0", "0", "1", "0", "0", "0"]}
+  - {name: x_ins_r,      states: ["----", "----", "INS0", "JMP 200", "BUBBLE", "INS_200"]}
+notes:
+  - "D-stage redirect (JMP/CALL/RET imm, L-loop) sets kill_r=1 for 1 bubble; X-stage JMP by reg costs 2 bubbles."
+  - "hold_o stalls D for 1 cycle when D reads flags, SHADOW or LOOP modified by X."
+---
+kind: timing
+name: timing_microcode_rom
+title: "microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)"
+signals:
+  - {name: clk,          type: clock}
+  - {name: fetch_en_i,   states: ["1", "1", "0", "1", "1", "1", "0", "1"]}
+  - {name: fetch_addr_i, states: ["100", "101", "101", "101", "102", "103", "103", "104"]}
+  - {name: fetch_data_o, states: ["----", "INS100", "INS101", "INS101", "INS101", "INS102", "INS103", "INS103"]}
+notes:
+  - "True dual-port EBR: port A fetches instructions when adv=1; port B handles ROML/ROMH/ROMA access."
+---
+kind: timing
+name: timing_gpu_cache
+title: "gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)"
+signals:
+  - {name: clk,        type: clock}
+  - {name: ch_stb_i,   states: ["0", "1", "1", "1", "1", "0", "1", "0"]}
+  - {name: ch_hit_o,   states: ["-", "1", "0", "0", "1", "-", "1", "-"]}
+  - {name: state,      states: ["ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_FILL", "ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_IDLE"]}
+  - {name: wb_cyc_o,   states: ["0", "0", "0", "1", "0", "0", "0", "0"]}
+  - {name: wb_ack_i,   states: ["0", "0", "0", "1", "0", "0", "0", "0"]}
+  - {name: ack_o,      states: ["0", "0", "1", "0", "0", "1", "0", "1"]}
+notes:
+  - "Write-back 1-word-per-channel cache. Dirty lines are written back only on miss/eviction, page change, or FLUSH."
+---
+kind: timing
+name: timing_pixel_blender
+title: "pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)"
+signals:
+  - {name: clk,        type: clock}
+  - {name: cyc_stb,    states: ["0", "1", "0", "1", "1", "1", "0"]}
+  - {name: we_i,       states: ["0", "0", "0", "1", "1", "1", "0"]}
+  - {name: state,      states: ["IDLE", "IDLE", "IDLE", "IDLE", "RMW_READ", "RMW_WRITE", "IDLE"]}
+  - {name: rmw_req_o,  states: ["0", "0", "0", "0", "1", "1", "0"]}
+  - {name: rmw_we_o,   states: ["0", "0", "0", "0", "0", "1", "0"]}
+  - {name: ack_i,      states: ["0", "1", "0", "0", "1", "1", "0"]}
+  - {name: ack_o,      states: ["0", "1", "0", "0", "0", "0", "1"]}
+notes:
+  - "Unpacks/packs pixels directly from raw frac_i using fmt_pkg masks (sh = ~frac_i & s_mask)."
+  - "Write-protected formats (1bpp, 2bpp) preserve word_r unchanged during RMW_WRITE."
+---
+kind: timing
+name: timing_alu_pipeline
+title: "ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)"
+signals:
+  - {name: clk,        type: clock}
+  - {name: fu_pc,      states: ["100", "101", "102", "103", "104"]}
+  - {name: ir_i,       states: ["----", "ADD R5,R7", "NEXT_INS", "-", "-"]}
+  - {name: x_ins_r,    states: ["----", "----", "ADD R5,R7", "NEXT_INS", "-"]}
+  - {name: rf_opa,     states: ["----", "----", "R5", "-", "-"]}
+  - {name: rf_opb,     states: ["----", "----", "R7", "-", "-"]}
+  - {name: alu_result, states: ["----", "----", "R5+R7", "-", "-"]}
+  - {name: t_rf_wr_en, states: ["0", "0", "1", "0", "0"]}
+  - {name: mem_R5,     states: ["oldR5", "oldR5", "oldR5", "R5+R7", "R5+R7"]}
+notes:
+  - "D addresses regfile from rom_fetch_data; X executes ALU combinationally and commits on posedge."
+---
+kind: timing
+name: timing_top_data
+title: "top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)"
+signals:
+  - {name: clk,           type: clock}
+  - {name: fu_pc,         states: ["101", "102", "102", "102", "103"]}
+  - {name: x_ins_r,       states: ["MOV DATA1,R2", "MOV DATA1,R2", "MOV DATA1,R2", "MOV DATA1,R2", "SUB R0,#1"]}
+  - {name: blend_state,   states: ["IDLE", "RMW_READ", "RMW_WRITE", "IDLE", "IDLE"]}
+  - {name: cache_stb,     states: ["0", "1", "1", "0", "0"]}
+  - {name: cache_we,      states: ["0", "0", "1", "0", "0"]}
+  - {name: cache_ack,     states: ["0", "0", "1", "0", "0"]}
+  - {name: ch_data_ack,   states: ["0", "0", "0", "1", "0"]}
+  - {name: x_busy,        states: ["1", "1", "1", "0", "0"]}
+notes:
+  - "t_ch_data_req stalls X (x_busy=1) until channel_unit asserts ch_data_ack (blend_ack && !req_done_r)."
+---
+kind: timing
+name: timing_flush
+title: "FLUSH: blocking X-stage until ST_WRITEBACK completes and flush_ack_o strobes"
+signals:
+  - {name: clk,            type: clock}
+  - {name: fu_pc,          states: ["029", "02A", "02A", "02A", "02A", "02B"]}
+  - {name: x_ins_r,        states: ["SUB", "FLUSH 1", "FLUSH 1", "FLUSH 1", "FLUSH 1", "HALT"]}
+  - {name: flush_en_i,     states: ["0", "1", "1", "1", "1", "0"]}
+  - {name: flush_sel_i,    states: ["-", "1", "1", "1", "1", "-"]}
+  - {name: cache_state,    states: ["ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_WRITEBACK", "ST_IDLE", "ST_IDLE"]}
+  - {name: wb_cyc_o,       states: ["0", "0", "0", "1", "0", "0"]}
+  - {name: wb_we_o,        states: ["0", "0", "0", "1", "0", "0"]}
+  - {name: wb_ack_i,       states: ["0", "0", "0", "1", "0", "0"]}
+  - {name: flush_ack_o,    states: ["0", "0", "0", "0", "1", "0"]}
+  - {name: x_busy,         states: ["0", "1", "1", "1", "0", "0"]}
+notes:
+  - "t_ch_flush_req stalls X (x_busy=1) until flush_ack_o=1."
+  - "If the channel is clean or invalid, flush_noop_c invalidates it and asserts flush_ack_o immediately."

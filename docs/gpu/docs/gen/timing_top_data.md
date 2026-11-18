@@ -1,3 +1,3 @@
-**top: DATA read (3 cyc: cache + blender)**
+**top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)**
 
-![top: DATA read (3 cyc: cache + blender)](timing_top_data.svg)
+![top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)](timing_top_data.svg)

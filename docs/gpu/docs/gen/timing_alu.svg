@@ -11,84 +11,84 @@
 <rect width="802.2" height="508" fill="#FFFFFF"/>
 <text x="32" y="38" font-size="22" font-weight="700" fill="#000000">alu: combinational compute (0 cyc), MHI registered on MUL (1 cyc)</text>
 <text x="32" y="62" font-size="14" fill="#555555">5 ticks</text>
-<line x1="90" y1="108" x2="90" y2="480" stroke="#CCCCCC" stroke-width="1"/>
-<text x="126" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
-<line x1="162" y1="108" x2="162" y2="480" stroke="#CCCCCC" stroke-width="1"/>
-<text x="198" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
-<line x1="234" y1="108" x2="234" y2="480" stroke="#CCCCCC" stroke-width="1"/>
-<text x="270" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
-<line x1="306" y1="108" x2="306" y2="480" stroke="#CCCCCC" stroke-width="1"/>
-<text x="342" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
-<line x1="378" y1="108" x2="378" y2="480" stroke="#CCCCCC" stroke-width="1"/>
-<text x="414" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
-<line x1="450" y1="108" x2="450" y2="480" stroke="#CCCCCC" stroke-width="1"/>
-<text x="78" y="140" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
-<path d="M90 149 L90 121 L126 121 L126 149 L162 149 M162 149 L162 121 L198 121 L198 149 L234 149 M234 149 L234 121 L270 121 L270 149 L306 149 M306 149 L306 121 L342 121 L342 149 L378 149 M378 149 L378 121 L414 121 L414 149 L450 149" fill="none" stroke="#000000" stroke-width="2"/>
-<text x="78" y="186" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">op</text>
-<polygon points="96,167 156,167 162,181 156,195 96,195 90,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="126" y="185.2" font-size="12" text-anchor="middle" fill="#000000">MOV</text>
-<polygon points="168,167 228,167 234,181 228,195 168,195 162,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="198" y="185.2" font-size="12" text-anchor="middle" fill="#000000">MUL</text>
-<polygon points="240,167 300,167 306,181 300,195 240,195 234,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="270" y="185.2" font-size="12" text-anchor="middle" fill="#000000">ADD</text>
-<polygon points="312,167 372,167 378,181 372,195 312,195 306,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="342" y="185.2" font-size="12" text-anchor="middle" fill="#000000">AND</text>
-<polygon points="384,167 444,167 450,181 444,195 384,195 378,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="414" y="185.2" font-size="12" text-anchor="middle" fill="#000000">SUB</text>
-<text x="78" y="232" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">a</text>
-<polygon points="96,213 156,213 162,227 156,241 96,241 90,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="126" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0010</text>
-<polygon points="168,213 228,213 234,227 228,241 168,241 162,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="198" y="231.2" font-size="12" text-anchor="middle" fill="#000000">03E8</text>
-<polygon points="240,213 300,213 306,227 300,241 240,241 234,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="270" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0001</text>
-<polygon points="312,213 372,213 378,227 372,241 312,241 306,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="342" y="231.2" font-size="12" text-anchor="middle" fill="#000000">FF00</text>
-<polygon points="384,213 444,213 450,227 444,241 384,241 378,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="414" y="231.2" font-size="12" text-anchor="middle" fill="#000000">1000</text>
-<text x="78" y="278" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">b</text>
-<polygon points="96,259 156,259 162,273 156,287 96,287 90,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="126" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0020</text>
-<polygon points="168,259 228,259 234,273 228,287 168,287 162,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="198" y="277.2" font-size="12" text-anchor="middle" fill="#000000">03E8</text>
-<polygon points="240,259 300,259 306,273 300,287 240,287 234,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="270" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0001</text>
-<polygon points="312,259 372,259 378,273 372,287 312,287 306,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="342" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0FF0</text>
-<polygon points="384,259 444,259 450,273 444,287 384,287 378,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="414" y="277.2" font-size="12" text-anchor="middle" fill="#000000">2000</text>
-<text x="78" y="324" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">res</text>
-<polygon points="96,305 156,305 162,319 156,333 96,333 90,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="126" y="323.2" font-size="12" text-anchor="middle" fill="#000000">0020</text>
-<polygon points="168,305 228,305 234,319 228,333 168,333 162,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="198" y="323.2" font-size="12" text-anchor="middle" fill="#000000">4240</text>
-<polygon points="240,305 300,305 306,319 300,333 240,333 234,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="270" y="323.2" font-size="12" text-anchor="middle" fill="#000000">0002</text>
-<polygon points="312,305 372,305 378,319 372,333 312,333 306,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="342" y="323.2" font-size="12" text-anchor="middle" fill="#000000">0F00</text>
-<polygon points="384,305 444,305 450,319 444,333 384,333 378,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="414" y="323.2" font-size="12" text-anchor="middle" fill="#000000">F000</text>
-<text x="78" y="370" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">mhi</text>
-<polygon points="96,351 156,351 162,365 156,379 96,379 90,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="126" y="369.2" font-size="12" text-anchor="middle" fill="#000000">0000</text>
-<polygon points="168,351 228,351 234,365 228,379 168,379 162,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="198" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
-<polygon points="240,351 300,351 306,365 300,379 240,379 234,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="270" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
-<polygon points="312,351 372,351 378,365 372,379 312,379 306,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="342" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
-<polygon points="384,351 444,351 450,365 444,379 384,379 378,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
-<text x="414" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
-<text x="78" y="416" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">z</text>
-<line x1="90" y1="425" x2="162" y2="425" stroke="#000000" stroke-width="2"/>
-<line x1="162" y1="425" x2="234" y2="425" stroke="#000000" stroke-width="2"/>
-<line x1="234" y1="425" x2="306" y2="425" stroke="#000000" stroke-width="2"/>
-<line x1="306" y1="425" x2="378" y2="425" stroke="#000000" stroke-width="2"/>
-<line x1="378" y1="425" x2="450" y2="425" stroke="#000000" stroke-width="2"/>
-<text x="78" y="462" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">c</text>
-<line x1="90" y1="471" x2="162" y2="471" stroke="#000000" stroke-width="2"/>
-<line x1="162" y1="471" x2="234" y2="471" stroke="#000000" stroke-width="2"/>
-<line x1="234" y1="471" x2="306" y2="471" stroke="#000000" stroke-width="2"/>
-<line x1="306" y1="471" x2="378" y2="471" stroke="#000000" stroke-width="2"/>
-<line x1="378" y1="471" x2="450" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="94.6" y1="108" x2="94.6" y2="480" stroke="#CCCCCC" stroke-width="1"/>
+<text x="130.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
+<line x1="166.6" y1="108" x2="166.6" y2="480" stroke="#CCCCCC" stroke-width="1"/>
+<text x="202.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
+<line x1="238.6" y1="108" x2="238.6" y2="480" stroke="#CCCCCC" stroke-width="1"/>
+<text x="274.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
+<line x1="310.6" y1="108" x2="310.6" y2="480" stroke="#CCCCCC" stroke-width="1"/>
+<text x="346.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
+<line x1="382.6" y1="108" x2="382.6" y2="480" stroke="#CCCCCC" stroke-width="1"/>
+<text x="418.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
+<line x1="454.6" y1="108" x2="454.6" y2="480" stroke="#CCCCCC" stroke-width="1"/>
+<text x="82.6" y="140" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
+<path d="M94.6 149 L94.6 121 L130.6 121 L130.6 149 L166.6 149 M166.6 149 L166.6 121 L202.6 121 L202.6 149 L238.6 149 M238.6 149 L238.6 121 L274.6 121 L274.6 149 L310.6 149 M310.6 149 L310.6 121 L346.6 121 L346.6 149 L382.6 149 M382.6 149 L382.6 121 L418.6 121 L418.6 149 L454.6 149" fill="none" stroke="#000000" stroke-width="2"/>
+<text x="82.6" y="186" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">alu_op</text>
+<polygon points="100.6,167 160.6,167 166.6,181 160.6,195 100.6,195 94.6,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="185.2" font-size="12" text-anchor="middle" fill="#000000">MOV</text>
+<polygon points="172.6,167 232.6,167 238.6,181 232.6,195 172.6,195 166.6,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="185.2" font-size="12" text-anchor="middle" fill="#000000">MUL</text>
+<polygon points="244.6,167 304.6,167 310.6,181 304.6,195 244.6,195 238.6,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="185.2" font-size="12" text-anchor="middle" fill="#000000">ADD</text>
+<polygon points="316.6,167 376.6,167 382.6,181 376.6,195 316.6,195 310.6,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="185.2" font-size="12" text-anchor="middle" fill="#000000">AND</text>
+<polygon points="388.6,167 448.6,167 454.6,181 448.6,195 388.6,195 382.6,181" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="185.2" font-size="12" text-anchor="middle" fill="#000000">SUB</text>
+<text x="82.6" y="232" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">a</text>
+<polygon points="100.6,213 160.6,213 166.6,227 160.6,241 100.6,241 94.6,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0010</text>
+<polygon points="172.6,213 232.6,213 238.6,227 232.6,241 172.6,241 166.6,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="231.2" font-size="12" text-anchor="middle" fill="#000000">03E8</text>
+<polygon points="244.6,213 304.6,213 310.6,227 304.6,241 244.6,241 238.6,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0001</text>
+<polygon points="316.6,213 376.6,213 382.6,227 376.6,241 316.6,241 310.6,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="231.2" font-size="12" text-anchor="middle" fill="#000000">FF00</text>
+<polygon points="388.6,213 448.6,213 454.6,227 448.6,241 388.6,241 382.6,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="231.2" font-size="12" text-anchor="middle" fill="#000000">1000</text>
+<text x="82.6" y="278" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">b</text>
+<polygon points="100.6,259 160.6,259 166.6,273 160.6,287 100.6,287 94.6,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0020</text>
+<polygon points="172.6,259 232.6,259 238.6,273 232.6,287 172.6,287 166.6,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="277.2" font-size="12" text-anchor="middle" fill="#000000">03E8</text>
+<polygon points="244.6,259 304.6,259 310.6,273 304.6,287 244.6,287 238.6,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0001</text>
+<polygon points="316.6,259 376.6,259 382.6,273 376.6,287 316.6,287 310.6,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0FF0</text>
+<polygon points="388.6,259 448.6,259 454.6,273 448.6,287 388.6,287 382.6,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="277.2" font-size="12" text-anchor="middle" fill="#000000">2000</text>
+<text x="82.6" y="324" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">result</text>
+<polygon points="100.6,305 160.6,305 166.6,319 160.6,333 100.6,333 94.6,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="323.2" font-size="12" text-anchor="middle" fill="#000000">0020</text>
+<polygon points="172.6,305 232.6,305 238.6,319 232.6,333 172.6,333 166.6,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="323.2" font-size="12" text-anchor="middle" fill="#000000">4240</text>
+<polygon points="244.6,305 304.6,305 310.6,319 304.6,333 244.6,333 238.6,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="323.2" font-size="12" text-anchor="middle" fill="#000000">0002</text>
+<polygon points="316.6,305 376.6,305 382.6,319 376.6,333 316.6,333 310.6,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="323.2" font-size="12" text-anchor="middle" fill="#000000">0F00</text>
+<polygon points="388.6,305 448.6,305 454.6,319 448.6,333 388.6,333 382.6,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="323.2" font-size="12" text-anchor="middle" fill="#000000">F000</text>
+<text x="82.6" y="370" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">t_mhi_r</text>
+<polygon points="100.6,351 160.6,351 166.6,365 160.6,379 100.6,379 94.6,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="130.6" y="369.2" font-size="12" text-anchor="middle" fill="#000000">0000</text>
+<polygon points="172.6,351 232.6,351 238.6,365 232.6,379 172.6,379 166.6,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="202.6" y="369.2" font-size="12" text-anchor="middle" fill="#000000">0000</text>
+<polygon points="244.6,351 304.6,351 310.6,365 304.6,379 244.6,379 238.6,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="274.6" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
+<polygon points="316.6,351 376.6,351 382.6,365 376.6,379 316.6,379 310.6,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="346.6" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
+<polygon points="388.6,351 448.6,351 454.6,365 448.6,379 388.6,379 382.6,365" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="418.6" y="369.2" font-size="12" text-anchor="middle" fill="#000000">000F</text>
+<text x="82.6" y="416" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">flag_z</text>
+<line x1="94.6" y1="425" x2="166.6" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="166.6" y1="425" x2="238.6" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="238.6" y1="425" x2="310.6" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="310.6" y1="425" x2="382.6" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="382.6" y1="425" x2="454.6" y2="425" stroke="#000000" stroke-width="2"/>
+<text x="82.6" y="462" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">flag_c</text>
+<line x1="94.6" y1="471" x2="166.6" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="166.6" y1="471" x2="238.6" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="238.6" y1="471" x2="310.6" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="310.6" y1="471" x2="382.6" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="382.6" y1="471" x2="454.6" y2="471" stroke="#000000" stroke-width="2"/>
 </svg>

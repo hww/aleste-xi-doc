@@ -1,3 +1,3 @@
-**pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)**
+**pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)**
 
-![pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)](timing_pixel_blender.svg)
+![pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](timing_pixel_blender.svg)

@@ -140,9 +140,9 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ROM is synchronous: `data_r <= mem[addr]` latches on `ack`, so the instruction is available one cycle after `addr`. The `pc` is stable during the whole cycle, and the `ack` from the previous instruction gates the read.
 
-![microcode_rom: synchronous read, latched on ack](gen/timing_microcode_rom.svg)
+![microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)](gen/timing_microcode_rom.svg)
 
-*Figure 5 — microcode_rom: synchronous read, latched on ack*
+*Figure 5 — microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)*
 
 
 ## 4. ALU
@@ -187,9 +187,9 @@ The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arith
 
 An ALU instruction takes two cycles from "instruction available" to "result in register". In cycle 1 the register file reads `rdata_a`/`rdata_b`; in cycle 2 the writeback writes `mem[wa] <= wdata`. The ALU itself is combinational (0 cycles), so `pc` advances every cycle; only the register write is delayed by one cycle. `MUL` additionally registers `mhi` on the next `posedge clk`.
 
-![ALU instruction: combinational read/compute/write within 1 cyc](gen/timing_alu_pipeline.svg)
+![ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)](gen/timing_alu_pipeline.svg)
 
-*Figure 6 — ALU instruction: combinational read/compute/write within 1 cyc*
+*Figure 6 — ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)*
 
 
 ## 5. Control
@@ -305,9 +305,6 @@ The channel format (`MODE`) selects how many pixels per 16-bit word: 1 bpp (16 p
 | 2 | <a id="4_bpp"></a>**4 bpp** | 4 pixels per word (k=2); pos 0 = high nibble |
 | 3 | <a id="8_bpp"></a>**8 bpp** | 2 pixels per word (k=1); pos 0 = high byte |
 | 4 | <a id="16_bpp"></a>**16 bpp** | 1 pixel per word (k=0) |
-| 5 | <a id="PASS_LO8"></a>**PASS_LO8** | Low byte pass-through |
-| 6 | <a id="PASS_HI8"></a>**PASS_HI8** | High byte pass-through |
-| 7 | <a id="PASS16"></a>**PASS16** | Whole word pass-through |
 
 
 `MODE` is set via `MOV x.MODE, R`; read via `MOV R, x.MODE`.

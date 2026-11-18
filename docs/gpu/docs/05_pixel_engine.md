@@ -15,9 +15,6 @@ Five formats are supported: 1, 2, 4, 8, and 16 bpp, plus three pass-through mode
 | 2 | <a id="4_bpp"></a>**4 bpp** | 4 pixels per word (k=2); pos 0 = high nibble |
 | 3 | <a id="8_bpp"></a>**8 bpp** | 2 pixels per word (k=1); pos 0 = high byte |
 | 4 | <a id="16_bpp"></a>**16 bpp** | 1 pixel per word (k=0) |
-| 5 | <a id="PASS_LO8"></a>**PASS_LO8** | Low byte pass-through |
-| 6 | <a id="PASS_HI8"></a>**PASS_HI8** | High byte pass-through |
-| 7 | <a id="PASS16"></a>**PASS16** | Whole word pass-through |
 
 
 *Fig. 13. Pixel format modes.*
@@ -52,9 +49,9 @@ The timing diagram below shows a single pixel read operation.
 
 The blender is a 3-state FSM: `B_IDLE → B_CAPTURE → B_FREE → B_IDLE`. `start` captures the inputs, `B_CAPTURE` computes `pixel_out` / `word_out`, and `B_FREE` asserts `ack` for one cycle. Total latency from `start` to `ack` is 3 cycles.
 
-![pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)](gen/timing_pixel_blender.svg)
+![pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](gen/timing_pixel_blender.svg)
 
-*Figure 2 — pixel_blender: IDLE -> CAPTURE -> FREE -> IDLE (3 cyc)*
+*Figure 2 — pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)*
 
 
 *Fig. 14. Pixel read timing.*

@@ -1,3 +1,3 @@
-**sequencer: PC fetch and next-PC (1 cyc per instruction)**
+**fetch_unit: 3-stage pipeline F -> D -> X (1 cyc/insn, 1 bubble on D-branch/L-loop)**
 
-![sequencer: PC fetch and next-PC (1 cyc per instruction)](timing_sequencer.svg)
+![fetch_unit: 3-stage pipeline F -> D -> X (1 cyc/insn, 1 bubble on D-branch/L-loop)](timing_sequencer.svg)
