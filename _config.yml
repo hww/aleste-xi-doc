@@ -5,3 +5,5 @@ plugins:
   - jekyll-remote-theme
 show_downloads: false
 source: docs
+url: "https://hww.github.io"
+baseurl: "/aleste-xi-doc"
