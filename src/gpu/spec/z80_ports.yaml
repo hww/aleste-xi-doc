@@ -4,38 +4,51 @@ name: gpu_interface
 title: "GPU Interface"
 width: 8
 registers:
-  - {offset: 0, name: "GPU_ADDR0",     description: "A[7:0] Address of GPU programm in the memory"}
-  - {offset: 1, name: "GPU_ADDR1",     description: "A[15:8] Address of GPU programm in the memory"}
-  - {offset: 2, name: "GPU_ADDR2",     description: "A[23:16] Address of GPU programm in the memory"}
+  - {offset: 0, name: "GPU_ADDR0",     description: "A[7:0] Address of GPU program in memory"}
+  - {offset: 1, name: "GPU_ADDR1",     description: "A[15:8] Address of GPU program in memory"}
+  - {offset: 2, name: "GPU_ADDR2",     description: "A[23:16] Address of GPU program in memory"}
   - offset: 3
     name: "COMMAND"
     fields:
-      - {name: "RESERVED",      bits: [7,2], reserved: true}
-      - {name: "GPU_COMMAND",   bits: [1,0], description: "GPU command"}
+      - name: "RESERVED"
+        bits:
+          - 7
+          - 2
+        reserved: true
+      - name: "GPU_COMMAND"
+        bits:
+          - 1
+          - 0
+        description: "GPU command"
   - offset: 4
     name: "STATUS"
     fields:
-      - {name: "GPU_HALT",    bit: 7,      description: "1-GPU is in HALT state, that means free or error"}
-      - {name: "GPU_RESULT",  bits: [6,0], description: "The result code (HALT Command's argument)"}
+      - {name: "GPU_HALT",    bit: 7,      description: "1 = GPU is in HALT state (idle or stopped on error)"}
+      - name: "GPU_RESULT"
+        bits:
+          - 6
+          - 0
+        description: "Result / error code (HALT argument or hardware fault code)"
+  - {offset: 5, name: "IRQ_CODE",      description: "Read-only: 8-bit code of the last IRQ instruction; reading auto-acknowledges the interrupt"}
 ---
 kind: const
 name: gpu_interface_result
 title: "GPU Error"
 values:
   - {name: OK,          value: 0, description: "No error"}
-  - {name: WRERR,       value: 1, description: "Write to protected ROM"}
-  - {name: IDXOVERFLOW, value: 2, description: "IDX overflow 65K page"}
-  - {name: BADFMT,      value: 3, description: "Unsuported pixel format"}
+  - {name: WRERR,       value: 1, description: "Write to protected ROM (0..31)"}
+  - {name: IDXOVERFLOW, value: 2, description: "IDX overflow across 64 KiB page boundary"}
+  - {name: BADFMT,      value: 3, description: "Unsupported pixel format"}
   - {name: RESERVED,    value: 4, description: "Reserved"}
-  - {name: WBWDT,       value: 5, description: "WB timeout"}
+  - {name: WBWDT,       value: 5, description: "Wishbone bus timeout"}
 ---
 kind: enum
 name: gpu_interface_commands
 title: "GPU Commands"
-width: 4
+width: 2
 entries:
-  - {value: 0, name: "GPU_NOP",   description: "Has no effect."}
-  - {value: 1, name: "GPU_START", description: "Reset GPU and start it's bootloader"}
+  - {value: 0, name: "GPU_NOP",   description: "Has no effect"}
+  - {value: 1, name: "GPU_START", description: "Reset GPU and start its bootloader"}
   - {value: 2, name: "GPU_RESET", description: "Reset GPU and hold it in HALT"}
 ---
 kind: enum
@@ -43,10 +56,10 @@ name: gpu_interface_package
 title: "Loader packet headers"
 width: 16
 entries:
-  - {value: 0, name: "SIZE",  description: "Number of words in packet."}
-  - {value: 1, name: "START", description: "Start address for programm in ROM"}
-  - {value: 2, name: "DATA0",  description: "Low 16-bits of opcode 0."}
-  - {value: 3, name: "DATA0",  description: "Hi 16-bits of opcode 0."}
-  - {value: 4, name: "DATA1",  description: "Low 16-bits of opcode 1."}
-  - {value: 5, name: "DATA2",  description: "Hi 16-bits of opcode 1."}
-  - {value: 6, name: "...", description: "Rest of opcodes."}
+  - {value: 0, name: "SIZE",    description: "Number of 16-bit payload words in packet"}
+  - {value: 1, name: "START",   description: "Start address for program in ROM"}
+  - {value: 2, name: "DATA0_L", description: "Low 16 bits of opcode 0"}
+  - {value: 3, name: "DATA0_H", description: "High 16 bits of opcode 0"}
+  - {value: 4, name: "DATA1_L", description: "Low 16 bits of opcode 1"}
+  - {value: 5, name: "DATA1_H", description: "High 16 bits of opcode 1"}
+  - {value: 6, name: "...",     description: "Rest of opcodes"}

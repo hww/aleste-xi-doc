@@ -305,8 +305,8 @@ The channel format (`MODE`) selects how many pixels per 16-bit word: 1 bpp (16 p
 | 2 | <a id="4_bpp"></a>**4 bpp** | 4 pixels per word (k=2); pos 0 = low nibble |
 | 3 | <a id="2_bpp"></a>**2 bpp** | 8 pixels per word (k=3); SOURCE ONLY, writes forbidden |
 | 4 | <a id="1_bpp"></a>**1 bpp** | 16 pixels per word (k=4); SOURCE ONLY, writes forbidden |
-| 5 | <a id="LO8"></a>**LO8** | Pass-through low byte [7:0] (k=0, word step) |
-| 6 | <a id="HI8"></a>**HI8** | Pass-through high byte [15:8] (k=0, word step) |
+| 5 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
+| 6 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
 | 7 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
 
 
@@ -322,11 +322,12 @@ CPU uses the registers to setup the address of the program. Additionaly it has r
 
 | Offset | Name | Description |
 | --- | --- | --- |
-| `0x00` | <a id="GPU_ADDR0"></a>**GPU_ADDR0** | A[7:0] Address of GPU programm in the memory |
-| `0x01` | <a id="GPU_ADDR1"></a>**GPU_ADDR1** | A[15:8] Address of GPU programm in the memory |
-| `0x02` | <a id="GPU_ADDR2"></a>**GPU_ADDR2** | A[23:16] Address of GPU programm in the memory |
+| `0x00` | <a id="GPU_ADDR0"></a>**GPU_ADDR0** | A[7:0] Address of GPU program in memory |
+| `0x01` | <a id="GPU_ADDR1"></a>**GPU_ADDR1** | A[15:8] Address of GPU program in memory |
+| `0x02` | <a id="GPU_ADDR2"></a>**GPU_ADDR2** | A[23:16] Address of GPU program in memory |
 | `0x03` | <a id="COMMAND"></a>**COMMAND** | — |
 | `0x04` | <a id="STATUS"></a>**STATUS** | — |
+| `0x05` | <a id="IRQ_CODE"></a>**IRQ_CODE** | Read-only: 8-bit code of the last IRQ instruction; reading auto-acknowledges the interrupt |
 
 **COMMAND** (`0x03`)
 
@@ -339,8 +340,8 @@ CPU uses the registers to setup the address of the program. Additionaly it has r
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="GPU_HALT"></a>**GPU_HALT** | [7] | 1 | 1-GPU is in HALT state, that means free or error |
-| <a id="GPU_RESULT"></a>**GPU_RESULT** | [6:0] | 7 | The result code (HALT Command's argument) |
+| <a id="GPU_HALT"></a>**GPU_HALT** | [7] | 1 | 1 = GPU is in HALT state (idle or stopped on error) |
+| <a id="GPU_RESULT"></a>**GPU_RESULT** | [6:0] | 7 | Result / error code (HALT argument or hardware fault code) |
 
 
 ### 9.1 Starting the loader
@@ -351,11 +352,12 @@ The host does not execute any command to start the loader. It writes the **24-bi
 
 | Offset | Name | Description |
 | --- | --- | --- |
-| `0x00` | <a id="GPU_ADDR0"></a>**GPU_ADDR0** | A[7:0] Address of GPU programm in the memory |
-| `0x01` | <a id="GPU_ADDR1"></a>**GPU_ADDR1** | A[15:8] Address of GPU programm in the memory |
-| `0x02` | <a id="GPU_ADDR2"></a>**GPU_ADDR2** | A[23:16] Address of GPU programm in the memory |
+| `0x00` | <a id="GPU_ADDR0"></a>**GPU_ADDR0** | A[7:0] Address of GPU program in memory |
+| `0x01` | <a id="GPU_ADDR1"></a>**GPU_ADDR1** | A[15:8] Address of GPU program in memory |
+| `0x02` | <a id="GPU_ADDR2"></a>**GPU_ADDR2** | A[23:16] Address of GPU program in memory |
 | `0x03` | <a id="COMMAND"></a>**COMMAND** | — |
 | `0x04` | <a id="STATUS"></a>**STATUS** | — |
+| `0x05` | <a id="IRQ_CODE"></a>**IRQ_CODE** | Read-only: 8-bit code of the last IRQ instruction; reading auto-acknowledges the interrupt |
 
 **COMMAND** (`0x03`)
 
@@ -368,8 +370,8 @@ The host does not execute any command to start the loader. It writes the **24-bi
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="GPU_HALT"></a>**GPU_HALT** | [7] | 1 | 1-GPU is in HALT state, that means free or error |
-| <a id="GPU_RESULT"></a>**GPU_RESULT** | [6:0] | 7 | The result code (HALT Command's argument) |
+| <a id="GPU_HALT"></a>**GPU_HALT** | [7] | 1 | 1 = GPU is in HALT state (idle or stopped on error) |
+| <a id="GPU_RESULT"></a>**GPU_RESULT** | [6:0] | 7 | Result / error code (HALT argument or hardware fault code) |
 
 
 **Table 13 — GPU Error**
@@ -377,19 +379,19 @@ The host does not execute any command to start the loader. It writes the **24-bi
 | Name | Value | Description |
 | --- | --- | --- |
 | <a id="OK"></a>**OK** | 0 | No error |
-| <a id="WRERR"></a>**WRERR** | 1 | Write to protected ROM |
-| <a id="IDXOVERFLOW"></a>**IDXOVERFLOW** | 2 | IDX overflow 65K page |
-| <a id="BADFMT"></a>**BADFMT** | 3 | Unsuported pixel format |
+| <a id="WRERR"></a>**WRERR** | 1 | Write to protected ROM (0..31) |
+| <a id="IDXOVERFLOW"></a>**IDXOVERFLOW** | 2 | IDX overflow across 64 KiB page boundary |
+| <a id="BADFMT"></a>**BADFMT** | 3 | Unsupported pixel format |
 | <a id="RESERVED"></a>**RESERVED** | 4 | Reserved |
-| <a id="WBWDT"></a>**WBWDT** | 5 | WB timeout |
+| <a id="WBWDT"></a>**WBWDT** | 5 | Wishbone bus timeout |
 
 
 **Table 14 — GPU Commands**
 
 | Value | Name | Description |
 | --- | --- | --- |
-| 0 | <a id="GPU_NOP"></a>**GPU_NOP** | Has no effect. |
-| 1 | <a id="GPU_START"></a>**GPU_START** | Reset GPU and start it's bootloader |
+| 0 | <a id="GPU_NOP"></a>**GPU_NOP** | Has no effect |
+| 1 | <a id="GPU_START"></a>**GPU_START** | Reset GPU and start its bootloader |
 | 2 | <a id="GPU_RESET"></a>**GPU_RESET** | Reset GPU and hold it in HALT |
 
 
@@ -412,13 +414,13 @@ The header is followed by the payload, if the packet kind has one, and then imme
 
 | Value | Name | Description |
 | --- | --- | --- |
-| 0 | <a id="SIZE"></a>**SIZE** | Number of words in packet. |
-| 1 | <a id="START"></a>**START** | Start address for programm in ROM |
-| 2 | <a id="DATA0"></a>**DATA0** | Low 16-bits of opcode 0. |
-| 3 | <a id="DATA0"></a>**DATA0** | Hi 16-bits of opcode 0. |
-| 4 | <a id="DATA1"></a>**DATA1** | Low 16-bits of opcode 1. |
-| 5 | <a id="DATA2"></a>**DATA2** | Hi 16-bits of opcode 1. |
-| 6 | <a id="..."></a>**...** | Rest of opcodes. |
+| 0 | <a id="SIZE"></a>**SIZE** | Number of 16-bit payload words in packet |
+| 1 | <a id="START"></a>**START** | Start address for program in ROM |
+| 2 | <a id="DATA0_L"></a>**DATA0_L** | Low 16 bits of opcode 0 |
+| 3 | <a id="DATA0_H"></a>**DATA0_H** | High 16 bits of opcode 0 |
+| 4 | <a id="DATA1_L"></a>**DATA1_L** | Low 16 bits of opcode 1 |
+| 5 | <a id="DATA1_H"></a>**DATA1_H** | High 16 bits of opcode 1 |
+| 6 | <a id="..."></a>**...** | Rest of opcodes |
 
 
 ### 9.3 Packet formats

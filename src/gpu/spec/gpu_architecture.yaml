@@ -139,8 +139,8 @@ entries:
   - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = low nibble"}
   - {value: 3, name: "2 bpp",    description: "8 pixels per word (k=3); SOURCE ONLY, writes forbidden"}
   - {value: 4, name: "1 bpp",    description: "16 pixels per word (k=4); SOURCE ONLY, writes forbidden"}
-  - {value: 5, name: "LO8",      description: "Pass-through low byte [7:0] (k=0, word step)"}
-  - {value: 6, name: "HI8",      description: "Pass-through high byte [15:8] (k=0, word step)"}
+  - {value: 5, name: "RESERVED", description: "Reserved, writes forbidden"}
+  - {value: 6, name: "RESERVED", description: "Reserved, writes forbidden"}
   - {value: 7, name: "RESERVED", description: "Reserved, writes forbidden"}
 ---
 kind: memmap

@@ -15,8 +15,8 @@ Five formats are supported: 1, 2, 4, 8, and 16 bpp, plus three pass-through mode
 | 2 | <a id="4_bpp"></a>**4 bpp** | 4 pixels per word (k=2); pos 0 = low nibble |
 | 3 | <a id="2_bpp"></a>**2 bpp** | 8 pixels per word (k=3); SOURCE ONLY, writes forbidden |
 | 4 | <a id="1_bpp"></a>**1 bpp** | 16 pixels per word (k=4); SOURCE ONLY, writes forbidden |
-| 5 | <a id="LO8"></a>**LO8** | Pass-through low byte [7:0] (k=0, word step) |
-| 6 | <a id="HI8"></a>**HI8** | Pass-through high byte [15:8] (k=0, word step) |
+| 5 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
+| 6 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
 | 7 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
 
 
