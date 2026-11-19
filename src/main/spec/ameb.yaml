@@ -1,0 +1,327 @@
+# AMEB-36 · Aleste LX Modular Expansion Bus · generator input file
+# Assumptions that need confirmation are marked with the word ASSUMPTION.
+
+kind: const
+name: ameb_params
+title: "AMEB-36 parameters"
+values:
+  - {name: N_SLOTS,    value: 4,      description: "Number of expansion slots"}
+  - {name: PINS,       value: 36,     description: "Pins in the connector (PCIe x1)"}
+  - {name: BCLK_MHZ,   value: 24.576, description: "Clock frequency of the AUDIO_BCLK bit, MHz"}
+  - {name: MCLK_MHZ,   value: 12.288, description: "AUDIO_MCLK = 256·fs, MHz (ASSUMPTION: separate frequency)"}
+  - {name: FS_KHZ,     value: 48,     description: "Frame rate AUDIO_FS, kHz (48 kHz family only)"}
+  - {name: TDM_SLOTS,  value: 16,     description: "TDM time slots in a frame on each data line"}
+  - {name: SLOT_BITS,  value: 32,     description: "Bits in a time slot"}
+  - {name: FRAME_BITS, value: 512,    description: "Bits in a frame (16 × 32)"}
+  - {name: I2C_KHZ,    value: 100,    description: "I2C speed, kHz (fixed)"}
+  - {name: I_3V3_MA,   value: 300,    description: "Guideline current +3.3 V per slot, mA (ASSUMPTION, not a calculation)"}
+  - {name: I_12V_MA,   value: 50,     description: "Guideline current of each ±12 V rail per slot, mA (ASSUMPTION, not a calculation)"}
+---
+# Connector pinout. ASSUMPTION: pin accepts strings "A1".."B18", and dir accepts the values pwr, gnd, nc.
+# If the generator does not support this, numeric numbering or an extension is needed.
+kind: pins
+name: ameb_connector
+title: "AMEB-36 slot connector (PCIe x1, 36 pins; key between positions 11 and 12)"
+symbol: AMEB_SLOT
+pins:
+  # Zone 1 (positions 1-11): power, analog, slow signals
+  - {name: "+12V(1)",      dir: pwr,   pin: "B1",  group: power_analog,  description: "Analog power +12 V"}
+  - {name: "+12V(2)",      dir: pwr,   pin: "B2",  group: power_analog,  description: "Analog power +12 V"}
+  - {name: NC_B3,          dir: nc,    pin: "B3",  group: nc,            description: "In PCIe this is +12 V; not connected"}
+  - {name: AGND(1),        dir: gnd,   pin: "B4",  group: ground_analog}
+  - {name: I2C_SCL,        dir: inout, pin: "B5",  group: i2c,           description: "Matches SMCLK in PCIe"}
+  - {name: I2C_SDA,        dir: inout, pin: "B6",  group: i2c,           description: "Matches SMDAT in PCIe"}
+  - {name: DGND(1),        dir: gnd,   pin: "B7",  group: ground_digital}
+  - {name: "+3V3(1)",      dir: pwr,   pin: "B8",  group: power_digital, description: "Digital power +3.3 V"}
+  - {name: SPI_CS_N,       dir: out,   pin: "B9",  group: spi,           active_low: true, description: "Module select"}
+  - {name: NC_B10,         dir: nc,    pin: "B10", group: nc,            description: "In PCIe this is +3.3 V aux; not connected"}
+  - {name: INT_N,          dir: in,    pin: "B11", group: control,       active_low: true, description: "Interrupt request from the module"}
+  - {name: DETECT_N,       dir: in,    pin: "A1",  group: control,       active_low: true, description: "Module is inserted (shorted to DGND on the module)"}
+  - {name: NC_A2,          dir: nc,    pin: "A2",  group: nc,            description: "In PCIe this is +12 V; not connected"}
+  - {name: NC_A3,          dir: nc,    pin: "A3",  group: nc,            description: "In PCIe this is +12 V; not connected"}
+  - {name: AGND(2),        dir: gnd,   pin: "A4",  group: ground_analog}
+  - {name: "-12V",         dir: pwr,   pin: "A5",  group: power_analog,  description: "Analog power −12 V"}
+  - {name: AGND(3),        dir: gnd,   pin: "A6",  group: ground_analog}
+  - {name: GPIO0_DREQ_N,   dir: in,    pin: "A7",  group: gpio,          active_low: true, description: "Module is ready for data exchange (DMA request)"}
+  - {name: GPIO1,          dir: inout, pin: "A8",  group: gpio,          description: "Module-specific"}
+  - {name: "+3V3(2)",      dir: pwr,   pin: "A9",  group: power_digital}
+  - {name: "+3V3(3)",      dir: pwr,   pin: "A10", group: power_digital}
+  - {name: PERIPH_RST_N,   dir: out,   pin: "A11", group: control,       active_low: true, description: "Module reset in the slot"}
+  # Zone 2 (positions 12-18): high-speed digital path
+  - {name: SPI_SCK,        dir: out,   pin: "B12", group: spi}
+  - {name: DGND,           dir: gnd,   pin: "B13", group: ground_digital}
+  - {name: SPI_MISO,       dir: in,    pin: "B14", group: spi}
+  - {name: DGND(2),        dir: gnd,   pin: "B15", group: ground_digital}
+  - {name: AUDIO_DIN,      dir: in,    pin: "B16", group: audio,         description: "Audio module → host"}
+  - {name: DGND(3),        dir: gnd,   pin: "B17", group: ground_digital}
+  - {name: AUDIO_BCLK,     dir: out,   pin: "B18", group: audio,         description: "24.576 MHz"}
+  - {name: DGND(4),        dir: gnd,   pin: "A12", group: ground_digital}
+  - {name: SPI_MOSI,       dir: out,   pin: "A13", group: spi}
+  - {name: DGND(5),        dir: gnd,   pin: "A14", group: ground_digital}
+  - {name: AUDIO_DOUT,     dir: out,   pin: "A15", group: audio,         description: "Audio host → module"}
+  - {name: DGND(6),        dir: gnd,   pin: "A16", group: ground_digital}
+  - {name: AUDIO_FS,       dir: out,   pin: "A17", group: audio,         description: "Frame sync, 48 kHz"}
+  - {name: AUDIO_MCLK,     dir: out,   pin: "A18", group: audio,         description: "12.288 MHz; next to BCLK with no ground between them"}
+---
+kind: enum
+name: pin_groups
+title: "Connector pin balance"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Count"}
+  - name
+  - {key: description, title: "Composition"}
+entries:
+  - {value: 2,  name: "+12 V",   description: "B1, B2"}
+  - {value: 1,  name: "−12 V",   description: "A5"}
+  - {value: 3,  name: "AGND",    description: "B4, A4, A6"}
+  - {value: 3',  name: "+3.3 V",  description: "B8, A9, A10"}
+  - {value: 7,  name: "DGND",    description: "B7, B13, B15, B17, A12, A14, A16"}
+  - {value: 16, name: "Signals", description: "SPI 4, I2C 2, control 3, GPIO 2, audio 5"}
+  - {value: 4,  name: "NC",      description: "B3, B10, A2, A3 (protection against a real PCIe card)"}
+notes:
+  - "36 pins total. No free reserve: the NC positions are occupied for protection reasons."
+  - "PCIe position assignments are from memory; verify against PCIe CEM and the connector datasheet."
+---
+kind: enum
+name: pcie_compat
+title: "Correspondence to PCIe functions (protection against incorrect insertion)"
+width: 4
+columns:
+  - {key: value, title: "Pos."}
+  - name
+  - {key: description, title: "Function in PCIe"}
+entries:
+  - {value: A1,  name: DETECT_N,      description: "PRSNT1#"}
+  - {value: A5,  name: "-12V",        description: "TCK (JTAG), not connected on ordinary cards"}
+  - {value: A11, name: PERIPH_RST_N,  description: "PERST#"}
+  - {value: B5,  name: I2C_SCL,       description: "SMCLK"}
+  - {value: B6,  name: I2C_SDA,       description: "SMDAT"}
+  - {value: B11, name: INT_N,         description: "WAKE#"}
+  - {value: "B3, A2, A3", name: NC,   description: "+12 V in PCIe: not connected here"}
+notes:
+  - "Slot power-up order (see the slot_power state machine): ±12 V is applied only after the ID-EEPROM has been read successfully."
+---
+kind: fsm
+name: slot_power
+title: "Slot power-up: power sequencing"
+initial: OFF
+states:
+  - {name: OFF,       output: "3V3=0 12V=0 RST=0", description: "Slot unpowered, host outputs in Hi-Z"}
+  - {name: DETECTED,  output: "3V3=0 12V=0",        description: "Module detected"}
+  - {name: P3V3,      output: "3V3=1 RST=0",        description: "+3.3 V applied, module held in reset"}
+  - {name: ID_CHECK,  output: "3V3=1 RST=1",        description: "Reading ID-EEPROM over I2C"}
+  - {name: P12,       output: "3V3=1 12V=1",        description: "±12 V applied"}
+  - {name: READY,     output: "ready=1",            description: "Slot ready; signals active"}
+  - {name: FAULT,     output: "3V3=0 12V=0 fault=1", description: "Hardware protection tripped"}
+transitions:
+  - {from: OFF,      to: DETECTED, when: "DETECT_N == 0"}
+  - {from: DETECTED, to: P3V3,     when: "EN3V3 = 1",          do: "enable +3.3 V"}
+  - {from: DETECTED, to: OFF,      when: "DETECT_N == 1"}
+  - {from: P3V3,     to: ID_CHECK, when: "PG3V3 & RST_REL = 1", do: "release PERIPH_RST_N"}
+  - {from: P3V3,     to: OFF,      when: "DETECT_N == 1"}
+  - {from: ID_CHECK, to: P12,      when: "id_ok & EN12 = 1",   do: "enable ±12 V"}
+  - {from: ID_CHECK, to: OFF,      when: "id_bad | timeout",   do: "disable +3.3 V"}
+  - {from: P12,      to: READY,    when: "PG12 & PG3V3"}
+  - {from: P12,      to: FAULT,    when: "overcurrent"}
+  - {from: READY,    to: FAULT,    when: "overcurrent"}
+  - {from: READY,    to: OFF,      when: "DETECT_N == 1"}
+  - {from: FAULT,    to: OFF,      when: "clear"}
+---
+kind: timing
+name: slot_power_seq
+title: "Slot power-up sequence"
+subtitle: "±12 V is applied only after the ID-EEPROM check"
+ticks: ["off", "detect", "3V3", "reset off", "ID read", "±12V", "ready"]
+signals:
+  - {name: DETECT_N,     wave: "10....."}
+  - {name: V3V3,         wave: "001...."}
+  - {name: PERIPH_RST_N, wave: "0001..."}
+  - {name: I2C_ACTIVE,   wave: "000010."}
+  - {name: V12,          wave: "000001."}
+  - {name: READY,        wave: "0000001"}
+arrows:
+  - {from: [DETECT_N, 1],   to: [V3V3, 2],  text: "t_pwr"}
+  - {from: [I2C_ACTIVE, 4], to: [V12, 5],   text: "ID valid"}
+---
+kind: timing
+name: spi_mode0
+title: "SPI, mode 0: single-byte transfer (per slot)"
+ticks: ["idle", "b7", "b6", "b5", "b4", "b3", "b2", "b1", "b0", "end"]
+signals:
+  - {name: SCK,      wave: "0p.......0"}
+  - {name: CS_N,     wave: "10.......1"}
+  - {name: MOSI,     wave: "x========x", data: ["1", "0", "1", "1", "0", "0", "1", "0"]}
+  - {name: MISO,     wave: "z========z", data: ["0", "1", "1", "0", "1", "0", "0", "1"]}
+arrows:
+  - {from: [CS_N, 1], to: [SCK, 1],   text: "t_CSS"}
+  - {from: [MOSI, 1], to: [SCK, 1.5], text: "t_su"}
+  - {from: [SCK, 8.5], to: [CS_N, 9], text: "t_CSH"}
+---
+kind: timing
+name: tdm_frame
+title: "Audio TDM: start of frame (16 slots × 32 bits)"
+subtitle: "AUDIO_FS is one BCLK period; the MSB of slot 0 goes out on the next BCLK (ASSUMPTION: DSP mode A)"
+ticks: ["F", "0", "1", "2", "…", "31", "32", "33", "…", "63"]
+signals:
+  - {name: AUDIO_BCLK, wave: "p........."}
+  - {name: AUDIO_FS,   wave: "10........"}
+  - {name: AUDIO_DOUT, wave: "x=========", data: ["S0:31", "S0:30", "S0:29", "…", "S0:0", "S1:31", "S1:30", "…", "S1:0"]}
+  - {name: AUDIO_DIN,  wave: "x=========", data: ["S0:31", "S0:30", "S0:29", "…", "S0:0", "S1:31", "S1:30", "…", "S1:0"]}
+arrows:
+  - {from: [AUDIO_FS, 0],  to: [AUDIO_DOUT, 1], text: "1 BCLK"}
+---
+kind: timing
+name: i2c_byte_write
+title: "I2C: START, address byte write, ACK, STOP"
+subtitle: "Address 0x50 + W = 0xA0 (ID-EEPROM)"
+ticks: ["idle", "START", "b7", "b6", "b5", "b4", "b3", "b2", "b1", "b0", "ACK", "STOP"]
+signals:
+  - {name: SCL, wave: "11ppppppppp1"}
+  - {name: SDA, wave: "10========01", data: ["1", "0", "1", "0", "0", "0", "0", "0"]}
+arrows:
+  - {from: [SDA, 1],  to: [SCL, 2],  text: "t_HD;STA"}
+  - {from: [SCL, 10], to: [SDA, 10], text: "ACK from module"}
+---
+kind: bitfield
+name: slot_ctrl
+title: "SLOTn_CTRL · 8 bits"
+width: 8
+fields:
+  - {name: EN3V3,   bit: 0,      access: rw, reset: 0, description: "Enable slot +3.3 V"}
+  - {name: RST_REL, bit: 1,      access: rw, reset: 0, description: "1 = release PERIPH_RST_N"}
+  - {name: EN12,    bit: 2,      access: rw, reset: 0, description: "Enable ±12 V (allowed only after ID_CHECK)"}
+  - {name: RSV,     bits: [7,3], reserved: true}
+---
+kind: bitfield
+name: slot_stat
+title: "SLOTn_STAT · 8 bits"
+width: 8
+fields:
+  - {name: PRESENT, bit: 0,      access: ro,  reset: 0, description: "DETECT_N == 0"}
+  - {name: PG3V3,   bit: 1,      access: ro,  reset: 0, description: "+3.3 V within range"}
+  - {name: PG12,    bit: 2,      access: ro,  reset: 0, description: "±12 V within range"}
+  - {name: FAULT,   bit: 3,      access: w1c, reset: 0, description: "Overcurrent protection tripped"}
+  - {name: READY,   bit: 4,      access: rw,  reset: 0, description: "Software marked the module as ready"}
+  - {name: INT,     bit: 5,      access: ro,  reset: 0, description: "INT_N level (1 = request)"}
+  - {name: RSV,     bits: [7,6], reserved: true}
+---
+kind: bitfield
+name: i2c_cmd
+title: "I2C_CMD · 8 bits (a write starts the operation)"
+width: 8
+fields:
+  - {name: START, bit: 0,      access: wo, reset: 0, description: "Issue START (or repeated START)"}
+  - {name: STOP,  bit: 1,      access: wo, reset: 0, description: "Issue STOP"}
+  - {name: WR,    bit: 2,      access: wo, reset: 0, description: "Transmit the byte from I2C_DATA"}
+  - {name: RD,    bit: 3,      access: wo, reset: 0, description: "Receive a byte into I2C_DATA"}
+  - {name: NACK,  bit: 4,      access: wo, reset: 0, description: "On RD, send NACK (last byte)"}
+  - {name: RSV,   bits: [7,5], reserved: true}
+---
+kind: bitfield
+name: i2c_status
+title: "I2C_STATUS · 8 bits"
+width: 8
+fields:
+  - {name: BUSY,  bit: 0,      access: ro,  reset: 0, description: "Operation in progress"}
+  - {name: NACK,  bit: 1,      access: ro,  reset: 0, description: "Last response from the module was NACK"}
+  - {name: DONE,  bit: 2,      access: w1c, reset: 0, description: "Byte completed"}
+  - {name: RSV,   bits: [7,3], reserved: true}
+---
+kind: bitfield
+name: i2c_ctrl
+title: "I2C_CTRL · 8 bits"
+width: 8
+fields:
+  - {name: SLOT, bits: [1,0], access: rw, reset: 0, description: "Slot number for the multiplexer (0..3)"}
+  - {name: EN,   bit: 2,      access: rw, reset: 0, description: "Enable the controller"}
+  - {name: IRQE, bit: 3,      access: rw, reset: 0, description: "Interrupt on DONE"}
+  - {name: RSV,  bits: [7,4], reserved: true}
+---
+kind: bitfield
+name: spi_ctrl
+title: "SPIn_CTRL · 8 bits"
+width: 8
+fields:
+  - {name: EN,  bit: 0,      access: rw, reset: 0, description: "Enable the slot controller"}
+  - {name: DIV, bits: [4,1], access: rw, reset: 0xF, description: "SCK divider: f = f_sys / (2·(DIV+1))"}
+  - {name: CSA, bit: 5,      access: rw, reset: 0, description: "1 = keep CS_N asserted"}
+  - {name: RSV, bits: [7,6], reserved: true}
+---
+kind: bitfield
+name: spi_status
+title: "SPIn_STATUS · 8 bits"
+width: 8
+fields:
+  - {name: BUSY, bit: 0,      access: ro, reset: 0, description: "Byte transfer in progress"}
+  - {name: RXV,  bit: 1,      access: ro, reset: 0, description: "Received byte ready"}
+  - {name: DREQ, bit: 2,      access: ro, reset: 0, description: "GPIO0_DREQ_N level (0 = module ready)"}
+  - {name: RSV,  bits: [7,3], reserved: true}
+---
+# ASSUMPTION: the Z80 accesses the bus through I/O ports. Offsets are preliminary.
+kind: regmap
+name: ameb_slots
+title: "Slot control registers"
+width: 8
+view: [table]
+registers:
+  - {offset: 0x00, name: SLOT0_CTRL, access: rw, description: "Slot 0 control", ref: slot_ctrl}
+  - {offset: 0x01, name: SLOT1_CTRL, access: rw, description: "Slot 1 control", ref: slot_ctrl}
+  - {offset: 0x02, name: SLOT2_CTRL, access: rw, description: "Slot 2 control", ref: slot_ctrl}
+  - {offset: 0x03, name: SLOT3_CTRL, access: rw, description: "Slot 3 control", ref: slot_ctrl}
+  - {offset: 0x04, name: SLOT0_STAT, access: rw, description: "Slot 0 status", ref: slot_stat}
+  - {offset: 0x05, name: SLOT1_STAT, access: rw, description: "Slot 1 status", ref: slot_stat}
+  - {offset: 0x06, name: SLOT2_STAT, access: rw, description: "Slot 2 status", ref: slot_stat}
+  - {offset: 0x07, name: SLOT3_STAT, access: rw, description: "Slot 3 status", ref: slot_stat}
+---
+kind: regmap
+name: ameb_i2c
+title: "I2C controller registers (one controller, 4-slot multiplexer)"
+width: 8
+view: [diagram, table]
+registers:
+  - {offset: 0x00, name: I2C_DATA,   access: rw, description: "Byte to transmit / received byte", fields: [{name: D, bits: [7,0]}]}
+  - {offset: 0x01, name: I2C_CMD,    access: wo, description: "Command: START, STOP, WR, RD, NACK", ref: i2c_cmd}
+  - {offset: 0x02, name: I2C_STATUS, access: rw, description: "Status", ref: i2c_status}
+  - {offset: 0x03, name: I2C_CTRL,   access: rw, description: "Slot select, enable", ref: i2c_ctrl}
+---
+kind: regmap
+name: ameb_spi
+title: "Slot SPI controller registers (4 instances)"
+width: 8
+view: [diagram, table]
+registers:
+  - {offset: 0x00, name: SPI_DATA,   access: rw, description: "A write starts a byte transfer; a read returns the received byte", fields: [{name: D, bits: [7,0]}]}
+  - {offset: 0x01, name: SPI_CTRL,   access: rw, description: "Control", ref: spi_ctrl}
+  - {offset: 0x02, name: SPI_STATUS, access: ro, description: "Status", ref: spi_status}
+  - {offset: 0x03, name: SPI_RSV,    access: ro, description: "Reserved (DMA: address and length — TBD)"}
+---
+kind: memmap
+name: ameb_io
+title: "AMEB I/O port map (preliminary)"
+width: 8
+regions:
+  - {name: SLOTS,  start: 0x00, end: 0x07, access: rw, purpose: "Slot power and status", group: control}
+  - {name: I2C,    start: 0x08, end: 0x0B, access: rw, purpose: "I2C controller",            group: control}
+  - {name: SPI0,   start: 0x10, end: 0x13, access: rw, purpose: "SPI, slot 0",              group: spi}
+  - {name: SPI1,   start: 0x14, end: 0x17, access: rw, purpose: "SPI, slot 1",              group: spi}
+  - {name: SPI2,   start: 0x18, end: 0x1B, access: rw, purpose: "SPI, slot 2",              group: spi}
+  - {name: SPI3,   start: 0x1C, end: 0x1F, access: rw, purpose: "SPI, slot 3",              group: spi}
+  - {name: AUDIO,  start: 0x20, end: 0x2F, access: rw, purpose: "Audio routing and control (TBD)", group: audio}
+---
+kind: enum
+name: open_items
+title: "Open items"
+width: 4
+columns:
+  - {key: value, title: "No."}
+  - name
+  - {key: description, title: "What to decide"}
+entries:
+  - {value: 1, name: "Connector",   description: "Verify PCIe position assignments, current per pin and mating-cycle rating against the datasheet"}
+  - {value: 2, name: "Power",       description: "Actual ±12 V and +3.3 V currents per slot, 5 V rail budget"}
+  - {value: 3, name: "Audio",       description: "TDM frame format, word length, channels per slot, whether MCLK is needed"}
+  - {value: 4, name: "Ports",       description: "Final I/O addresses, DMA over SPI (address, length, DREQ_N control)"}
+  - {value: 5, name: "I2C",         description: "4-pair SDA/SCL multiplexer in FPGA or external; EEPROM addresses"}
+  - {value: 6, name: "ESD",         description: "TVS arrays, 22–33 Ω series resistors, pin mating sequence"}

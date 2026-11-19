@@ -1419,8 +1419,8 @@ def v_pins(spec, P):
             continue
         check_keys(p, ["name", "dir", "width", "description", "group", "active_low", "pin"], f"{where} pin '{p['name']}'", P, "pin key")
         d = str(p.get("dir", "in")).lower()
-        if d not in ("in", "out", "inout"):
-            P.diag.err(where, f"pin '{p['name']}': dir must be in | out | inout")
+        if d not in ("in", "out", "inout", "pwr", "gnd", "nc"):
+            P.diag.err(where, f"pin '{p['name']}': dir must be in | out | inout | pwr | gnd | nc")
             d = "in"
         if str(p["name"]) in seen:
             P.diag.err(where, f"duplicate pin '{p['name']}'")

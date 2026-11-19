@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="850" height="324" viewBox="0 0 850 324">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="850" height="324" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">SPI, mode 0: single-byte transfer (per slot)</text>
+<text x="32" y="62" font-size="14" fill="#555555">10 ticks</text>
+<line x1="90" y1="108" x2="90" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="126" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">idle</text>
+<line x1="162" y1="108" x2="162" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="198" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b7</text>
+<line x1="234" y1="108" x2="234" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="270" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b6</text>
+<line x1="306" y1="108" x2="306" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="342" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b5</text>
+<line x1="378" y1="108" x2="378" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="414" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b4</text>
+<line x1="450" y1="108" x2="450" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="486" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b3</text>
+<line x1="522" y1="108" x2="522" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="558" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b2</text>
+<line x1="594" y1="108" x2="594" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="630" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b1</text>
+<line x1="666" y1="108" x2="666" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="702" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">b0</text>
+<line x1="738" y1="108" x2="738" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="774" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">end</text>
+<line x1="810" y1="108" x2="810" y2="296" stroke="#CCCCCC" stroke-width="1"/>
+<text x="78" y="140" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">SCK</text>
+<line x1="90" y1="149" x2="162" y2="149" stroke="#000000" stroke-width="2"/>
+<path d="M162 149 L162 121 L198 121 L198 149 L234 149 M234 149 L234 121 L270 121 L270 149 L306 149 M306 149 L306 121 L342 121 L342 149 L378 149 M378 149 L378 121 L414 121 L414 149 L450 149 M450 149 L450 121 L486 121 L486 149 L522 149 M522 149 L522 121 L558 121 L558 149 L594 149 M594 149 L594 121 L630 121 L630 149 L666 149 M666 149 L666 121 L702 121 L702 149 L738 149" fill="none" stroke="#000000" stroke-width="2"/>
+<line x1="738" y1="149" x2="810" y2="149" stroke="#000000" stroke-width="2"/>
+<text x="78" y="186" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">CS_N</text>
+<line x1="90" y1="167" x2="162" y2="167" stroke="#000000" stroke-width="2"/>
+<line x1="162" y1="195" x2="738" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="162" y1="167" x2="162" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="738" y1="167" x2="810" y2="167" stroke="#000000" stroke-width="2"/>
+<line x1="738" y1="167" x2="738" y2="195" stroke="#000000" stroke-width="2"/>
+<text x="78" y="232" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">MOSI</text>
+<rect x="90" y="213" width="72" height="28" fill="url(#xpat)" stroke="#A05050" stroke-width="1"/>
+<polygon points="168,213 228,213 234,227 228,241 168,241 162,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="198" y="231.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="240,213 300,213 306,227 300,241 240,241 234,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="270" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="312,213 372,213 378,227 372,241 312,241 306,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="342" y="231.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="384,213 444,213 450,227 444,241 384,241 378,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="414" y="231.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="456,213 516,213 522,227 516,241 456,241 450,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="486" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="528,213 588,213 594,227 588,241 528,241 522,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="558" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="600,213 660,213 666,227 660,241 600,241 594,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="630" y="231.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="672,213 732,213 738,227 732,241 672,241 666,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="702" y="231.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<rect x="738" y="213" width="72" height="28" fill="url(#xpat)" stroke="#A05050" stroke-width="1"/>
+<text x="78" y="278" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">MISO</text>
+<line x1="90" y1="273" x2="162" y2="273" stroke="#666666" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="168,259 228,259 234,273 228,287 168,287 162,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="198" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="240,259 300,259 306,273 300,287 240,287 234,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="270" y="277.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="312,259 372,259 378,273 372,287 312,287 306,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="342" y="277.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="384,259 444,259 450,273 444,287 384,287 378,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="414" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="456,259 516,259 522,273 516,287 456,287 450,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="486" y="277.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<polygon points="528,259 588,259 594,273 588,287 528,287 522,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="558" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="600,259 660,259 666,273 660,287 600,287 594,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="630" y="277.2" font-size="12" text-anchor="middle" fill="#000000">0</text>
+<polygon points="672,259 732,259 738,273 732,287 672,287 666,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="702" y="277.2" font-size="12" text-anchor="middle" fill="#000000">1</text>
+<line x1="738" y1="273" x2="810" y2="273" stroke="#666666" stroke-width="2" stroke-dasharray="5,3"/>
+<path d="M162 166.3 L162 149.7" fill="none" stroke="#B00020" stroke-width="1.4" marker-end="url(#arr)"/>
+<circle cx="162" cy="166.3" r="2.5" fill="#B00020" stroke="#B00020" stroke-width="0.5"/>
+<text x="169" y="162" font-size="11" text-anchor="start" fill="#B00020" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">t_CSS</text>
+<path d="M162 212.3 L198 149.7" fill="none" stroke="#B00020" stroke-width="1.4" marker-end="url(#arr)"/>
+<circle cx="162" cy="212.3" r="2.5" fill="#B00020" stroke="#B00020" stroke-width="0.5"/>
+<text x="187" y="185" font-size="11" text-anchor="start" fill="#B00020" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">t_su</text>
+<path d="M702 149.7 L738 166.3" fill="none" stroke="#B00020" stroke-width="1.4" marker-end="url(#arr)"/>
+<circle cx="702" cy="149.7" r="2.5" fill="#B00020" stroke="#B00020" stroke-width="0.5"/>
+<text x="727" y="162" font-size="11" text-anchor="start" fill="#B00020" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">t_CSH</text>
+</svg>

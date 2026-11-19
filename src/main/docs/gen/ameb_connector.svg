@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="908.6" height="1340" viewBox="0 0 908.6 1340">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="908.6" height="1340" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">AMEB-36 slot connector (PCIe x1, 36 pins; key between positions 11 and 12)</text>
+<text x="32" y="62" font-size="14" fill="#555555">36 signals</text>
+<rect x="146" y="96" width="247.2" height="1214" fill="#F2F2F2" stroke="#000000" stroke-width="2"/>
+<text x="269.6" y="708" font-size="15" text-anchor="middle" fill="#888888" font-weight="700">AMEB_SLOT</text>
+<line x1="92" y1="124" x2="146" y2="124" stroke="#000000" stroke-width="1.8"/>
+<path d="M125 124 L118 119.5 L118 128.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="96" y="139" font-size="9.5" text-anchor="start" fill="#555555" class="m">B11</text>
+<text x="156" y="128" font-size="13" text-anchor="start" fill="#000000" font-weight="700" class="m" style="text-decoration:overline">INT_N</text>
+<line x1="92" y1="162" x2="146" y2="162" stroke="#000000" stroke-width="1.8"/>
+<path d="M125 162 L118 157.5 L118 166.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="96" y="177" font-size="9.5" text-anchor="start" fill="#555555" class="m">A1</text>
+<text x="156" y="166" font-size="13" text-anchor="start" fill="#000000" font-weight="700" class="m" style="text-decoration:overline">DETECT_N</text>
+<line x1="92" y1="200" x2="146" y2="200" stroke="#000000" stroke-width="1.8"/>
+<path d="M125 200 L118 195.5 L118 204.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="96" y="215" font-size="9.5" text-anchor="start" fill="#555555" class="m">A7</text>
+<text x="156" y="204" font-size="13" text-anchor="start" fill="#000000" font-weight="700" class="m" style="text-decoration:overline">GPIO0_DREQ_N</text>
+<line x1="92" y1="238" x2="146" y2="238" stroke="#000000" stroke-width="1.8"/>
+<path d="M125 238 L118 233.5 L118 242.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="96" y="253" font-size="9.5" text-anchor="start" fill="#555555" class="m">B14</text>
+<text x="156" y="242" font-size="13" text-anchor="start" fill="#000000" font-weight="700" class="m">SPI_MISO</text>
+<line x1="92" y1="276" x2="146" y2="276" stroke="#000000" stroke-width="1.8"/>
+<path d="M125 276 L118 271.5 L118 280.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="96" y="291" font-size="9.5" text-anchor="start" fill="#555555" class="m">B16</text>
+<text x="156" y="280" font-size="13" text-anchor="start" fill="#000000" font-weight="700" class="m">AUDIO_DIN</text>
+<line x1="393.2" y1="124" x2="447.2" y2="124" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 124 L421.2 119.5 L421.2 128.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="139" font-size="9.5" text-anchor="end" fill="#555555" class="m">B1</text>
+<text x="383.2" y="128" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">+12V(1)</text>
+<line x1="393.2" y1="162" x2="447.2" y2="162" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 162 L421.2 157.5 L421.2 166.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="177" font-size="9.5" text-anchor="end" fill="#555555" class="m">B2</text>
+<text x="383.2" y="166" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">+12V(2)</text>
+<line x1="393.2" y1="200" x2="447.2" y2="200" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 200 L421.2 195.5 L421.2 204.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="215" font-size="9.5" text-anchor="end" fill="#555555" class="m">B3</text>
+<text x="383.2" y="204" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">NC_B3</text>
+<line x1="393.2" y1="238" x2="447.2" y2="238" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 238 L421.2 233.5 L421.2 242.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="253" font-size="9.5" text-anchor="end" fill="#555555" class="m">B4</text>
+<text x="383.2" y="242" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AGND(1)</text>
+<line x1="393.2" y1="276" x2="447.2" y2="276" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 276 L419.2 272 M414.2 276 L419.2 280 M426.2 276 L421.2 272 M426.2 276 L421.2 280" fill="none" stroke="#000000" stroke-width="1.3"/>
+<text x="389.2" y="291" font-size="9.5" text-anchor="end" fill="#555555" class="m">B5</text>
+<text x="383.2" y="280" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">I2C_SCL</text>
+<line x1="393.2" y1="314" x2="447.2" y2="314" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 314 L419.2 310 M414.2 314 L419.2 318 M426.2 314 L421.2 310 M426.2 314 L421.2 318" fill="none" stroke="#000000" stroke-width="1.3"/>
+<text x="389.2" y="329" font-size="9.5" text-anchor="end" fill="#555555" class="m">B6</text>
+<text x="383.2" y="318" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">I2C_SDA</text>
+<line x1="393.2" y1="352" x2="447.2" y2="352" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 352 L421.2 347.5 L421.2 356.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="367" font-size="9.5" text-anchor="end" fill="#555555" class="m">B7</text>
+<text x="383.2" y="356" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND(1)</text>
+<line x1="393.2" y1="390" x2="447.2" y2="390" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 390 L421.2 385.5 L421.2 394.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="405" font-size="9.5" text-anchor="end" fill="#555555" class="m">B8</text>
+<text x="383.2" y="394" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">+3V3(1)</text>
+<line x1="393.2" y1="428" x2="447.2" y2="428" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 428 L419.2 423.5 L419.2 432.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="443" font-size="9.5" text-anchor="end" fill="#555555" class="m">B9</text>
+<text x="383.2" y="432" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m" style="text-decoration:overline">SPI_CS_N</text>
+<line x1="393.2" y1="466" x2="447.2" y2="466" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 466 L421.2 461.5 L421.2 470.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="481" font-size="9.5" text-anchor="end" fill="#555555" class="m">B10</text>
+<text x="383.2" y="470" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">NC_B10</text>
+<line x1="393.2" y1="504" x2="447.2" y2="504" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 504 L421.2 499.5 L421.2 508.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="519" font-size="9.5" text-anchor="end" fill="#555555" class="m">A2</text>
+<text x="383.2" y="508" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">NC_A2</text>
+<line x1="393.2" y1="542" x2="447.2" y2="542" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 542 L421.2 537.5 L421.2 546.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="557" font-size="9.5" text-anchor="end" fill="#555555" class="m">A3</text>
+<text x="383.2" y="546" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">NC_A3</text>
+<line x1="393.2" y1="580" x2="447.2" y2="580" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 580 L421.2 575.5 L421.2 584.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="595" font-size="9.5" text-anchor="end" fill="#555555" class="m">A4</text>
+<text x="383.2" y="584" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AGND(2)</text>
+<line x1="393.2" y1="618" x2="447.2" y2="618" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 618 L421.2 613.5 L421.2 622.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="633" font-size="9.5" text-anchor="end" fill="#555555" class="m">A5</text>
+<text x="383.2" y="622" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">-12V</text>
+<line x1="393.2" y1="656" x2="447.2" y2="656" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 656 L421.2 651.5 L421.2 660.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="671" font-size="9.5" text-anchor="end" fill="#555555" class="m">A6</text>
+<text x="383.2" y="660" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AGND(3)</text>
+<line x1="393.2" y1="694" x2="447.2" y2="694" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 694 L419.2 690 M414.2 694 L419.2 698 M426.2 694 L421.2 690 M426.2 694 L421.2 698" fill="none" stroke="#000000" stroke-width="1.3"/>
+<text x="389.2" y="709" font-size="9.5" text-anchor="end" fill="#555555" class="m">A8</text>
+<text x="383.2" y="698" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">GPIO1</text>
+<line x1="393.2" y1="732" x2="447.2" y2="732" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 732 L421.2 727.5 L421.2 736.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="747" font-size="9.5" text-anchor="end" fill="#555555" class="m">A9</text>
+<text x="383.2" y="736" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">+3V3(2)</text>
+<line x1="393.2" y1="770" x2="447.2" y2="770" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 770 L421.2 765.5 L421.2 774.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="785" font-size="9.5" text-anchor="end" fill="#555555" class="m">A10</text>
+<text x="383.2" y="774" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">+3V3(3)</text>
+<line x1="393.2" y1="808" x2="447.2" y2="808" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 808 L419.2 803.5 L419.2 812.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="823" font-size="9.5" text-anchor="end" fill="#555555" class="m">A11</text>
+<text x="383.2" y="812" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m" style="text-decoration:overline">PERIPH_RST_N</text>
+<line x1="393.2" y1="846" x2="447.2" y2="846" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 846 L419.2 841.5 L419.2 850.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="861" font-size="9.5" text-anchor="end" fill="#555555" class="m">B12</text>
+<text x="383.2" y="850" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">SPI_SCK</text>
+<line x1="393.2" y1="884" x2="447.2" y2="884" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 884 L421.2 879.5 L421.2 888.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="899" font-size="9.5" text-anchor="end" fill="#555555" class="m">B13</text>
+<text x="383.2" y="888" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND</text>
+<line x1="393.2" y1="922" x2="447.2" y2="922" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 922 L421.2 917.5 L421.2 926.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="937" font-size="9.5" text-anchor="end" fill="#555555" class="m">B15</text>
+<text x="383.2" y="926" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND(2)</text>
+<line x1="393.2" y1="960" x2="447.2" y2="960" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 960 L421.2 955.5 L421.2 964.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="975" font-size="9.5" text-anchor="end" fill="#555555" class="m">B17</text>
+<text x="383.2" y="964" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND(3)</text>
+<line x1="393.2" y1="998" x2="447.2" y2="998" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 998 L419.2 993.5 L419.2 1002.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1013" font-size="9.5" text-anchor="end" fill="#555555" class="m">B18</text>
+<text x="383.2" y="1002" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AUDIO_BCLK</text>
+<line x1="393.2" y1="1036" x2="447.2" y2="1036" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 1036 L421.2 1031.5 L421.2 1040.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1051" font-size="9.5" text-anchor="end" fill="#555555" class="m">A12</text>
+<text x="383.2" y="1040" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND(4)</text>
+<line x1="393.2" y1="1074" x2="447.2" y2="1074" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 1074 L419.2 1069.5 L419.2 1078.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1089" font-size="9.5" text-anchor="end" fill="#555555" class="m">A13</text>
+<text x="383.2" y="1078" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">SPI_MOSI</text>
+<line x1="393.2" y1="1112" x2="447.2" y2="1112" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 1112 L421.2 1107.5 L421.2 1116.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1127" font-size="9.5" text-anchor="end" fill="#555555" class="m">A14</text>
+<text x="383.2" y="1116" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND(5)</text>
+<line x1="393.2" y1="1150" x2="447.2" y2="1150" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 1150 L419.2 1145.5 L419.2 1154.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1165" font-size="9.5" text-anchor="end" fill="#555555" class="m">A15</text>
+<text x="383.2" y="1154" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AUDIO_DOUT</text>
+<line x1="393.2" y1="1188" x2="447.2" y2="1188" stroke="#000000" stroke-width="1.8"/>
+<path d="M414.2 1188 L421.2 1183.5 L421.2 1192.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1203" font-size="9.5" text-anchor="end" fill="#555555" class="m">A16</text>
+<text x="383.2" y="1192" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DGND(6)</text>
+<line x1="393.2" y1="1226" x2="447.2" y2="1226" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 1226 L419.2 1221.5 L419.2 1230.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1241" font-size="9.5" text-anchor="end" fill="#555555" class="m">A17</text>
+<text x="383.2" y="1230" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AUDIO_FS</text>
+<line x1="393.2" y1="1264" x2="447.2" y2="1264" stroke="#000000" stroke-width="1.8"/>
+<path d="M426.2 1264 L419.2 1259.5 L419.2 1268.5 Z" fill="#000000" stroke="#000000" stroke-width="1"/>
+<text x="389.2" y="1279" font-size="9.5" text-anchor="end" fill="#555555" class="m">A18</text>
+<text x="383.2" y="1268" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">AUDIO_MCLK</text>
+</svg>

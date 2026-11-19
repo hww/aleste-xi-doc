@@ -1,464 +1,235 @@
-# LX Modular Expansion Bus (AMEB)
+# AMEB-36 Modular Expansion Bus
 
-## Preliminary Hardware Architecture Specification
+## Preliminary hardware specification
 
-## 1. Design Philosophy
+## 1. Project philosophy
 
-AMEB is a modular expansion interface for the Aleste computer.
+AMEB is a modular expansion interface for the Aleste LX computer. It is a computer expansion bus, not a synthesizer or modular synthesizer interface.
 
-The primary objective is to provide a compact, economical and versatile expansion bus that allows the computer to use a variety of digital and hybrid expansion modules.
+Goal: a compact, inexpensive, and universal slot that does not repeat the shortcomings of 50–60-pin retro slots (large board area, fragility, 5 V only).
 
-AMEB is designed as a computer expansion bus, not as a dedicated synthesizer or modular synthesizer interface.
+The architecture rests on five principles:
 
-The architecture follows four principles:
+1. Communication and control are handled by the host FPGA, while the Z80 processor works with slots as peripheral devices through I/O ports, without memory mapping: reads from such an area would block the processor.
+2. Audio is transferred between the host and modules only in digital form.
+3. Analog signal generation and processing are performed locally on the modules.
+4. Analog power (±12 V) is supplied by the host. Analog signals and control voltages remain inside the module, and there are no DC/DC converters on the modules.
+5. All interfaces are implemented in hardware, not by software emulation.
 
-1. Digital communication and control are handled by the host FPGA.
-2. Audio data is transferred digitally between the host and expansion modules.
-3. Analog signal generation and processing are performed locally on expansion modules.
-4. Analog power is supplied by the host, while analog audio signals and control voltages remain local to each module.
+The design must not require extra equipment, complex connectors, or an expensive centralized analog section.
 
-The design should avoid unnecessary hardware duplication, excessive connector complexity and expensive centralized analog circuitry.
+## 2. System architecture
 
-## 2. System Architecture
+The system consists of three subsystems.
 
-AMEB consists of three functional subsystems.
+### 2.1 Digital control plane
 
-### 2.1 Digital Control Plane
+Communication and control between the host FPGA and the modules. Interfaces:
 
-Provides communication and control between the host FPGA and expansion modules.
+- SPI: one independent controller per slot (see section 5).
+- I²C: one hardware byte controller with multiplexing to the slots (see section 6).
+- Interrupt `INT_N` and data request `GPIO0_DREQ_N`.
+- Module reset `PERIPH_RST_N` for each slot. There is no global `RESET_N`: the host resets all slots itself.
+- Module detection `DETECT_N`.
+- One more digital output `GPIO1`.
 
-Interfaces:
-- SPI — primary module control interface.
-- I²C — shared auxiliary management interface.
-- Interrupt signals.
-- Reset signals.
-- Module presence detection.
-- General-purpose digital I/O.
+The control registers are accessible to the processor through I/O ports: {{ref:ameb_io}}.
 
-### 2.2 Digital Audio Plane
+{{auto:ameb_io}}
 
-Provides synchronous multichannel digital audio communication between the host FPGA and expansion modules.
+### 2.2 Digital audio plane
 
-The host FPGA handles:
-- Audio stream distribution.
-- Audio stream collection.
-- Channel routing.
-- Digital mixing.
-- DMA transfers between audio interfaces and system memory.
+Synchronous multichannel audio transfer between the host FPGA and the modules (see section 7). The host FPGA performs:
 
-Expansion modules may process audio independently and return their processed streams to the host.
+- distribution and collection of audio streams;
+- channel routing;
+- digital mixing;
+- DMA transfers between the audio interfaces and system memory.
 
-Audio processing does not require analog audio connections between the host and modules.
+### 2.3 Local analog subsystem
 
-### 2.3 Local Analog Subsystem
+A module may contain its own analog circuits: filters, oscillators, effects, measurement circuits, ADCs, and DACs. The module generates all control voltages itself, for example from a multichannel DAC controlled over SPI. The host does not generate control voltages.
 
-Each expansion module may contain its own analog circuitry.
+## 3. Physical interface
 
-Examples include:
-- Analog filters.
-- Analog oscillators.
-- Analog audio effects.
-- Instrumentation circuits.
-- ADC and DAC circuits.
-- Analog signal generators.
+Each slot uses a PCIe x1 edge connector with {{const:PINS}} pins. All {{const:N_SLOTS}} slots are electrically identical. A module is a 1.6 mm board with gold fingers and a chamfer, installed vertically. An alternative: 1.27 mm pitch headers and sockets, 2×18; the pinout carries over unchanged, but there is no physical key, so labeling and protection against incorrect orientation are needed.
 
-Modules requiring analog circuitry generate their own local analog voltages and signals.
+The PCIe key between positions 11 and 12 divides the slot into two zones:
 
-The host provides bipolar analog power rails, but does not centrally generate control voltages for expansion modules.
+- **Zone 1 (positions 1–11, 22 pins):** power, analog grounds, I²C, SPI_CS_N, control, and GPIO.
+- **Zone 2 (positions 12–18, 14 pins):** the high-speed digital path: SPI_SCK, SPI_MOSI, SPI_MISO, and audio.
 
-## 3. Physical Interface
+This gives a natural separation on the motherboard and on the module: analog stays on one edge, and the 24 MHz clock lines are behind the key.
 
-Each expansion slot uses an independent 40-pin connector.
+{{auto:ameb_connector}}
 
-The same electrical interface is used for all four slots.
+The pin balance is described in {{table:pin_groups}}. There is no free reserve: four NC positions are occupied for protection reasons.
 
-The connector must provide:
-- Digital power.
-- Analog power.
-- Digital ground.
-- Analog ground.
-- Independent SPI communication.
-- Shared I²C communication.
-- Digital audio.
-- Reset and interrupt signals.
-- Module detection.
-- General-purpose digital signals.
+{{table:pin_groups}}
 
-The final connector type, contact numbering, current ratings and electrical characteristics remain subject to further validation.
+### 3.1 Protection against inserting a real PCIe card
 
-## 4. Power Distribution
+A real PCIe card can be plugged into the slot, so:
 
-### 4.1 Digital Power
+- at positions where PCIe has +12 V and +3.3 V aux, AMEB has either the same voltage or NC, but not a signal;
+- the negative voltage −12 V is placed on A5, i.e. on the JTAG position, which is not connected on ordinary cards;
+- where possible, functions match PCIe, so signal directions do not conflict.
 
-The host supplies +3.3 V to each expansion module.
+{{table:pcie_compat}}
 
-This rail powers:
-- Digital logic.
-- Microcontrollers.
-- FPGA interfaces.
-- Digital audio circuitry.
-- SPI and I²C peripherals.
+The PCIe position assignments are from memory and must be verified against PCIe CEM and the datasheet of the chosen connector.
 
-### 4.2 Analog Power
+### 3.2 Electrical and mechanical protection
 
-The host supplies bipolar analog power:
+TVS arrays and 22–33 Ω series resistors are installed on the signals. With an edge connector, the pin mating sequence is implemented by the module's construction: ground pads are longer, and `DETECT_N` is shorter than the others.
 
-- +12 V
-- −12 V
-- AGND
+## 4. Power distribution
 
-These rails are intended for analog circuitry on expansion modules.
+### 4.1 Digital power
 
-The ±12 V supply is the preliminary preferred configuration. ±15 V may be considered if specific module requirements justify the additional power-system complexity.
+The host supplies +3.3 V to three slot pins. Current guideline: {{const:I_3V3_MA}} mA per slot (an estimate, not a calculation).
 
-No dedicated +5 V analog rail is required by the baseline specification. Modules requiring additional voltages should generate them locally.
+### 4.2 Analog power
+
+The host supplies +12 V (two pins), −12 V (one pin), and AGND (three pins). Current guideline: {{const:I_12V_MA}} mA per slot on each rail (an estimate, not a calculation).
+
+±12 V generation is done on the motherboard: one step-up and one inverting converter. No DC/DC is placed on the modules. Modules are recommended to use local LDOs on the analog rails. The ±12 V section can be made optionally populated (DNP) so that a board without analog modules is cheaper. Modules derive additional voltages from the available ones.
 
 ### 4.3 Grounding
 
-Digital and analog ground contacts are provided separately.
+DGND and AGND pins are separate, and every high-speed line has a DGND pin next to it. DGND and AGND are connected only on the motherboard, and the module does not short them, to avoid ground loops. Separate grounds do not mean galvanic isolation.
 
-The motherboard must implement a controlled grounding strategy, including an appropriate connection between digital and analog ground domains.
+### 4.4 Protection and power-up sequence
 
-Grounding must take into account:
-- Digital switching currents.
-- Analog signal integrity.
-- Audio noise.
-- Return-current paths.
-- Power distribution impedance.
+Each slot has current limiting, short-circuit protection, and overload monitoring. For +12 V this is a current switch with an enable input from the FPGA; for −12 V it is a PTC fuse, enabled together with +12 V. Protection must not depend solely on the FPGA or software.
 
-Separate ground contacts do not imply galvanic isolation.
+The slot powers up in sequence: first only +3.3 V with the module held in reset, then reading the ID-EEPROM over I²C, and only after a successful check is ±12 V applied. A real PCIe card will not respond to the EEPROM request and will not receive the analog rails.
 
-### 4.4 Power Protection
+{{auto:slot_power}}
 
-Each slot should provide:
-- Current limiting.
-- Short-circuit protection.
-- Controlled power sequencing.
-- Overcurrent detection.
-- Protection against reverse current where required.
+{{auto:slot_power_seq}}
 
-The protection mechanism must not depend exclusively on FPGA or software intervention.
+The state `{{ref:slot_power.ID_CHECK}}` is the only one where the module already receives +3.3 V but does not yet receive ±12 V. The `{{ref:slot_ctrl.EN12}}` enable takes effect only after a successful identifier check. When protection trips, the slot transitions to `{{ref:slot_power.FAULT}}`; the reset is performed by writing to `{{ref:slot_stat.FAULT}}`.
 
-Maximum current per slot and total power budgets must be defined before hardware implementation.
+{{auto:ameb_slots}}
 
-## 5. SPI Interface
+## 5. SPI interface
 
-Each expansion slot has its own independent SPI interface.
+Each slot has its own SPI controller with signals `SPI_SCK`, `SPI_MOSI`, `SPI_MISO`, `SPI_CS_N`. The physical lines are not shared between slots. Mode 0 (CPOL = 0, CPHA = 0), the speed is set by the `{{ref:spi_ctrl.DIV}}` divider independently for each slot.
 
-Signals:
-- SPI_SCK
-- SPI_MOSI
-- SPI_MISO
-- SPI_CS_N
+SPI is the primary interface for module configuration, programming local DACs and ADCs, accessing registers, and controlling microcontrollers on the module. It is not intended for continuous audio.
 
-The four slots must not share the physical SPI signal lines.
+{{auto:spi_mode0}}
 
-The FPGA provides independent SPI control for each slot, allowing different communication speeds and device configurations.
+{{auto:ameb_spi}}
 
-SPI is the primary interface for:
-- Module configuration.
-- Peripheral control.
-- Local DAC programming.
-- Local ADC configuration.
-- Register access.
-- Control of onboard microcontrollers.
-- Management of module-specific hardware.
+For block data transfers the controller uses DMA. The module's readiness for exchange is reported by the `GPIO0_DREQ_N` signal; its level is visible in `{{ref:spi_status.DREQ}}`. Holding `SPI_CS_N` between bytes is set by the `{{ref:spi_ctrl.CSA}}` bit.
 
-SPI is not intended to carry continuous high-bandwidth audio streams.
+## 6. I²C interface
 
-The FPGA may schedule SPI transactions independently for each slot.
+One hardware controller performs a minimal set of operations: START, STOP, byte transmit, byte receive, and ACK/NACK. Assembling multi-byte packets is done by the processor. This is a deliberate compromise between die size and convenience.
 
-## 6. I²C Interface
+The controller connects to the slots through a multiplexer: the slot number is set in `{{ref:i2c_ctrl.SLOT}}`. This avoids ID-EEPROM address conflicts, and a hung module does not block the others. The multiplexer is implemented in the FPGA (four SDA/SCL pairs) or as an external chip; the pinout on the connector is the same for both options. The speed is fixed: {{const:I2C_KHZ}} kHz.
 
-One shared I²C bus is provided across all expansion slots.
+Typical uses: identification EEPROMs, configuration memory, temperature sensors, power monitoring, simple peripheral controllers.
 
-Signals:
-- I2C_SDA
-- I2C_SCL
+{{auto:ameb_i2c}}
 
-I²C is intended for low-bandwidth auxiliary communication.
+{{auto:i2c_byte_write}}
 
-Typical applications:
-- Module identification EEPROMs.
-- Configuration memory.
-- Temperature sensors.
-- Power monitoring devices.
-- Simple peripheral controllers.
+An operation is started by writing to the command register; the set of commands is described in {{ref:i2c_cmd}}. The start of a packet is set by the `{{ref:i2c_cmd.START}}` flag, and the end by `{{ref:i2c_cmd.STOP}}`.
 
-Modules must follow a defined address allocation policy.
+## 7. Digital audio interface
 
-The motherboard should provide appropriate pull-up resistors and account for total bus capacitance.
+### 7.1 General requirements
 
-The possibility of isolating a malfunctioning module from the shared I²C bus should be considered.
+Digital audio is a mandatory part of AMEB. The interface is logically independent of SPI and I²C, provides a continuous stream, and does not depend on periodic SPI transactions.
 
-## 7. Digital Audio Interface
+### 7.2 Architecture
 
-### 7.1 General Requirements
+Synchronous serial TDM interface:
 
-Digital audio is an essential feature of AMEB.
+- `AUDIO_BCLK` — bit clock, {{const:BCLK_MHZ}} MHz;
+- `AUDIO_FS` — frame sync, {{const:FS_KHZ}} kHz;
+- `AUDIO_MCLK` — master clock, {{const:MCLK_MHZ}} MHz (256·fs);
+- `AUDIO_DOUT` — data from host to module;
+- `AUDIO_DIN` — data from module to host.
 
-The interface must support multichannel audio communication between the host FPGA and expansion modules.
+The clock signals are common to all slots; the data lines are individual for each slot. This provides common synchronization, independent streams, no electrical conflicts, and flexible routing in the FPGA.
 
-Audio communication is logically independent of SPI and I²C.
+A frame contains {{const:TDM_SLOTS}} time slots of {{const:SLOT_BITS}} bits each, i.e. {{const:FRAME_BITS}} bits. The bus operates only in the {{const:FS_KHZ}} kHz family; modules that need 44.1 kHz will require rate conversion on their side (e.g., a codec ASRC).
 
-The audio interface is intended for continuous audio streaming and must not depend on periodic SPI transactions.
+{{auto:tdm_frame}}
 
-### 7.2 Proposed Interface Architecture
+The frame format (DSP mode A, word length, number of channels per slot) is preliminary and subject to clarification.
 
-The preferred architecture is a synchronous multichannel serial audio interface based on TDM or a compatible multichannel serial audio format.
+### 7.3 Routing
 
-The preliminary signal set is:
+Audio must not physically pass from module to module. The processing chain is built by the host FPGA, for example: host stream → module A → FPGA → module B → FPGA → main audio output. Modules do not connect to each other.
 
-- AUDIO_BCLK — bit clock.
-- AUDIO_LRCLK / FS — frame synchronization.
-- AUDIO_MCLK — master audio clock.
-- AUDIO_DOUT — host-to-module audio data.
-- AUDIO_DIN — module-to-host audio data.
+### 7.4 Audio processing on modules
 
-The clock signals are distributed to all slots.
+A module can receive audio from the host, process it, return the result, generate sound on its own, or return several channels. Processing can be digital, analog, or hybrid. A module with analog processing contains its own ADCs and DACs; a purely digital module does not need them.
 
-The audio data connections are independent for each slot.
+### 7.5 Clocking
 
-This arrangement provides:
-- Common audio synchronization.
-- Independent audio streams for each module.
-- No electrical contention between module outputs.
-- Flexible routing by the host FPGA.
+All frequencies are derived from the 48 kHz family, so a switchable oscillator is not needed. BCLK ({{const:BCLK_MHZ}} MHz) and MCLK ({{const:MCLK_MHZ}} MHz) are next to each other on the connector (position 18), with no ground between them. If modules do not need a separate MCLK, pin A18 can be returned to DGND, and then zone 2 becomes an alternation of signals and grounds.
 
-The host FPGA can distribute audio to selected modules and collect their processed audio streams.
+## 8. Control signals
 
-### 7.3 Audio Routing
+The set of signals is given in {{ref:ameb_connector}}:
 
-The architecture must support four expansion slots without requiring audio to pass physically from one module to another.
+- `PERIPH_RST_N` — independent module reset in each slot. There is no global `RESET_N`.
+- `INT_N` — interrupt request; its level is visible in `{{ref:slot_stat.INT}}`.
+- `DETECT_N` — physical presence of the module; its level is visible in `{{ref:slot_stat.PRESENT}}`. The signal works before power is applied and does not depend on I²C.
+- `GPIO0_DREQ_N` — module readiness for data exchange (DMA request).
+- `GPIO1` — general-purpose output.
 
-The host FPGA is responsible for digital audio routing.
+A separate NMI is not needed in the base architecture. `DETECT_N` means only physical presence: module readiness is determined through the control interface and recorded by the `{{ref:slot_stat.READY}}` bit.
 
-For example:
+## 9. DMA architecture
 
-Host audio stream → Module A → Host FPGA → Module B → Host FPGA → Main audio output.
+DMA is a logical function of the host FPGA; there is no physical signal for it on the connector, except `GPIO0_DREQ_N`. It services audio streams, module data transfers, and SPI exchange. A shared internal DMA engine with sufficient bandwidth and guaranteed scheduling is acceptable. Four independent physical controllers are not required.
 
-This processing chain is implemented digitally through the FPGA.
+## 10. General-purpose digital pins
 
-A module does not need to be physically connected to another module.
+Two pins are allocated: `GPIO0` (fixed as `DREQ_N`) and `GPIO1` (module-specific). GPIO must not duplicate the functions of SPI, I²C, and the standard control signals.
 
-### 7.4 Audio Processing on Expansion Modules
+## 11. Local DACs and ADCs
 
-An expansion module may:
-- Receive audio from the host.
-- Process audio internally.
-- Return processed audio.
-- Generate audio independently.
-- Return multiple audio channels if supported by the selected TDM configuration.
+The motherboard does not need centralized banks of DACs and ADCs. For example, an analog filter module may contain a multichannel DAC controlled over SPI for cutoff frequency, resonance, gain, modulation depth, or pitch. The resolution, reference voltage, calibration, and update rate are determined by the module itself.
 
-A module may use digital signal processing, analog processing or a hybrid architecture.
+## 12. Analog audio and CV connections
 
-Modules performing analog processing must include their own required ADC and DAC circuitry.
+The base connector contains no analog audio inputs, audio outputs, or CV outputs. This eliminates centralized mixing, input buffers, an analog routing matrix, inter-slot analog routing, and a large number of pins.
 
-Modules processing audio entirely digitally do not require analog converters.
+## 13. Module identification and initialization
 
-### 7.5 Audio Clocking
+Each module contains an ID-EEPROM accessible over I²C. Data: module identifier and type, hardware version, supported audio formats and rates, number of channels, SPI requirements, current consumption, driver compatibility. Physical presence and readiness are different states, and the order in which they are checked is defined in section 4.4.
 
-A programmable or selectable audio clock source should support the common 44.1 kHz and 48 kHz sample-rate families.
+## 14. Power management and safety
 
-A 12.288 MHz clock alone is insufficient for both families.
+The motherboard manages the power of each slot: monitoring, current limiting, inrush current, short-circuit protection, temperature, safe state on reset and startup. "Hot" insertion is not guaranteed by the connector design alone: modules are installed and removed with power off unless otherwise provided and separately verified. Future hot-plug will require verification of the pin mating sequence, power switching, and signal isolation.
 
-The exact master-clock frequencies, TDM frame format, channel count, sample width and timing requirements remain to be specified.
+## 15. Project priorities
 
-## 8. System Control Signals
-
-The preliminary control signal set is:
-
-- RESET_N — host/system reset.
-- PERIPH_RST_N — independent reset for the module in each slot.
-- INT_N — module interrupt request.
-- DETECT_N — physical module presence detection.
-
-Each slot has its own peripheral reset and module detection connection.
-
-Interrupt handling may be implemented independently per slot.
-
-A separate NMI signal is not required in the baseline architecture.
-
-DETECT_N indicates physical presence only. Module initialization and operational readiness must be determined through the management interface.
-
-## 9. DMA Architecture
-
-DMA is implemented as a logical function of the host FPGA.
-
-It is not a dedicated physical signal on the expansion connector.
-
-The FPGA provides DMA access for:
-- Audio input streams.
-- Audio output streams.
-- Module data transfers.
-- Peripheral communication where appropriate.
-
-The architecture should support independent logical DMA endpoints for the expansion slots.
-
-A shared DMA engine may be used internally, provided it offers adequate bandwidth and scheduling guarantees.
-
-The design does not require four independent physical DMA controllers.
-
-## 10. General-Purpose Digital I/O
-
-A small number of GPIO signals should be available per slot.
-
-Possible applications:
-- Module-specific status signals.
-- Hardware synchronization.
-- Additional control signals.
-- Experimental peripheral interfaces.
-
-The final number of GPIO contacts must be determined during pin allocation.
-
-GPIO should not duplicate functionality already provided efficiently by SPI, I²C or the standard control signals.
-
-## 11. Local DAC and ADC Architecture
-
-AMEB does not require centralized CV DAC or ADC banks on the motherboard.
-
-Expansion modules generate their own analog control voltages when required.
-
-For example, an analog filter module may contain a multichannel DAC controlled through SPI.
-
-Its DAC channels may control:
-- Filter cutoff.
-- Resonance.
-- Gain.
-- Modulation depth.
-- Oscillator pitch.
-- Other module-specific parameters.
-
-Local ADCs may be used to measure external analog signals or module parameters.
-
-DAC resolution, ADC resolution, reference voltage, calibration and update requirements are determined by each module's application.
-
-The motherboard does not need to provide a fixed number of CV outputs for every possible expansion module.
-
-## 12. Analog Audio and CV Connections
-
-The baseline AMEB connector does not provide dedicated analog audio input/output connections.
-
-It also does not provide dedicated CV input/output connections.
-
-Analog audio processing takes place locally on expansion modules.
-
-Digital audio streams are used to exchange audio between the host and modules.
-
-This avoids:
-- Centralized analog mixing circuits.
-- Multiple analog input buffers.
-- Analog routing matrices.
-- Analog audio cross-slot wiring.
-- A large number of analog connector contacts.
-
-Modules requiring analog audio processing must implement their own local conversion and analog signal paths.
-
-## 13. Module Identification and Initialization
-
-Each module should provide identification and configuration information.
-
-The preferred mechanism is an identification EEPROM or equivalent device accessible through I²C.
-
-The identification data may include:
-- Module identifier.
-- Hardware revision.
-- Module type.
-- Supported audio formats.
-- Supported sample rates.
-- Available audio channels.
-- SPI configuration requirements.
-- Power requirements.
-- Firmware or driver compatibility information.
-
-Physical presence detection and module readiness are separate states.
-
-## 14. Power Management and Safety
-
-The motherboard must manage the power supplied to each slot.
-
-The design should consider:
-- Per-slot power monitoring.
-- Current limits.
-- Inrush current.
-- Short-circuit protection.
-- Thermal considerations.
-- Safe reset and startup states.
-
-Hot-plug operation is not guaranteed by the connector alone.
-
-Unless explicitly designed and validated, modules should be installed and removed with system power disabled.
-
-If hot-plug capability is required in a future revision, connector sequencing, power switching and signal isolation must be designed accordingly.
-
-## 15. Preliminary 40-Pin Allocation
-
-The following is a functional pin budget, not a final numbered connector pinout.
-
-| Group | Signals | Contacts |
-|---|---|---:|
-| Digital power | +3.3 V ×2 | 2 |
-| Digital ground | DGND ×4 | 4 |
-| Analog power | +12 V ×2, −12 V ×2 | 4 |
-| Analog ground | AGND ×4 | 4 |
-| SPI | SCK, MOSI, MISO, CS_N | 4 |
-| I²C | SDA, SCL | 2 |
-| Control | RESET_N, PERIPH_RST_N, INT_N, DETECT_N | 4 |
-| Digital audio | BCLK, LRCLK/FS, MCLK, DOUT, DIN | 5 |
-| GPIO | GPIO0–GPIO3 | 4 |
-| Reserved | Future use | 7 |
-| **Total** | | **40** |
-
-Duplicated power and ground contacts are preliminary provisions for current capacity and return-path quality. Their final number must be verified against the connector specifications and electrical load calculations.
-
-Reserved contacts should not be assigned prematurely. They may later be used for additional grounds, hardware requests, synchronization or future interface extensions.
-
-## 16. Design Priorities
-
-The AMEB standard should prioritize:
-
-1. Low overall system cost.
-2. Minimal motherboard component count.
+1. Low overall cost.
+2. Minimum number of components on the motherboard.
 3. Simple and repeatable module design.
-4. Independent operation of expansion modules.
+4. Independent operation of modules.
 5. Reliable multichannel digital audio.
 6. Local analog processing.
-7. Efficient FPGA resource utilization.
-8. Expandability without unnecessary connector complexity.
+7. Efficient use of FPGA resources.
+8. Expandability without complicating the connector.
 
-The architecture should not require every module to implement every available feature.
+A simple digital module must remain inexpensive, and a complex hybrid module must implement any analog circuit locally, without additional analog sections on the motherboard.
 
-A simple digital module should remain inexpensive.
+## 16. Open questions
 
-A sophisticated hybrid audio module should be able to implement complex local analog circuitry without requiring additional centralized analog hardware on the motherboard.
-
-## 17. Open Items for the Next Revision
-
-The following parameters remain to be finalized:
-
-- Exact connector type and pin numbering.
-- Electrical current limits for each power rail.
-- Total motherboard power budget for four slots.
-- Final choice between ±12 V and ±15 V analog power.
-- Exact TDM or multichannel audio protocol.
-- Audio sample rates and supported channel counts.
-- Audio data width and frame format.
-- Audio clock generation and distribution.
-- GPIO count and electrical characteristics.
-- Interrupt electrical configuration.
-- I²C address allocation.
-- Reset timing and power sequencing.
-- Signal voltage levels and protection requirements.
-- Whether hardware DMA request signals are needed.
+{{auto:open_items}}
 
 ---
 
-**Architectural Summary**
+**Architecture summary**
 
-AMEB is a digital expansion bus with multichannel digital audio, independent SPI control per slot, shared I²C management and centrally supplied bipolar analog power.
-
-Analog audio generation, conversion and processing are local to expansion modules.
-
-The host FPGA provides digital communication, audio routing, DMA and system coordination.
-
-The objective is to create a flexible but economical expansion architecture for a general-purpose computer, without turning the motherboard into a centralized analog synthesizer system.
+AMEB-36 is a digital expansion bus on a {{const:PINS}}-pin PCIe x1 connector with independent SPI per slot, a hardware I²C controller with a multiplexer, multichannel digital audio ({{const:BCLK_MHZ}} MHz, {{const:FS_KHZ}} kHz), and bipolar analog power from the host. Analog processing is fully local to the modules, while the host FPGA provides digital communication, audio routing, DMA, and system coordination.

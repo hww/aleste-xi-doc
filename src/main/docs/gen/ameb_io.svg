@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="544.8" height="560" viewBox="0 0 544.8 560">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="544.8" height="560" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">AMEB I/O port map (preliminary)</text>
+<text x="32" y="62" font-size="14" fill="#555555">8-bit address space</text>
+<rect x="74.8" y="96" width="340" height="58" fill="#F6E8DC" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="121.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">AUDIO</text>
+<text x="244.8" y="137" font-size="11" text-anchor="middle" fill="#555555">Audio routing and control (TBD)</text>
+<text x="426.8" y="129" font-size="11" text-anchor="start" fill="#555555">rw · 16 B</text>
+<text x="66.8" y="107" font-size="12" text-anchor="end" fill="#000000" class="m">0x2F</text>
+<text x="66.8" y="151" font-size="12" text-anchor="end" fill="#000000" class="m">0x20</text>
+<rect x="74.8" y="154" width="340" height="58" fill="#E6F2DC" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="179.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">SPI3</text>
+<text x="244.8" y="195" font-size="11" text-anchor="middle" fill="#555555">SPI, slot 3</text>
+<text x="426.8" y="187" font-size="11" text-anchor="start" fill="#555555">rw · 4 B</text>
+<text x="66.8" y="165" font-size="12" text-anchor="end" fill="#000000" class="m">0x1F</text>
+<text x="66.8" y="209" font-size="12" text-anchor="end" fill="#000000" class="m">0x1C</text>
+<rect x="74.8" y="212" width="340" height="58" fill="#E6F2DC" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="237.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">SPI2</text>
+<text x="244.8" y="253" font-size="11" text-anchor="middle" fill="#555555">SPI, slot 2</text>
+<text x="426.8" y="245" font-size="11" text-anchor="start" fill="#555555">rw · 4 B</text>
+<text x="66.8" y="223" font-size="12" text-anchor="end" fill="#000000" class="m">0x1B</text>
+<text x="66.8" y="267" font-size="12" text-anchor="end" fill="#000000" class="m">0x18</text>
+<rect x="74.8" y="270" width="340" height="58" fill="#E6F2DC" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="295.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">SPI1</text>
+<text x="244.8" y="311" font-size="11" text-anchor="middle" fill="#555555">SPI, slot 1</text>
+<text x="426.8" y="303" font-size="11" text-anchor="start" fill="#555555">rw · 4 B</text>
+<text x="66.8" y="281" font-size="12" text-anchor="end" fill="#000000" class="m">0x17</text>
+<text x="66.8" y="325" font-size="12" text-anchor="end" fill="#000000" class="m">0x14</text>
+<rect x="74.8" y="328" width="340" height="58" fill="#E6F2DC" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="353.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">SPI0</text>
+<text x="244.8" y="369" font-size="11" text-anchor="middle" fill="#555555">SPI, slot 0</text>
+<text x="426.8" y="361" font-size="11" text-anchor="start" fill="#555555">rw · 4 B</text>
+<text x="66.8" y="339" font-size="12" text-anchor="end" fill="#000000" class="m">0x13</text>
+<text x="66.8" y="383" font-size="12" text-anchor="end" fill="#000000" class="m">0x10</text>
+<rect x="74.8" y="386" width="340" height="34" fill="#FFFFFF" stroke="#888888" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="244.8" y="407" font-size="11" text-anchor="middle" fill="#888888">unmapped</text>
+<text x="66.8" y="397" font-size="12" text-anchor="end" fill="#000000" class="m">0x0F</text>
+<text x="66.8" y="417" font-size="12" text-anchor="end" fill="#000000" class="m">0x0C</text>
+<rect x="74.8" y="420" width="340" height="58" fill="#DCE8F6" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="445.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">I2C</text>
+<text x="244.8" y="461" font-size="11" text-anchor="middle" fill="#555555">I2C controller</text>
+<text x="426.8" y="453" font-size="11" text-anchor="start" fill="#555555">rw · 4 B</text>
+<text x="66.8" y="431" font-size="12" text-anchor="end" fill="#000000" class="m">0x0B</text>
+<text x="66.8" y="475" font-size="12" text-anchor="end" fill="#000000" class="m">0x08</text>
+<rect x="74.8" y="478" width="340" height="58" fill="#DCE8F6" stroke="#000000" stroke-width="1.5"/>
+<text x="244.8" y="503.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">SLOTS</text>
+<text x="244.8" y="519" font-size="11" text-anchor="middle" fill="#555555">Slot power and status</text>
+<text x="426.8" y="511" font-size="11" text-anchor="start" fill="#555555">rw · 8 B</text>
+<text x="66.8" y="489" font-size="12" text-anchor="end" fill="#000000" class="m">0x07</text>
+<text x="66.8" y="533" font-size="12" text-anchor="end" fill="#000000" class="m">0x00</text>
+</svg>

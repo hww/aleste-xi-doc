@@ -22,7 +22,7 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ## ALU Instructions
 
-ALU instructions (class `00` and `01`) perform logical and arithmetic operations. The result is written to `DST` if `nowrite = 0`. Flags (`Z`, `N`, `C`, `V`) are updated according to `F` and the opcode.
+ALU instructions (formats reg-reg, LDI16 and reg-imm11; control class excluded) perform logical, arithmetic, shift and multiply operations. The result is written to `DST` if `WRITE = 1` (bit `[24]`; LDI16 always writes). Flags (`Z`, `N`, `C`, `V`) are updated according to `F` and the opcode.
 
 {{auto:alu_ops}}
 
@@ -30,7 +30,7 @@ ALU instructions (class `00` and `01`) perform logical and arithmetic operations
 
 ## CTRL Instructions
 
-CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JMPR` change `PC`. `HALT` stops the processor. `IRQ` sets the interrupt flag. `FLUSH` starts a background cache flush.
+CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET` change `PC`; `JMPR` is the register-indirect form of `JMP` (`REG = 1`). `HALT` stops the processor. `IRQ` raises an interrupt event with an 8-bit code. `FLUSH` writes back one selected channel and stalls the sequencer until the flush completes (not a background operation).
 
 {{auto:ctrl_ops}}
 
@@ -38,7 +38,7 @@ CTRL instructions (class `10`) control execution flow. `JMP`, `CALL`, `RET`, `JM
 
 ## Conditions
 
-Conditions (`COND`) determine whether an instruction executes. If the condition is false, the instruction does not change state (except `PC`).
+Conditions (`COND`) determine whether an instruction executes. If the condition is false, the instruction does not change state: no register write, no port access, no flag update. The hardware loop update (`L` bit) still runs, so `PC` and `LOOP_CNT` can change on a false-condition word.
 
 {{auto:conditions}}
 

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="677.6" height="416" viewBox="0 0 677.6 416">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="677.6" height="416" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">Slot power-up sequence</text>
+<text x="32" y="62" font-size="14" fill="#555555">±12 V is applied only after the ID-EEPROM check</text>
+<line x1="133.6" y1="108" x2="133.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="169.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">off</text>
+<line x1="205.6" y1="108" x2="205.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="241.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">detect</text>
+<line x1="277.6" y1="108" x2="277.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="313.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">3V3</text>
+<line x1="349.6" y1="108" x2="349.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="385.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">reset off</text>
+<line x1="421.6" y1="108" x2="421.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="457.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">ID read</text>
+<line x1="493.6" y1="108" x2="493.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="529.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">±12V</text>
+<line x1="565.6" y1="108" x2="565.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="601.6" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">ready</text>
+<line x1="637.6" y1="108" x2="637.6" y2="388" stroke="#CCCCCC" stroke-width="1"/>
+<text x="121.6" y="140" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">DETECT_N</text>
+<line x1="133.6" y1="121" x2="205.6" y2="121" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="149" x2="637.6" y2="149" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="121" x2="205.6" y2="149" stroke="#000000" stroke-width="2"/>
+<text x="121.6" y="186" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">V3V3</text>
+<line x1="133.6" y1="195" x2="205.6" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="195" x2="277.6" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="277.6" y1="167" x2="637.6" y2="167" stroke="#000000" stroke-width="2"/>
+<line x1="277.6" y1="167" x2="277.6" y2="195" stroke="#000000" stroke-width="2"/>
+<text x="121.6" y="232" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">PERIPH_RST_N</text>
+<line x1="133.6" y1="241" x2="205.6" y2="241" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="241" x2="277.6" y2="241" stroke="#000000" stroke-width="2"/>
+<line x1="277.6" y1="241" x2="349.6" y2="241" stroke="#000000" stroke-width="2"/>
+<line x1="349.6" y1="213" x2="637.6" y2="213" stroke="#000000" stroke-width="2"/>
+<line x1="349.6" y1="213" x2="349.6" y2="241" stroke="#000000" stroke-width="2"/>
+<text x="121.6" y="278" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">I2C_ACTIVE</text>
+<line x1="133.6" y1="287" x2="205.6" y2="287" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="287" x2="277.6" y2="287" stroke="#000000" stroke-width="2"/>
+<line x1="277.6" y1="287" x2="349.6" y2="287" stroke="#000000" stroke-width="2"/>
+<line x1="349.6" y1="287" x2="421.6" y2="287" stroke="#000000" stroke-width="2"/>
+<line x1="421.6" y1="259" x2="493.6" y2="259" stroke="#000000" stroke-width="2"/>
+<line x1="421.6" y1="259" x2="421.6" y2="287" stroke="#000000" stroke-width="2"/>
+<line x1="493.6" y1="287" x2="637.6" y2="287" stroke="#000000" stroke-width="2"/>
+<line x1="493.6" y1="259" x2="493.6" y2="287" stroke="#000000" stroke-width="2"/>
+<text x="121.6" y="324" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">V12</text>
+<line x1="133.6" y1="333" x2="205.6" y2="333" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="333" x2="277.6" y2="333" stroke="#000000" stroke-width="2"/>
+<line x1="277.6" y1="333" x2="349.6" y2="333" stroke="#000000" stroke-width="2"/>
+<line x1="349.6" y1="333" x2="421.6" y2="333" stroke="#000000" stroke-width="2"/>
+<line x1="421.6" y1="333" x2="493.6" y2="333" stroke="#000000" stroke-width="2"/>
+<line x1="493.6" y1="305" x2="637.6" y2="305" stroke="#000000" stroke-width="2"/>
+<line x1="493.6" y1="305" x2="493.6" y2="333" stroke="#000000" stroke-width="2"/>
+<text x="121.6" y="370" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">READY</text>
+<line x1="133.6" y1="379" x2="205.6" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="205.6" y1="379" x2="277.6" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="277.6" y1="379" x2="349.6" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="349.6" y1="379" x2="421.6" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="421.6" y1="379" x2="493.6" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="493.6" y1="379" x2="565.6" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="565.6" y1="351" x2="637.6" y2="351" stroke="#000000" stroke-width="2"/>
+<line x1="565.6" y1="351" x2="565.6" y2="379" stroke="#000000" stroke-width="2"/>
+<path d="M205.6 149.7 L277.6 166.3" fill="none" stroke="#B00020" stroke-width="1.4" marker-end="url(#arr)"/>
+<circle cx="205.6" cy="149.7" r="2.5" fill="#B00020" stroke="#B00020" stroke-width="0.5"/>
+<text x="248.6" y="162" font-size="11" text-anchor="start" fill="#B00020" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">t_pwr</text>
+<path d="M421.6 287.7 L493.6 304.3" fill="none" stroke="#B00020" stroke-width="1.4" marker-end="url(#arr)"/>
+<circle cx="421.6" cy="287.7" r="2.5" fill="#B00020" stroke="#B00020" stroke-width="0.5"/>
+<text x="464.6" y="300" font-size="11" text-anchor="start" fill="#B00020" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">ID valid</text>
+</svg>

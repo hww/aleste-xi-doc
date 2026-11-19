@@ -1,6 +1,6 @@
 # Register Map
 
-There are 64 operand slots (6 bits) in total. Slots 0..31 are general-purpose registers (R0..R31), 32..39 are system registers, 40..43 are DATA[0..3], 44..47 are reserved, 48..63 are pixel engine channels.
+There are 64 operand slots (6 bits) in total. Slots 0..31 are general-purpose registers (R0..R31), 32..41 are system registers, 42..43 are reserved, 44..47 are DATA[0..3], 48..63 are pixel engine channels.
 
 ## General-Purpose Registers
 
@@ -16,7 +16,7 @@ A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cy
 
 ## System Registers
 
-System registers (32..38, 39 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, and cache status.
+System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, ROM access, and the MUL high half.
 
 {{auto:sysregs}}
 
@@ -24,7 +24,7 @@ System registers (32..38, 39 reserved) are available as a source in any instruct
 
 ## Pixel Engine Channels
 
-Channels (48..63) are 4 sets of 4 registers each: IDX, IDXH, STEP, MODE_PAGE. They are write-only via `MOV`.
+Channels (48..63) are 4 sets of 4 registers each: IDX (48..51), IDXH (52..55), STEP (56..59), MODE_PAGE (60..63), one slot per channel CH0..CH3. They are write-only via `MOV`.
 
 {{auto:channels}}
 
@@ -32,9 +32,8 @@ Channels (48..63) are 4 sets of 4 registers each: IDX, IDXH, STEP, MODE_PAGE. Th
 
 ## DATA[0..3]
 
-DATA[0..3] (40..43) are pixel engine temporary registers. Reading triggers a pixel read operation; writing triggers a pixel write operation.
+DATA[0..3] (44..47) are the pixel ports of channels CH0..CH3 (the low two bits of the operand select the channel). Reading triggers a pixel read operation; writing triggers a pixel write operation.
 
 {{auto:data_regs}}
 
 *Fig. 8. DATA registers.*
-
