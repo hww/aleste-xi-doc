@@ -134,12 +134,14 @@ name: channel_mode
 title: "CHANNEL FORMAT (fmt, 3 bits)"
 width: 3
 entries:
-  - {value: 0, name: "1 bpp",    description: "16 pixels per word (k=4); SOURCE ONLY, writes forbidden"}
-  - {value: 1, name: "2 bpp",    description: "8 pixels per word (k=3)"}
-  - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = high nibble"}
-  - {value: 3, name: "8 bpp",    description: "2 pixels per word (k=1); pos 0 = high byte"}
-  - {value: 4, name: "16 bpp",   description: "1 pixel per word (k=0)"}
-
+  - {value: 0, name: "16 bpp",   description: "1 pixel per word (k=0)"}
+  - {value: 1, name: "8 bpp",    description: "2 pixels per word (k=1); pos 0 = low byte (even address)"}
+  - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = low nibble"}
+  - {value: 3, name: "2 bpp",    description: "8 pixels per word (k=3); SOURCE ONLY, writes forbidden"}
+  - {value: 4, name: "1 bpp",    description: "16 pixels per word (k=4); SOURCE ONLY, writes forbidden"}
+  - {value: 5, name: "LO8",      description: "Pass-through low byte [7:0] (k=0, word step)"}
+  - {value: 6, name: "HI8",      description: "Pass-through high byte [15:8] (k=0, word step)"}
+  - {value: 7, name: "RESERVED", description: "Reserved, writes forbidden"}
 ---
 kind: memmap
 name: memory_map
