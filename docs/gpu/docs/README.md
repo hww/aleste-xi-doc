@@ -16,7 +16,7 @@ A programmable 2D graphics coprocessor for the Z80. It has a 16-bit microcore, f
 ## Architecture (Russian)
 
 - [00_history.ru.md](00_history.ru.md) — the philosophy of programmable graphics.
-- [08_guide.ru.md](08_guide.ru.md) — the philosophy of programmable graphics.
+- [08_guide.ru.md](08_guide.ru.md) — user guide.
 
 ## What is intentionally not done
 
