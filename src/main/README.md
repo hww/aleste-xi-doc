@@ -144,11 +144,9 @@ Provides practical examples illustrating the BIOS interfaces and their use by so
 
 ### 17. BIOS Examples
 
-[Hardware System Timer](./doc/16-bios-example.md)
+[Hardware System Timer](./doc/17-systime.md)
 
 This document defines the requirements for the hardware system timer of the Alesta LX platform based on the Z80 CPU and FPGA.
-
-17-systime.md
 
 ## Reading Order
 
