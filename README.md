@@ -220,23 +220,3 @@ This creates a platform in which classic 8-bit programming techniques can coexis
 
 The objective is not simply to recreate a historical computer, but to explore what an 8-bit Aleste platform can become when designed with modern technology and architectural freedom.
 
-## Decorations
-
-Use this decorations for text blocks
-
-> [!WARNING]
->
-> A warning text.
-
-> [!CAUTION]
-> 
-> A warning text.
-
-> [!IMPORTANT]
->
-> Important text
-
-> [!TIP]
->
-> Tip text
-
