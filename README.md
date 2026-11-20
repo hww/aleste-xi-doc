@@ -224,18 +224,14 @@ The objective is not simply to recreate a historical computer, but to explore wh
 
 Use this decorations for text blocks
 
-> [!INFO]
-> 
-> A warning text.
-
 > [!WARNING]
 >
 > A warning text.
 
-> [!ERROR]
+> [!CAUTION]
 > 
 > A warning text.
- 
+
 > [!IMPORTANT]
 >
 > Important text
