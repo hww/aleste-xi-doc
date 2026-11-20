@@ -229,6 +229,10 @@
 
 ## Blitter Register Map (lx_dma.sv)
 
+![Blitter Register Map (lx_dma.sv)](gen/dma_blitter_map.svg)
+
+*Figure 9 — Blitter Register Map (lx_dma.sv)*
+
 **Table 12 — Blitter Register Map (lx_dma.sv)**
 
 | Offset | Name | Description |
@@ -365,6 +369,10 @@
 [Таблица](gen/dma_blitter_modes.md)
 
 ## SysDMA Register Map (wb_dma.sv)
+
+![SysDMA Register Map (wb_dma.sv)](gen/dma_sysdma_map.svg)
+
+*Figure 10 — SysDMA Register Map (wb_dma.sv)*
 
 **Table 13 — SysDMA Register Map (wb_dma.sv)**
 
@@ -616,7 +624,7 @@
 
 ![Logical Slots](gen/io_slots.svg)
 
-*Figure 9 — Logical Slots*
+*Figure 11 — Logical Slots*
 
 **Table 25 — Logical Slots**
 
@@ -640,7 +648,7 @@ MARKDOWN_TABLE_HERE
 
 ![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
 
-*Figure 10 — GLOBAL_CTRL (F0h)*
+*Figure 12 — GLOBAL_CTRL (F0h)*
 
 **Table 26 — GLOBAL_CTRL (F0h)**
 
@@ -748,7 +756,7 @@ MARKDOWN_TABLE_HERE
 
 ![Logical Slots (16-bit Z80 address space)](gen/mmu_slots.svg)
 
-*Figure 11 — Logical Slots (16-bit Z80 address space)*
+*Figure 13 — Logical Slots (16-bit Z80 address space)*
 
 **Table 32 — Logical Slots (16-bit Z80 address space)**
 

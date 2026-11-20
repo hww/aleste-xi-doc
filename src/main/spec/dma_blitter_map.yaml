@@ -2,8 +2,7 @@ kind: regmap
 name: dma_blitter_map
 title: "Blitter Register Map (lx_dma.sv)"
 width: 8
-view: [table]
-
+view: [diagram, table]
 registers:
   - offset: 0x00
     name: "CTRL"

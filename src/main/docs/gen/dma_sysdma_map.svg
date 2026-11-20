@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="471.6" height="660" viewBox="0 0 471.6 660">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="471.6" height="660" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">SysDMA Register Map (wb_dma.sv)</text>
+<text x="32" y="62" font-size="14" fill="#555555">8-bit registers</text>
+<text x="169.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">7</text>
+<text x="205.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">6</text>
+<text x="241.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">5</text>
+<text x="277.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">4</text>
+<text x="313.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">3</text>
+<text x="349.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">2</text>
+<text x="385.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">1</text>
+<text x="421.6" y="102" font-size="11" text-anchor="middle" fill="#444444" class="m">0</text>
+<text x="32" y="132" font-size="13" text-anchor="start" fill="#000000" font-weight="700">SRC_ADDR[ch]</text>
+<text x="32" y="148" font-size="11" text-anchor="start" fill="#555555" class="m">0x00</text>
+<rect x="151.6" y="112" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="112" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="295.6" y="139.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR</text>
+<line x1="187.6" y1="112" x2="187.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="112" x2="223.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="112" x2="259.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<line x1="295.6" y1="112" x2="295.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<line x1="331.6" y1="112" x2="331.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="112" x2="367.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="112" x2="403.6" y2="118.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="192" font-size="13" text-anchor="start" fill="#000000" font-weight="700">DST_ADDR[ch]</text>
+<text x="32" y="208" font-size="11" text-anchor="start" fill="#555555" class="m">0x10</text>
+<rect x="151.6" y="172" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="172" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="295.6" y="199.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">ADDR</text>
+<line x1="187.6" y1="172" x2="187.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="172" x2="223.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="172" x2="259.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="295.6" y1="172" x2="295.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="331.6" y1="172" x2="331.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="172" x2="367.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="172" x2="403.6" y2="178.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="252" font-size="13" text-anchor="start" fill="#000000" font-weight="700">COUNT[ch]</text>
+<text x="32" y="268" font-size="11" text-anchor="start" fill="#555555" class="m">0x20</text>
+<rect x="151.6" y="232" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="232" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="295.6" y="259.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">COUNT</text>
+<line x1="187.6" y1="232" x2="187.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="232" x2="223.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="232" x2="259.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="295.6" y1="232" x2="295.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="331.6" y1="232" x2="331.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="232" x2="367.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="232" x2="403.6" y2="238.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="312" font-size="13" text-anchor="start" fill="#000000" font-weight="700">CONTROL[ch]</text>
+<text x="32" y="328" font-size="11" text-anchor="start" fill="#555555" class="m">0x30</text>
+<rect x="151.6" y="292" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="292" width="72" height="46" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
+<text x="187.6" y="319.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
+<line x1="187.6" y1="292" x2="187.6" y2="298.4" stroke="#000000" stroke-width="1"/>
+<rect x="223.6" y="292" width="36" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="241.6" y="318.1" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">MODE</text>
+<rect x="259.6" y="292" width="36" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="277.6" y="318.1" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">ENAB…</text>
+<rect x="295.6" y="292" width="72" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="331.6" y="318.9" font-size="11" text-anchor="middle" fill="#000000" font-weight="700">DST_CTRL</text>
+<line x1="331.6" y1="292" x2="331.6" y2="298.4" stroke="#000000" stroke-width="1"/>
+<rect x="367.6" y="292" width="72" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="403.6" y="318.9" font-size="11" text-anchor="middle" fill="#000000" font-weight="700">SRC_CTRL</text>
+<line x1="403.6" y1="292" x2="403.6" y2="298.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="372" font-size="13" text-anchor="start" fill="#000000" font-weight="700">STATUS[ch]</text>
+<text x="32" y="388" font-size="11" text-anchor="start" fill="#555555" class="m">0x31</text>
+<rect x="151.6" y="352" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="352" width="216" height="46" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
+<text x="259.6" y="379.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
+<line x1="187.6" y1="352" x2="187.6" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="352" x2="223.6" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="352" x2="259.6" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="295.6" y1="352" x2="295.6" y2="358.4" stroke="#000000" stroke-width="1"/>
+<line x1="331.6" y1="352" x2="331.6" y2="358.4" stroke="#000000" stroke-width="1"/>
+<rect x="367.6" y="352" width="36" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="385.6" y="378.5" font-size="10" text-anchor="middle" fill="#000000" font-weight="700" transform="rotate(-90 385.6 378.5)">ERROR</text>
+<rect x="403.6" y="352" width="36" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="421.6" y="378.5" font-size="10" text-anchor="middle" fill="#000000" font-weight="700">DONE</text>
+<text x="32" y="432" font-size="13" text-anchor="start" fill="#000000" font-weight="700">IMASK</text>
+<text x="32" y="448" font-size="11" text-anchor="start" fill="#555555" class="m">0x40</text>
+<rect x="151.6" y="412" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="412" width="144" height="46" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
+<text x="223.6" y="439.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
+<line x1="187.6" y1="412" x2="187.6" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="412" x2="223.6" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="412" x2="259.6" y2="418.4" stroke="#000000" stroke-width="1"/>
+<rect x="295.6" y="412" width="144" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="367.6" y="439.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">MASK</text>
+<line x1="331.6" y1="412" x2="331.6" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="412" x2="367.6" y2="418.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="412" x2="403.6" y2="418.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="492" font-size="13" text-anchor="start" fill="#000000" font-weight="700">DONE_CLEAR</text>
+<text x="32" y="508" font-size="11" text-anchor="start" fill="#555555" class="m">0x41</text>
+<rect x="151.6" y="472" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="472" width="144" height="46" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
+<text x="223.6" y="499.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
+<line x1="187.6" y1="472" x2="187.6" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="472" x2="223.6" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="472" x2="259.6" y2="478.4" stroke="#000000" stroke-width="1"/>
+<rect x="295.6" y="472" width="144" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="367.6" y="499.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">CLR</text>
+<line x1="331.6" y1="472" x2="331.6" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="472" x2="367.6" y2="478.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="472" x2="403.6" y2="478.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="552" font-size="13" text-anchor="start" fill="#000000" font-weight="700">ERROR_CLEAR</text>
+<text x="32" y="568" font-size="11" text-anchor="start" fill="#555555" class="m">0x42</text>
+<rect x="151.6" y="532" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="532" width="144" height="46" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
+<text x="223.6" y="559.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
+<line x1="187.6" y1="532" x2="187.6" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="532" x2="223.6" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="532" x2="259.6" y2="538.4" stroke="#000000" stroke-width="1"/>
+<rect x="295.6" y="532" width="144" height="46" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="367.6" y="559.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">CLR</text>
+<line x1="331.6" y1="532" x2="331.6" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="532" x2="367.6" y2="538.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="532" x2="403.6" y2="538.4" stroke="#000000" stroke-width="1"/>
+<text x="32" y="612" font-size="13" text-anchor="start" fill="#000000" font-weight="700">VERSION</text>
+<text x="32" y="628" font-size="11" text-anchor="start" fill="#555555" class="m">0x43</text>
+<rect x="151.6" y="592" width="288" height="46" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<rect x="151.6" y="592" width="288" height="46" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="295.6" y="619.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">VER</text>
+<line x1="187.6" y1="592" x2="187.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="223.6" y1="592" x2="223.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="259.6" y1="592" x2="259.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="295.6" y1="592" x2="295.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="331.6" y1="592" x2="331.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="367.6" y1="592" x2="367.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+<line x1="403.6" y1="592" x2="403.6" y2="598.4" stroke="#000000" stroke-width="1"/>
+</svg>

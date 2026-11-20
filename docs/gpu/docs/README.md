@@ -12,6 +12,7 @@ A programmable 2D graphics coprocessor for the Z80. It has a 16-bit microcore, f
 - [05_pixel_engine.md](05_pixel_engine.md) — pixel formats, index/step, pixel path, timing.
 - [06_gpu_cache.md](06_gpu_cache.md) — cache structure, FSM.
 - [07_fpga_top.md](07_fpga_top.md) — block diagram, execution protocol.
+- [09_retro_gfx_rev2.md](09_retro_gfx_rev2.md) - retro graphics effects: technical reference
 
 ## Architecture (Russian)
 

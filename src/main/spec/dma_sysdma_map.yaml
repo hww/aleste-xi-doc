@@ -2,8 +2,7 @@ kind: regmap
 name: dma_sysdma_map
 title: "SysDMA Register Map (wb_dma.sv)"
 width: 8
-view: [table]
-
+view: [diagram, table]
 registers:
   - offset: 0x00
     name: "SRC_ADDR[ch]"
