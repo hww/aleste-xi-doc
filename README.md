@@ -142,6 +142,12 @@ Describes the driver model, method dispatch, and the contracts between applicati
 
 Provides practical examples illustrating the BIOS interfaces and their use by software components.
 
+### 17. BIOS Examples
+
+[Hardware System Timer](./docs/main/docs/17-systime.md)
+
+This document defines the requirements for the hardware system timer of the Alesta LX platform based on the Z80 CPU and FPGA.
+
 ### Appendixes 
 
 [Aleste LX Video Subsystem — Programmer's Documentation](./docs/gfx/docs/README.md)
