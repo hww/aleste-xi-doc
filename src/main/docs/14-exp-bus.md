@@ -61,7 +61,7 @@ The PCIe key between positions 11 and 12 divides the slot into two zones:
 
 This gives a natural separation on the motherboard and on the module: analog stays on one edge, and the 24 MHz clock lines are behind the key.
 
-{{auto:ameb_connector}}
+{{auto:ameb_pcie_edge}}
 
 The pin balance is described in {{table:pin_groups}}. There is no free reserve: four NC positions are occupied for protection reasons.
 

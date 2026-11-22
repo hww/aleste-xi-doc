@@ -17,7 +17,7 @@ values:
   - {name: I_3V3_MA,   value: 300,    description: "Guideline current +3.3 V per slot, mA (ASSUMPTION, not a calculation)"}
   - {name: I_12V_MA,   value: 50,     description: "Guideline current of each ±12 V rail per slot, mA (ASSUMPTION, not a calculation)"}
 ---
-# Connector pinout. ASSUMPTION: pin accepts strings "A1".."B18", and dir accepts the values pwr, gnd, nc.
+# Connector pinout. ASSUMPTION: pin accepts strings "A1".."B18", and dir accepts the values power, gnd, nc.
 # If the generator does not support this, numeric numbering or an extension is needed.
 kind: pins
 name: ameb_connector
@@ -25,14 +25,14 @@ title: "AMEB-36 slot connector (PCIe x1, 36 pins; key between positions 11 and 1
 symbol: AMEB_SLOT
 pins:
   # Zone 1 (positions 1-11): power, analog, slow signals
-  - {name: "+12V(1)",      dir: pwr,   pin: "B1",  group: power_analog,  description: "Analog power +12 V"}
-  - {name: "+12V(2)",      dir: pwr,   pin: "B2",  group: power_analog,  description: "Analog power +12 V"}
+  - {name: "+12V(1)",      dir: power,   pin: "B1",  group: power_analog,  description: "Analog power +12 V"}
+  - {name: "+12V(2)",      dir: power,   pin: "B2",  group: power_analog,  description: "Analog power +12 V"}
   - {name: NC_B3,          dir: nc,    pin: "B3",  group: nc,            description: "In PCIe this is +12 V; not connected"}
   - {name: AGND(1),        dir: gnd,   pin: "B4",  group: ground_analog}
   - {name: I2C_SCL,        dir: inout, pin: "B5",  group: i2c,           description: "Matches SMCLK in PCIe"}
   - {name: I2C_SDA,        dir: inout, pin: "B6",  group: i2c,           description: "Matches SMDAT in PCIe"}
   - {name: DGND(1),        dir: gnd,   pin: "B7",  group: ground_digital}
-  - {name: "+3V3(1)",      dir: pwr,   pin: "B8",  group: power_digital, description: "Digital power +3.3 V"}
+  - {name: "+3V3(1)",      dir: power,   pin: "B8",  group: power_digital, description: "Digital power +3.3 V"}
   - {name: SPI_CS_N,       dir: out,   pin: "B9",  group: spi,           active_low: true, description: "Module select"}
   - {name: NC_B10,         dir: nc,    pin: "B10", group: nc,            description: "In PCIe this is +3.3 V aux; not connected"}
   - {name: INT_N,          dir: in,    pin: "B11", group: control,       active_low: true, description: "Interrupt request from the module"}
@@ -40,12 +40,12 @@ pins:
   - {name: NC_A2,          dir: nc,    pin: "A2",  group: nc,            description: "In PCIe this is +12 V; not connected"}
   - {name: NC_A3,          dir: nc,    pin: "A3",  group: nc,            description: "In PCIe this is +12 V; not connected"}
   - {name: AGND(2),        dir: gnd,   pin: "A4",  group: ground_analog}
-  - {name: "-12V",         dir: pwr,   pin: "A5",  group: power_analog,  description: "Analog power −12 V"}
+  - {name: "-12V",         dir: power,   pin: "A5",  group: power_analog,  description: "Analog power −12 V"}
   - {name: AGND(3),        dir: gnd,   pin: "A6",  group: ground_analog}
   - {name: GPIO0_DREQ_N,   dir: in,    pin: "A7",  group: gpio,          active_low: true, description: "Module is ready for data exchange (DMA request)"}
   - {name: GPIO1,          dir: inout, pin: "A8",  group: gpio,          description: "Module-specific"}
-  - {name: "+3V3(2)",      dir: pwr,   pin: "A9",  group: power_digital}
-  - {name: "+3V3(3)",      dir: pwr,   pin: "A10", group: power_digital}
+  - {name: "+3V3(2)",      dir: power,   pin: "A9",  group: power_digital}
+  - {name: "+3V3(3)",      dir: power,   pin: "A10", group: power_digital}
   - {name: PERIPH_RST_N,   dir: out,   pin: "A11", group: control,       active_low: true, description: "Module reset in the slot"}
   # Zone 2 (positions 12-18): high-speed digital path
   - {name: SPI_SCK,        dir: out,   pin: "B12", group: spi}
@@ -325,3 +325,16 @@ entries:
   - {value: 4, name: "Ports",       description: "Final I/O addresses, DMA over SPI (address, length, DREQ_N control)"}
   - {value: 5, name: "I2C",         description: "4-pair SDA/SCL multiplexer in FPGA or external; EEPROM addresses"}
   - {value: 6, name: "ESD",         description: "TVS arrays, 22–33 Ω series resistors, pin mating sequence"}
+
+---
+# type: edge — два ряда контактов (сторона B сверху, A снизу), позиции вида B14/A3,
+# gap_after: 11 — прорезь-ключ между позициями 11 и 12
+kind: connector
+name: ameb_pcie_edge
+title: "PCIe x1 — Connector's edge"
+pins: ameb_connector
+type: edge
+sides: [B, A]            # верхний ряд — B, нижний — A
+per_row: 18
+gap_after: 11
+orientation: horizontal

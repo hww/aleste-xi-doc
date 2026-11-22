@@ -30,6 +30,7 @@ import copy
 import difflib
 import filecmp
 import hashlib
+import importlib.util
 import html
 import math
 import os
@@ -44,7 +45,7 @@ from types import SimpleNamespace as NS
 
 import yaml
 
-VERSION = "1.5"
+VERSION = "1.6"
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 OUT = ROOT / "out"
@@ -1419,8 +1420,8 @@ def v_pins(spec, P):
             continue
         check_keys(p, ["name", "dir", "width", "description", "group", "active_low", "pin"], f"{where} pin '{p['name']}'", P, "pin key")
         d = str(p.get("dir", "in")).lower()
-        if d not in ("in", "out", "inout", "pwr", "gnd", "nc"):
-            P.diag.err(where, f"pin '{p['name']}': dir must be in | out | inout | pwr | gnd | nc")
+        if d not in ("in", "out", "inout", "power", "gnd", "nc"):
+            P.diag.err(where, f"pin '{p['name']}': dir must be in | out | inout | power | gnd | nc")
             d = "in"
         if str(p["name"]) in seen:
             P.diag.err(where, f"duplicate pin '{p['name']}'")
@@ -1431,6 +1432,16 @@ def v_pins(spec, P):
         P.diag.err(where, "'pins' must be non-empty")
         return
     spec["_pins"] = pins
+
+
+def fmt_pin(v):
+    """Номер вывода: 5 | [3,4,5,6] -> '3-6' | [1,3] -> '1,3'."""
+    if isinstance(v, (list, tuple)):
+        xs = [as_int(x) for x in v]
+        if xs and None not in xs and xs == list(range(xs[0], xs[0] + len(xs))) and len(xs) > 2:
+            return f"{xs[0]}-{xs[-1]}"
+        return ",".join(str(x) for x in v)
+    return str(v)
 
 
 def _pname(p):
@@ -1464,7 +1475,9 @@ def d_pins(spec, P):
         # стрелки направления
         mid = (xs + xe) / 2
         sgn = 1 if (side == "L") == (p.dir != "out") else -1
-        if p.dir == "inout":
+        if p.dir in ("power", "gnd", "nc"):
+            pass
+        elif p.dir == "inout":
             svg.path(f"M{n(mid - 6)} {n(y)} L{n(mid - 1)} {n(y - 4)} M{n(mid - 6)} {n(y)} L{n(mid - 1)} {n(y + 4)} M{n(mid + 6)} {n(y)} L{n(mid + 1)} {n(y - 4)} M{n(mid + 6)} {n(y)} L{n(mid + 1)} {n(y + 4)}", sw=1.3)
         else:
             tip = mid + 6 * sgn
@@ -1474,7 +1487,7 @@ def d_pins(spec, P):
             svg.line(sx - 3, y + 5, sx + 3, y - 5, INK, 1.3)
             svg.text(sx, y - 8, str(p.width), 10, mono=True, fill=GRAY_TXT)
         if p.pin is not None:
-            svg.text(xs + (4 if side == "L" else -4), y + 15, str(p.pin), 9.5, "start" if side == "L" else "end", mono=True, fill=GRAY_TXT)
+            svg.text(xs + (4 if side == "L" else -4), y + 15, fmt_pin(p.pin), 9.5, "start" if side == "L" else "end", mono=True, fill=GRAY_TXT)
         tx = x0 + 10 if side == "L" else x0 + bw - 10
         svg.text(tx, y + 4, _pname(p), 13, "start" if side == "L" else "end", mono=True, bold=True, over=p.low)
 
@@ -1495,7 +1508,7 @@ def t_pins(spec, P):
     rows = []
     for p in pins:
         nm = ("~" if p.low else "") + p.name
-        row = [f'<a id="{anchor_id(p.name)}"></a>**{nm}**'] + ([p.pin] if hp else []) + [p.dir, p.width] + ([p.group] if hg else []) + [p.desc]
+        row = [f'<a id="{anchor_id(p.name)}"></a>**{nm}**'] + ([fmt_pin(p.pin) if p.pin is not None else None] if hp else []) + [p.dir, p.width] + ([p.group] if hg else []) + [p.desc]
         rows.append(row)
     return md_table(hd, rows) + notes_md(spec)
 
@@ -1555,6 +1568,84 @@ KINDS = {
     "pins":     dict(v=v_pins, diagram=d_pins, table=t_pins, anchors=a_pins, views=["diagram", "table"]),
     "const":    dict(v=v_const, diagram=None, table=t_const, anchors=a_const, views=["table"]),
 }
+
+
+# =============================================================================
+#  Плагины
+# =============================================================================
+DIRECTIVES = {}          # имя -> fn(arg, ctx, P) -> str     ({{имя:arg}} в Markdown)
+KIND_OWNER = {}          # kind -> файл плагина, который его зарегистрировал
+PLUGIN_INFO = []         # для печати: (файл, [kinds], [directives])
+_CURRENT_PLUGIN = [None]
+API_VERSION = 1
+
+
+def register_kind(name, validate, diagram=None, table=None, anchors=None, views=None, order=0, help=None, override=False):
+    """Зарегистрировать новую сущность.
+    validate(spec, P)       — проверка и разбор; ошибки: P.diag.err(where, msg); результат класть в spec['_...'].
+    diagram(spec, P) -> str — SVG (или None);   table(spec, P) -> str — Markdown (или None).
+    anchors(spec) -> set    — имена, на которые можно ссылаться {{ref:NAME.xxx}}.
+    order                   — порядок валидации (плагин, зависящий от других сущностей, ставит order=1).
+    help=(описание, пример YAML) для команд explain / new / kinds."""
+    cur = _CURRENT_PLUGIN[0]
+    if name in KINDS and not override and KIND_OWNER.get(name) != cur:
+        raise ValueError(f"kind '{name}' already exists (owner: {KIND_OWNER.get(name, 'core')})")
+    if views is None:
+        views = [v for v, f in (("diagram", diagram), ("table", table)) if f]
+    KINDS[name] = dict(v=validate, diagram=diagram, table=table, anchors=anchors or (lambda s: set()), views=views, order=order)
+    KIND_OWNER[name] = cur
+    if help:
+        HELP[name] = help
+
+
+def register_directive(name, fn):
+    """{{name:arg}} в Markdown вызовет fn(arg, ctx, P) и подставит возвращённую строку."""
+    if name in ("ref", "figure", "table", "auto", "const", "include"):
+        raise ValueError(f"directive '{name}' is built in")
+    DIRECTIVES[name] = fn
+
+
+def make_api():
+    """Всё, что доступно плагину (плагин не импортирует buildex, а получает это в register(api))."""
+    return NS(version=API_VERSION, register_kind=register_kind, register_directive=register_directive,
+              Svg=Svg, svg_doc=svg_doc, tw=tw, n=n, esc=esc, md_table=md_table, md_cell=md_cell, notes_md=notes_md,
+              check_keys=check_keys, as_int=as_int, as_list=as_list, anchor_id=anchor_id, W_=W_, BASE_KEYS=BASE_KEYS,
+              NS=NS, difflib=difflib, math=math, fmt_pin=fmt_pin, hexw=hexw, fmt_size=fmt_size,
+              INK=INK, GRAY_TXT=GRAY_TXT, FILL_A=FILL_A, FILL_B=FILL_B, FILL_FIXED=FILL_FIXED, GROUP_FILLS=GROUP_FILLS,
+              KINDS=KINDS)
+
+
+def load_plugins(pdir, label=""):
+    """Загружает *.py из папки (файлы на '_' пропускаются). Каждый плагин обязан иметь register(api)."""
+    pdir = Path(pdir)
+    if not pdir.exists():
+        return
+    for f in sorted(pdir.glob("*.py")):
+        if f.name.startswith("_"):
+            continue
+        k0, d0 = set(KINDS), set(DIRECTIVES)
+        _CURRENT_PLUGIN[0] = f.resolve()
+        try:
+            spec = importlib.util.spec_from_file_location(f"buildex_plugin_{f.stem}", f)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            if not hasattr(mod, "register"):
+                raise AttributeError("no register(api) function")
+            mod.register(make_api())
+            PLUGIN_INFO.append((f"{label}{f.name}", sorted(set(KINDS) - k0), sorted(set(DIRECTIVES) - d0)))
+        except Exception as e:                       # плагин не должен ронять сборку
+            PLUGIN_INFO.append((f"{label}{f.name}", None, f"{type(e).__name__}: {e}"))
+        finally:
+            _CURRENT_PLUGIN[0] = None
+
+
+def print_plugins():
+    for name, kinds, extra in PLUGIN_INFO:
+        if kinds is None:
+            print(f"  ⚠️  plugin {name} failed: {extra}")
+        else:
+            bits = ([f"kinds: {', '.join(kinds)}"] if kinds else []) + ([f"directives: {', '.join(extra)}"] if extra else [])
+            print(f"  plugin {name}" + (f"  ({'; '.join(bits)})" if bits else ""))
 
 
 # =============================================================================
@@ -1813,7 +1904,13 @@ def expand(text, ctx, stack=()):
                 P.diag.err(ctx.where, f"include cycle at '{arg}'")
                 return ""
             return expand(p.read_text(encoding="utf-8"), ctx, stack + (rp,))
-        P.diag.err(ctx.where, f"unknown directive '{{{{{d}:...}}}}'")
+        if d in DIRECTIVES:
+            try:
+                return str(DIRECTIVES[d](arg, ctx, P))
+            except Exception as e:
+                P.diag.err(ctx.where, f"directive '{d}' failed: {type(e).__name__}: {e}")
+                return m.group(0)
+        P.diag.err(ctx.where, f"unknown directive '{{{{{d}:...}}}}'" + f" (known: {', '.join(sorted(['ref', 'figure', 'table', 'auto', 'const', 'include'] + list(DIRECTIVES)))})")
         return m.group(0)
 
     def legacy_repl(m):
@@ -1852,6 +1949,10 @@ def build_project(pdir):
         write_if_changed(gen_src / rel_name, content, produced)
         write_if_changed(gen_out / rel_name, content, produced)
 
+    # 0. плагины проекта (src/<проект>/plugins/*.py); глобальные уже загружены
+    load_plugins(pdir / "plugins", label=f"{P.name}/")
+    print_plugins()
+
     # 1. загрузка
     items = load_specs(P, spec_dir) if spec_dir.exists() else []
     for it in items:
@@ -1875,14 +1976,21 @@ def build_project(pdir):
         P.REG[nm] = s
 
     # 2. валидация
-    for s in P.REG.values():
-        KINDS[s["kind"]]["v"](s, P)
+    for s in sorted(P.REG.values(), key=lambda x: KINDS[x["kind"]].get("order", 0)):
+        try:
+            KINDS[s["kind"]]["v"](s, P)
+        except Exception as e:
+            P.diag.err(W_(s), f"internal error in validator of '{s['kind']}': {type(e).__name__}: {e}")
+            continue
         for v in views_of(s):
             if v not in ("diagram", "table"):
                 P.diag.err(W_(s), f"unknown view '{v}' (diagram | table)")
             elif KINDS[s["kind"]][v] is None:
                 P.diag.err(W_(s), f"kind '{s['kind']}' has no '{v}' view")
-        P.anchors[s["name"]] = KINDS[s["kind"]]["anchors"](s)
+        try:
+            P.anchors[s["name"]] = KINDS[s["kind"]]["anchors"](s)
+        except Exception as e:
+            P.diag.err(W_(s), f"internal error in anchors of '{s['kind']}': {type(e).__name__}: {e}")
 
     # 3. генерация сущностей
     if not P.diag.errors:
@@ -1890,8 +1998,12 @@ def build_project(pdir):
             kd = KINDS[s["kind"]]
             vs = views_of(s)
             print(f"  render: {nm} ({s['kind']}) [{', '.join(vs)}]")
-            svg = kd["diagram"](s, P) if "diagram" in vs else None
-            tbl = kd["table"](s, P) if "table" in vs else None
+            try:
+                svg = kd["diagram"](s, P) if "diagram" in vs else None
+                tbl = kd["table"](s, P) if "table" in vs else None
+            except Exception as e:
+                P.diag.err(W_(s), f"internal error while rendering '{s['kind']}': {type(e).__name__}: {e}")
+                continue
             if "diagram" in vs and svg is None:
                 P.diag.err(W_(s), "diagram could not be generated")
             if svg:
@@ -1988,6 +2100,8 @@ def build_all(projects):
         print("No src/ directory")
         return False
     ensure_gitignore()
+    PLUGIN_INFO.clear()
+    load_plugins(ROOT / "plugins")
     ok = True
     for pdir in sorted(SRC.iterdir()):
         if pdir.is_dir() and (not projects or pdir.name in projects):
@@ -1998,7 +2112,7 @@ def build_all(projects):
 
 def snapshot():
     mt = 0.0
-    for p in list(SRC.rglob("*")) + [Path(__file__)]:
+    for p in list(SRC.rglob("*")) + list((ROOT / "plugins").rglob("*.py")) + [Path(__file__)]:
         try:
             mt = max(mt, p.stat().st_mtime)
         except OSError:
@@ -2111,7 +2225,7 @@ values:
 
 def cmd_kinds():
     for k, (d, _) in HELP.items():
-        print(f"  {k:<9} {d}")
+        print(f"  {k:<10} {d}" + ("   [plugin]" if KIND_OWNER.get(k) else ""))
 
 
 def cmd_explain(kind):
@@ -2149,6 +2263,8 @@ def main(argv=None):
     if not argv or argv[0] not in ("build", "kinds", "explain", "new", "-h", "--help"):
         argv = ["build"] + argv
     a = ap.parse_args(argv)
+    if a.cmd in ("kinds", "explain", "new"):
+        load_plugins(ROOT / "plugins")
     if a.cmd == "kinds":
         cmd_kinds()
         return 0
