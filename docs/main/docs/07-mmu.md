@@ -107,8 +107,6 @@ supervisor, bit 1 = native).
 
 ![Logical Slots (16-bit Z80 address space)](gen/mmu_slots.svg)
 
-*Figure 1 — Logical Slots (16-bit Z80 address space)*
-
 **Table 3 — Logical Slots (16-bit Z80 address space)**
 
 | Range | Name | Size | Purpose |
@@ -222,8 +220,6 @@ All MMU control registers are at ports `F0–FF` and `E0–EF`:
 ### 4.2 GLOBAL_CTRL (`F0`)
 
 ![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
-
-*Figure 2 — GLOBAL_CTRL (F0h)*
 
 **Table 6 — GLOBAL_CTRL (F0h)**
 

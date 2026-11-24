@@ -50,9 +50,6 @@ A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cy
 
 ![regfile: write mem[wa] on posedge; synchronous read on rd_en_i with write-through bypass](gen/timing_regfile.svg)
 
-*Figure 1 — regfile: write mem[wa] on posedge; synchronous read on rd_en_i with write-through bypass*
-
-
 ## System Registers
 
 System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, ROM access, and the MUL high half.

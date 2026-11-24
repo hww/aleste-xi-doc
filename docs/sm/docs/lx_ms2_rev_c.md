@@ -90,8 +90,6 @@ Magic Sound 2 (rev. C) fixes all four:
 
 ![Rev. C: Global Registers Map](gen/ms2c_global_map.svg)
 
-*Figure 1 — Rev. C: Global Registers Map*
-
 **Table 1 — Rev. C: Global Registers Map**
 
 | Offset | Name | Description |
@@ -228,8 +226,6 @@ Magic Sound 2 (rev. C) fixes all four:
 Base addresses: channel 0 = `0x20`, channel 1 = `0x30`, channel 2 = `0x40`, channel 3 = `0x50`. Each channel has 16 registers.
 
 ![Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2c_channel_map.svg)
-
-*Figure 2 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
 
 **Table 3 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 

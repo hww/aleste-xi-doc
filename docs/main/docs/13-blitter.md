@@ -18,8 +18,6 @@ from the base address.
 
 ![Blitter Register Map (lx_dma.sv)](gen/dma_blitter_map.svg)
 
-*Figure 1 — Blitter Register Map (lx_dma.sv)*
-
 **Table 1 — Blitter Register Map (lx_dma.sv)**
 
 | Offset | Name | Description |

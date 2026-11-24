@@ -47,14 +47,8 @@ The timing diagram below shows a single pixel read operation.
 
 ![Pixel Read Timing](gen/pixel_read_timing.svg)
 
-*Figure 1 — Pixel Read Timing*
-
-
 The blender (`ch_blender`) is a 3-state FSM used for writes: `IDLE → RMW_READ → RMW_WRITE → IDLE`. In `IDLE` a write request (`cyc_i && stb_i && we_i`) captures `mode`, `frac` and the source pixel; `RMW_READ` reads the target word from the cache; `RMW_WRITE` blends the pixel into the word and writes it back. Reads bypass the FSM: `dat_o` is the combinatorially unpacked pixel and `ack_o = ack_i` from the cache.
 
 ![pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](gen/timing_pixel_blender.svg)
-
-*Figure 2 — pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)*
-
 
 *Fig. 14. Pixel read timing.*

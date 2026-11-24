@@ -362,10 +362,7 @@ The platform distinguishes:
 
 * `VFC` — Video Frame Counter (number of hardware video frame events);
 
-
 * `GFC` — Game Frame Counter (number of game frames actually processed).
-
-
 
 Video frame interrupts must not be lost. If the game has not prepared a new frame, the video hardware may redisplay the previous frame (`VFC` increments while `GFC` and game time do not). Game counters `PT` and `FT` belong to software and are outside this hardware block.
 

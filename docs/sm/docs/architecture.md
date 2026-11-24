@@ -4,8 +4,6 @@
 
 ![Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2a_channel_map.svg)
 
-*Figure 1 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
-
 **Table 1 — Rev. A: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
 | Offset | Name | Description |
@@ -135,8 +133,6 @@
 
 ![Rev. A: Global Registers Map](gen/ms2a_global_map.svg)
 
-*Figure 2 — Rev. A: Global Registers Map*
-
 **Table 2 — Rev. A: Global Registers Map**
 
 | Offset | Name | Description |
@@ -218,8 +214,6 @@
 ## Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)
 
 ![Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)](gen/ms2c_channel_map.svg)
-
-*Figure 3 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)*
 
 **Table 3 — Rev. C: Channel Registers Map (Base 0x20/0x30/0x40/0x50)**
 
@@ -349,8 +343,6 @@
 ## Rev. C: Global Registers Map
 
 ![Rev. C: Global Registers Map](gen/ms2c_global_map.svg)
-
-*Figure 4 — Rev. C: Global Registers Map*
 
 **Table 4 — Rev. C: Global Registers Map**
 

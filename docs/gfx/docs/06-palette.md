@@ -19,8 +19,6 @@ The following register map shows the unified native mode interface:
 
 ![Palette Controller Register Map](gen/palette_regmap.svg)
 
-*Figure 1 — Palette Controller Register Map*
-
 **Table 1 — Palette Controller Register Map**
 
 | Offset | Name | Description |
@@ -148,8 +146,6 @@ The following register map shows the unified native mode interface:
 The Control Register (0x05) configures the palette behavior:
 
 ![Palette Control Register (0x05)](gen/palette_control.svg)
-
-*Figure 2 — Palette Control Register (0x05)*
 
 **Table 3 — Palette Control Register (0x05)**
 

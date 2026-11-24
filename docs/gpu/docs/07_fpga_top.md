@@ -80,8 +80,6 @@ All instructions are 32-bit. Fields are fixed: `L[31]`, class `[30:29]`, `COND[2
 
 ![J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 1 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)*
-
 **Table 3 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |

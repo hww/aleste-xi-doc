@@ -79,3 +79,7 @@
 
 - [AMEB-36 parameters](ameb_params.md) — `ameb_params`
 
+## connector
+
+- [PCIe x1 — Connector's edge](ameb_pcie_edge.md) — `ameb_pcie_edge`
+

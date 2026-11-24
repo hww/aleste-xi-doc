@@ -8,8 +8,6 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ![INSTRUCTION · 32 BIT](gen/insn.svg)
 
-*Figure 1 — INSTRUCTION · 32 BIT*
-
 **Table 1 — INSTRUCTION · 32 BIT**
 
 | Format | Selector | Description |
@@ -100,8 +98,6 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ![J=0 I=0 REG-REG](gen/insn_reg.svg)
 
-*Figure 2 — J=0 I=0 REG-REG*
-
 **Table 2 — J=0 I=0 REG-REG**
 
 | Field | Bits | Width | Description |
@@ -119,8 +115,6 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 
 ![J=1 I=1 REG-IMM11](gen/insn_imm11.svg)
-
-*Figure 3 — J=1 I=1 REG-IMM11*
 
 **Table 3 — J=1 I=1 REG-IMM11**
 
@@ -140,8 +134,6 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 ![J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 4 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)*
-
 **Table 4 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
@@ -159,8 +151,6 @@ The format is fixed; all fields have strict positions. This simplifies decoding:
 
 
 ![J=1 I=0 CONTROL RJUMP (R=1: JMPR)](gen/insn_ctrl_jmpr.svg)
-
-*Figure 5 — J=1 I=0 CONTROL RJUMP (R=1: JMPR)*
 
 **Table 5 — J=1 I=0 CONTROL RJUMP (R=1: JMPR)**
 

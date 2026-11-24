@@ -31,8 +31,6 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ![J=0 I=0 REG-REG](gen/insn_reg.svg)
 
-*Figure 1 — J=0 I=0 REG-REG*
-
 **Table 1 — J=0 I=0 REG-REG**
 
 | Field | Bits | Width | Description |
@@ -50,8 +48,6 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 
 ![J=1 I=1 REG-IMM11](gen/insn_imm11.svg)
-
-*Figure 2 — J=1 I=1 REG-IMM11*
 
 **Table 2 — J=1 I=1 REG-IMM11**
 
@@ -71,8 +67,6 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 ![J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](gen/insn_ctrl_jmp.svg)
 
-*Figure 3 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)*
-
 **Table 3 — J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)**
 
 | Field | Bits | Width | Description |
@@ -90,8 +84,6 @@ The microinstruction is a fixed 32-bit word. The pair (J, I) selects one of four
 
 
 ![J=1 I=0 CONTROL RJUMP (R=1: JMPR)](gen/insn_ctrl_jmpr.svg)
-
-*Figure 4 — J=1 I=0 CONTROL RJUMP (R=1: JMPR)*
 
 **Table 4 — J=1 I=0 CONTROL RJUMP (R=1: JMPR)**
 
@@ -144,9 +136,6 @@ ROM is synchronous: `data_r <= mem[addr]` latches on `ack`, so the instruction i
 
 ![microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)](gen/timing_microcode_rom.svg)
 
-*Figure 5 — microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)*
-
-
 ## 4. ALU
 
 The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arithmetic (ADD/ADC/SUB/SBC), shift (ROR/SHR/SAR), and other (MUL/TST/CMP). The operation is selected by `op[4:0]`.
@@ -191,9 +180,6 @@ The ALU implements 18 operations: logic (MOV/MVN/AND/BIC/OR/ORN/XOR/XNOR), arith
 An ALU instruction takes two cycles from "instruction available" to "result in register". In cycle 1 the register file reads `rdata_a`/`rdata_b`; in cycle 2 the writeback writes `mem[wa] <= wdata`. The ALU itself is combinational (0 cycles), so `pc` advances every cycle; only the register write is delayed by one cycle. `MUL` additionally registers `mhi` on the next `posedge clk`.
 
 ![ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)](gen/timing_alu_pipeline.svg)
-
-*Figure 6 — ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)*
-
 
 ## 5. Control
 

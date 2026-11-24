@@ -18,8 +18,6 @@ SysDMA has per-channel registers and common registers. The layout is in
 
 ![SysDMA Register Map (wb_dma.sv)](gen/dma_sysdma_map.svg)
 
-*Figure 1 — SysDMA Register Map (wb_dma.sv)*
-
 **Table 1 — SysDMA Register Map (wb_dma.sv)**
 
 | Offset | Name | Description |

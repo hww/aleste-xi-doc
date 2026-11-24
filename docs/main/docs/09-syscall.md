@@ -30,8 +30,6 @@ Four mode-switching mechanisms of LX:
 
 ![GLOBAL_CTRL (F0h)](gen/mmu_global_ctrl.svg)
 
-*Figure 1 — GLOBAL_CTRL (F0h)*
-
 **Table 1 — GLOBAL_CTRL (F0h)**
 
 | Field | Bits | Width | Description |

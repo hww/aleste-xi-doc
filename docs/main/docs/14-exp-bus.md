@@ -37,8 +37,6 @@ The control registers are accessible to the processor through I/O ports: [`ameb_
 
 ![AMEB I/O port map (preliminary)](gen/ameb_io.svg)
 
-*Figure 1 — AMEB I/O port map (preliminary)*
-
 **Table 1 — AMEB I/O port map (preliminary)**
 
 | Range | Name | Size | Access | Purpose |
@@ -76,50 +74,50 @@ The PCIe key between positions 11 and 12 divides the slot into two zones:
 
 This gives a natural separation on the motherboard and on the module: analog stays on one edge, and the 24 MHz clock lines are behind the key.
 
-![AMEB-36 slot connector (PCIe x1, 36 pins; key between positions 11 and 12)](gen/ameb_connector.svg)
+![PCIe x1 — Connector's edge](gen/ameb_pcie_edge.svg)
 
-*Figure 2 — AMEB-36 slot connector (PCIe x1, 36 pins; key between positions 11 and 12)*
+**Table 2 — PCIe x1 — Connector's edge**
 
-**Table 2 — AMEB-36 slot connector (PCIe x1, 36 pins; key between positions 11 and 12)**
+*edge, 2 row(s) × 18, pitch 2.54 mm, numbering rowwise, pin 1 at top-left, key slot after position 11, drawn rotated 0°*
 
-| Name | Pin | Dir | Width | Group | Description |
-| --- | --- | --- | --- | --- | --- |
-| <a id="_12V_1_"></a>**+12V(1)** | B1 | pwr | 1 | power_analog | Analog power +12 V |
-| <a id="_12V_2_"></a>**+12V(2)** | B2 | pwr | 1 | power_analog | Analog power +12 V |
-| <a id="NC_B3"></a>**NC_B3** | B3 | nc | 1 | nc | In PCIe this is +12 V; not connected |
-| <a id="AGND_1_"></a>**AGND(1)** | B4 | gnd | 1 | ground_analog | — |
-| <a id="I2C_SCL"></a>**I2C_SCL** | B5 | inout | 1 | i2c | Matches SMCLK in PCIe |
-| <a id="I2C_SDA"></a>**I2C_SDA** | B6 | inout | 1 | i2c | Matches SMDAT in PCIe |
-| <a id="DGND_1_"></a>**DGND(1)** | B7 | gnd | 1 | ground_digital | — |
-| <a id="_3V3_1_"></a>**+3V3(1)** | B8 | pwr | 1 | power_digital | Digital power +3.3 V |
-| <a id="SPI_CS_N"></a>**~SPI_CS_N** | B9 | out | 1 | spi | Module select |
-| <a id="NC_B10"></a>**NC_B10** | B10 | nc | 1 | nc | In PCIe this is +3.3 V aux; not connected |
-| <a id="INT_N"></a>**~INT_N** | B11 | in | 1 | control | Interrupt request from the module |
-| <a id="DETECT_N"></a>**~DETECT_N** | A1 | in | 1 | control | Module is inserted (shorted to DGND on the module) |
-| <a id="NC_A2"></a>**NC_A2** | A2 | nc | 1 | nc | In PCIe this is +12 V; not connected |
-| <a id="NC_A3"></a>**NC_A3** | A3 | nc | 1 | nc | In PCIe this is +12 V; not connected |
-| <a id="AGND_2_"></a>**AGND(2)** | A4 | gnd | 1 | ground_analog | — |
-| <a id="-12V"></a>**-12V** | A5 | pwr | 1 | power_analog | Analog power −12 V |
-| <a id="AGND_3_"></a>**AGND(3)** | A6 | gnd | 1 | ground_analog | — |
-| <a id="GPIO0_DREQ_N"></a>**~GPIO0_DREQ_N** | A7 | in | 1 | gpio | Module is ready for data exchange (DMA request) |
-| <a id="GPIO1"></a>**GPIO1** | A8 | inout | 1 | gpio | Module-specific |
-| <a id="_3V3_2_"></a>**+3V3(2)** | A9 | pwr | 1 | power_digital | — |
-| <a id="_3V3_3_"></a>**+3V3(3)** | A10 | pwr | 1 | power_digital | — |
-| <a id="PERIPH_RST_N"></a>**~PERIPH_RST_N** | A11 | out | 1 | control | Module reset in the slot |
-| <a id="SPI_SCK"></a>**SPI_SCK** | B12 | out | 1 | spi | — |
-| <a id="DGND"></a>**DGND** | B13 | gnd | 1 | ground_digital | — |
-| <a id="SPI_MISO"></a>**SPI_MISO** | B14 | in | 1 | spi | — |
-| <a id="DGND_2_"></a>**DGND(2)** | B15 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_DIN"></a>**AUDIO_DIN** | B16 | in | 1 | audio | Audio module → host |
-| <a id="DGND_3_"></a>**DGND(3)** | B17 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_BCLK"></a>**AUDIO_BCLK** | B18 | out | 1 | audio | 24.576 MHz |
-| <a id="DGND_4_"></a>**DGND(4)** | A12 | gnd | 1 | ground_digital | — |
-| <a id="SPI_MOSI"></a>**SPI_MOSI** | A13 | out | 1 | spi | — |
-| <a id="DGND_5_"></a>**DGND(5)** | A14 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_DOUT"></a>**AUDIO_DOUT** | A15 | out | 1 | audio | Audio host → module |
-| <a id="DGND_6_"></a>**DGND(6)** | A16 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_FS"></a>**AUDIO_FS** | A17 | out | 1 | audio | Frame sync, 48 kHz |
-| <a id="AUDIO_MCLK"></a>**AUDIO_MCLK** | A18 | out | 1 | audio | 12.288 MHz; next to BCLK with no ground between them |
+| Pin | Signal | Dir | Group | Description |
+| --- | --- | --- | --- | --- |
+| B1 | <a id="_12V_1_"></a>**+12V(1)** | power | power_analog | Analog power +12 V |
+| B2 | <a id="_12V_2_"></a>**+12V(2)** | power | power_analog | Analog power +12 V |
+| B3 | **NC_B3** | NC | nc | In PCIe this is +12 V; not connected |
+| B4 | <a id="AGND_1_"></a>**AGND(1)** | gnd | ground_analog | — |
+| B5 | <a id="I2C_SCL"></a>**I2C_SCL** | inout | i2c | Matches SMCLK in PCIe |
+| B6 | <a id="I2C_SDA"></a>**I2C_SDA** | inout | i2c | Matches SMDAT in PCIe |
+| B7 | <a id="DGND_1_"></a>**DGND(1)** | gnd | ground_digital | — |
+| B8 | <a id="_3V3_1_"></a>**+3V3(1)** | power | power_digital | Digital power +3.3 V |
+| B9 | <a id="SPI_CS_N"></a>**SPI_CS_N** | out | spi | Module select |
+| B10 | **NC_B10** | NC | nc | In PCIe this is +3.3 V aux; not connected |
+| B11 | <a id="INT_N"></a>**INT_N** | in | control | Interrupt request from the module |
+| B12 | <a id="SPI_SCK"></a>**SPI_SCK** | out | spi | — |
+| B13 | <a id="DGND"></a>**DGND** | gnd | ground_digital | — |
+| B14 | <a id="SPI_MISO"></a>**SPI_MISO** | in | spi | — |
+| B15 | <a id="DGND_2_"></a>**DGND(2)** | gnd | ground_digital | — |
+| B16 | <a id="AUDIO_DIN"></a>**AUDIO_DIN** | in | audio | Audio module → host |
+| B17 | <a id="DGND_3_"></a>**DGND(3)** | gnd | ground_digital | — |
+| B18 | <a id="AUDIO_BCLK"></a>**AUDIO_BCLK** | out | audio | 24.576 MHz |
+| A1 | <a id="DETECT_N"></a>**DETECT_N** | in | control | Module is inserted (shorted to DGND on the module) |
+| A2 | **NC_A2** | NC | nc | In PCIe this is +12 V; not connected |
+| A3 | **NC_A3** | NC | nc | In PCIe this is +12 V; not connected |
+| A4 | <a id="AGND_2_"></a>**AGND(2)** | gnd | ground_analog | — |
+| A5 | <a id="-12V"></a>**-12V** | power | power_analog | Analog power −12 V |
+| A6 | <a id="AGND_3_"></a>**AGND(3)** | gnd | ground_analog | — |
+| A7 | <a id="GPIO0_DREQ_N"></a>**GPIO0_DREQ_N** | in | gpio | Module is ready for data exchange (DMA request) |
+| A8 | <a id="GPIO1"></a>**GPIO1** | inout | gpio | Module-specific |
+| A9 | <a id="_3V3_2_"></a>**+3V3(2)** | power | power_digital | — |
+| A10 | <a id="_3V3_3_"></a>**+3V3(3)** | power | power_digital | — |
+| A11 | <a id="PERIPH_RST_N"></a>**PERIPH_RST_N** | out | control | Module reset in the slot |
+| A12 | <a id="DGND_4_"></a>**DGND(4)** | gnd | ground_digital | — |
+| A13 | <a id="SPI_MOSI"></a>**SPI_MOSI** | out | spi | — |
+| A14 | <a id="DGND_5_"></a>**DGND(5)** | gnd | ground_digital | — |
+| A15 | <a id="AUDIO_DOUT"></a>**AUDIO_DOUT** | out | audio | Audio host → module |
+| A16 | <a id="DGND_6_"></a>**DGND(6)** | gnd | ground_digital | — |
+| A17 | <a id="AUDIO_FS"></a>**AUDIO_FS** | out | audio | Frame sync, 48 kHz |
+| A18 | <a id="AUDIO_MCLK"></a>**AUDIO_MCLK** | out | audio | 12.288 MHz; next to BCLK with no ground between them |
 
 
 The pin balance is described in **Table 3 — Connector pin balance**
@@ -213,8 +211,6 @@ The slot powers up in sequence: first only +3.3 V with the module held in reset,
 
 ![Slot power-up: power sequencing](gen/slot_power.svg)
 
-*Figure 3 — Slot power-up: power sequencing*
-
 **Table 6 — Slot power-up: power sequencing**
 
 | State | Output | Description |
@@ -244,9 +240,6 @@ The slot powers up in sequence: first only +3.3 V with the module held in reset,
 
 
 ![Slot power-up sequence](gen/slot_power_seq.svg)
-
-*Figure 4 — Slot power-up sequence*
-
 
 The state `[`ID_CHECK`](gen/slot_power.md#ID_CHECK)` is the only one where the module already receives +3.3 V but does not yet receive ±12 V. The `[`EN12`](gen/slot_ctrl.md#EN12)` enable takes effect only after a successful identifier check. When protection trips, the slot transitions to `[`FAULT`](gen/slot_power.md#FAULT)`; the reset is performed by writing to `[`FAULT`](gen/slot_stat.md#FAULT)`.
 
@@ -356,12 +349,7 @@ SPI is the primary interface for module configuration, programming local DACs an
 
 ![SPI, mode 0: single-byte transfer (per slot)](gen/spi_mode0.svg)
 
-*Figure 5 — SPI, mode 0: single-byte transfer (per slot)*
-
-
 ![Slot SPI controller registers (4 instances)](gen/ameb_spi.svg)
-
-*Figure 6 — Slot SPI controller registers (4 instances)*
 
 **Table 8 — Slot SPI controller registers (4 instances)**
 
@@ -408,8 +396,6 @@ The controller connects to the slots through a multiplexer: the slot number is s
 Typical uses: identification EEPROMs, configuration memory, temperature sensors, power monitoring, simple peripheral controllers.
 
 ![I2C controller registers (one controller, 4-slot multiplexer)](gen/ameb_i2c.svg)
-
-*Figure 7 — I2C controller registers (one controller, 4-slot multiplexer)*
 
 **Table 9 — I2C controller registers (one controller, 4-slot multiplexer)**
 
@@ -458,9 +444,6 @@ Typical uses: identification EEPROMs, configuration memory, temperature sensors,
 
 ![I2C: START, address byte write, ACK, STOP](gen/i2c_byte_write.svg)
 
-*Figure 8 — I2C: START, address byte write, ACK, STOP*
-
-
 An operation is started by writing to the command register; the set of commands is described in [`i2c_cmd`](gen/i2c_cmd.md). The start of a packet is set by the `[`START`](gen/i2c_cmd.md#START)` flag, and the end by `[`STOP`](gen/i2c_cmd.md#STOP)`.
 
 ## 7. Digital audio interface
@@ -484,9 +467,6 @@ The clock signals are common to all slots; the data lines are individual for eac
 A frame contains 16 time slots of 32 bits each, i.e. 512 bits. The bus operates only in the 48 kHz family; modules that need 44.1 kHz will require rate conversion on their side (e.g., a codec ASRC).
 
 ![Audio TDM: start of frame (16 slots × 32 bits)](gen/tdm_frame.svg)
-
-*Figure 9 — Audio TDM: start of frame (16 slots × 32 bits)*
-
 
 The frame format (DSP mode A, word length, number of channels per slot) is preliminary and subject to clarification.
 

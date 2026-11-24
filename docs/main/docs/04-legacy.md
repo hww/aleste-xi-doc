@@ -143,8 +143,6 @@ OS settings: I/O Mode 0, Output.
 
 ![8255 PPI Port A — PSG Data Bus](gen/L_PPI_PORTA.svg)
 
-*Figure 1 — 8255 PPI Port A — PSG Data Bus*
-
 **Table 1 — 8255 PPI Port A — PSG Data Bus**
 
 | Field | Bits | Width | Description |
@@ -157,8 +155,6 @@ OS settings: I/O Mode 0, Output.
 OS settings: I/O Mode 0, Input.
 
 ![8255 PPI Port B — VSYNC, Cassette, Printer](gen/L_PPI_PORTB.svg)
-
-*Figure 2 — 8255 PPI Port B — VSYNC, Cassette, Printer*
 
 **Table 2 — 8255 PPI Port B — VSYNC, Cassette, Printer**
 
@@ -193,8 +189,6 @@ OS settings: I/O Mode 0, Input.
 OS settings: Upper half Mode 0 Output, lower half Mode 0 Output.
 
 ![8255 PPI Port C — PSG Control, Cassette, Keyboard](gen/L_PPI_PORTC.svg)
-
-*Figure 3 — 8255 PPI Port C — PSG Control, Cassette, Keyboard*
 
 **Table 4 — 8255 PPI Port C — PSG Control, Cassette, Keyboard**
 
@@ -276,8 +270,6 @@ Exception: printer‑related bits are **Optional**.
 
 ![Gate Array R0 — Palette Index](gen/L_GA_R0.svg)
 
-*Figure 4 — Gate Array R0 — Palette Index*
-
 **Table 7 — Gate Array R0 — Palette Index**
 
 | Field | Bits | Width | Description |
@@ -308,8 +300,6 @@ The number is converted by IC D62.
 #### Register 2 — Video Mode, ROM enable, LEDs
 
 ![Gate Array R2 — Mode, ROM Enable, LEDs](gen/L_GA_R2.svg)
-
-*Figure 5 — Gate Array R2 — Mode, ROM Enable, LEDs*
 
 **Table 8 — Gate Array R2 — Mode, ROM Enable, LEDs**
 
@@ -418,8 +408,6 @@ and the following ports:
 
 ![RMR — Control, ROM Mapping, Graphics Mode](gen/L_RMR.svg)
 
-*Figure 6 — RMR — Control, ROM Mapping, Graphics Mode*
-
 **Table 9 — RMR — Control, ROM Mapping, Graphics Mode**
 
 | Field | Bits | Width | Fixed | Description |
@@ -441,8 +429,6 @@ and the following ports:
 #### MMR (RAM memory mapping)
 
 ![MMR — RAM Memory Mapping](gen/L_MMR.svg)
-
-*Figure 7 — MMR — RAM Memory Mapping*
 
 **Table 10 — MMR — RAM Memory Mapping**
 
@@ -526,8 +512,6 @@ This section documents **only what is actually in the RTL** (`gen_rtl`,
 The 520EX adds an EXTPORT register at port `FABF`:
 
 ![EXTPORT (FABF) — 520EX Extension](gen/L_520EX_EXTPORT.svg)
-
-*Figure 8 — EXTPORT (FABF) — 520EX Extension*
 
 **Table 11 — EXTPORT (FABF) — 520EX Extension**
 

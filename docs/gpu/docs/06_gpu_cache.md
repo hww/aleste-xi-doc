@@ -12,8 +12,6 @@ The cache has three states: `ST_IDLE`, `ST_FILL`, `ST_WRITEBACK`. A combinationa
 
 ![Cache FSM](gen/cache_fsm.svg)
 
-*Figure 1 — Cache FSM*
-
 **Table 1 — Cache FSM**
 
 | State | Output | Description |
@@ -43,5 +41,3 @@ The cache has three states: `ST_IDLE`, `ST_FILL`, `ST_WRITEBACK`. A combinationa
 A cache hit produces `ack_o` one cycle after `ch_stb_i`. A cache miss does **not** assert `ack_o`: the FSM goes `ST_IDLE → ST_FILL → ST_IDLE`, performs the Wishbone read, and becomes valid; the requester must hold/re-issue `ch_stb_i` to get the hit ack. The consumer-side `access_done` in `ch_top` is `blend_ack` from the blender, not this `ack_o`. A flush of a clean or invalid channel (`flush_noop_c`) completes in one cycle without a Wishbone cycle.
 
 ![gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)](gen/timing_gpu_cache.svg)
-
-*Figure 2 — gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)*
