@@ -1,0 +1,187 @@
+# ============================================================
+# LX-GPU: Channels v2 — banked register file & pixel ALU
+# Companion to architecture.yaml. Supersedes flat 48..63 map.
+# ============================================================
+---
+# --- Top-level operand map (unbanked + banked window) ---
+kind: enum
+name: v2_operand_map_top
+title: "Operand map (6 bits, 0..63)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: 42,       name: "BANK",        read: "[2:0] active bank", write: "[2:0] bank select (global, all channels)"}
+  - {value: 43,       name: "SPARE",       read: "-", write: "reserved"}
+  - {value: "44..47", name: "DATA[0..3]",  read: "pixel_out from channel ch", write: "pixel_in to channel ch (triggers pixel op); operand[1..0] = channel"}
+  - {value: "48..63", name: "BANK_WINDOW", read: "-", write: "write-only banked register; group=dst[3:2], channel=dst[1:0], bank=BANK"}
+notes:
+  - "38..41 are ROM (ROML/ROMH/ROMA + spare), unchanged by this map; see architecture.yaml."
+  - "BANK write takes effect on the next instruction (X-stage decode, in-order, no hold)."
+---
+# --- Bank 0: POS (selected during rendering) ---
+kind: enum
+name: v2_operand_map_bank_0_pos
+title: "Bank 0 POS — position (per scanline)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "48..51", name: "XI[0..3]", read: "-", write: "channel X integer part"}
+  - {value: "52..55", name: "YI[0..3]", read: "-", write: "channel Y integer part"}
+  - {value: "56..59", name: "XF[0..3]", read: "-", write: "channel X fractional part"}
+  - {value: "60..63", name: "YF[0..3]", read: "-", write: "channel Y fractional part"}
+---
+# --- Bank 1: STEP (per primitive) ---
+kind: enum
+name: v2_operand_map_bank_1_step
+title: "Bank 1 STEP — deltas (per primitive)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "48..51", name: "DXI[0..3]", read: "-", write: "pixel delta X integer part"}
+  - {value: "52..55", name: "DYI[0..3]", read: "-", write: "pixel delta Y integer part"}
+  - {value: "56..59", name: "DXF[0..3]", read: "-", write: "pixel delta X fractional part"}
+  - {value: "60..63", name: "DYF[0..3]", read: "-", write: "pixel delta Y fractional part"}
+---
+# --- Bank 2: CLIP (per window/screen) ---
+kind: enum
+name: v2_operand_map_bank_2_clip
+title: "Bank 2 CLIP — clipping bounds (per window)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "48..51", name: "XMIN[0..3]", read: "-", write: "clip X min"}
+  - {value: "52..55", name: "YMIN[0..3]", read: "-", write: "clip Y min"}
+  - {value: "56..59", name: "XMAX[0..3]", read: "-", write: "clip X max"}
+  - {value: "60..63", name: "YMAX[0..3]", read: "-", write: "clip Y max"}
+---
+# --- Bank 3: PEN (per primitive) ---
+kind: enum
+name: v2_operand_map_bank_3_pen
+title: "Bank 3 PEN — pen & ALU (per primitive)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "48..51", name: "B[0..3]",       read: "-", write: "pen constant (fill color / mask)"}
+  - {value: "52..55", name: "KEY[0..3]",     read: "-", write: "color-key / comparison reference (arbitrary, 0 is legal)"}
+  - {value: "56..59", name: "ALU_CTL[0..3]", read: "-", write: "pixel ALU control (see alu_ctl_bitfield)"}
+  - {value: "60..63", name: "RESERVED",      read: "-", write: "reserved"}
+---
+# --- Bank 4: SURF (on surface change) ---
+kind: enum
+name: v2_operand_map_bank_4_surf
+title: "Bank 4 SURF — surface (per surface)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "48..51", name: "MODE_PAGE[0..3]", read: "-", write: "channel mode + page (see mode_bitfield)"}
+  - {value: "52..55", name: "PITCH[0..3]",     read: "-", write: "surface pitch in pixels"}
+  - {value: "56..59", name: "RESERVED",        read: "-", write: "reserved"}
+  - {value: "60..63", name: "RESERVED",        read: "-", write: "reserved"}
+---
+# --- Mode bits (channel-wide; lives in SURF.MODE_PAGE) ---
+kind: bitfield
+name: v2_mode_bitfield
+title: "Channel MODE (per channel; word written via SURF.MODE_PAGE)"
+width: 16
+fields:
+  - {name: PAGE,     bits: [7,0],   description: "page number (8 bits)"}
+  - {name: FMT,      bits: [10,8],  description: "pixel format (see channel_format)"}
+  - {name: WO,       bit: 11,       description: "write-without-read"}
+  - {name: CLIP_ON,  bit: 12,       description: "clipping enabled against CLIP bank"}
+  - {name: SHR_X,    bit: 13,       description: "shift operand X right by 1 before ALU"}
+  - {name: SHR_Y,    bit: 14,       description: "shift operand Y right by 1 before ALU"}
+  - {name: RSVD,     bit: 15,       description: "reserved (0)"}
+notes:
+  - "Reset 0 => FMT=16bpp, PAGE=0, WO=0, CLIP_ON=0, SHR_X=0, SHR_Y=0."
+---
+# --- ALU_CTL (in PEN bank) ---
+kind: bitfield
+name: v2_alu_ctl_bitfield
+title: "ALU_CTL (16 bits, PEN bank group 2)"
+width: 16
+fields:
+  - {name: OP,   bits: [3,0],   description: "ALU operation (see pixel_alu_ops)"}
+  - {name: SX,   bits: [5,4],   description: "X source: 0=A, 1=B, 2=D, 3=K"}
+  - {name: SY,   bits: [7,6],   description: "Y source: 0=A, 1=B, 2=D, 3=K"}
+  - {name: CS,   bits: [9,8],   description: "compare pair: 0=A?K, 1=D?K, 2=A?D, 3=D?B"}
+  - {name: REL,  bits: [12,10], description: "0=always,1===,2=!=,3=<,4=>=,5=>,6=<=,7=never (unsigned)"}
+  - {name: DEN,  bit: 13,       description: "screen-door gating enable"}
+  - {name: DPAR, bit: 14,       description: "screen-door parity vs (X_int^Y_int)[0]"}
+  - {name: RSVD, bit: 15,       description: "reserved (0)"}
+notes:
+  - "Reset 0x0000 => OP=PASS, SX=A, SY=A, REL=always, DEN=0: copy-A default."
+---
+kind: enum
+name: v2_pixel_alu_ops
+title: "Pixel ALU OP (4 bits)"
+width: 4
+entries:
+  - {value: 0, name: "PASS",  description: "R = X"}
+  - {value: 1, name: "AND",   description: "R = X & Y"}
+  - {value: 2, name: "OR",    description: "R = X | Y"}
+  - {value: 3, name: "XOR",   description: "R = X ^ Y (NOT via XOR with 0xFF)"}
+  - {value: 4, name: "ANDN",  description: "R = X & ~Y"}
+  - {value: 5, name: "ADD",   description: "R = (X + Y) mod 2^8"}
+  - {value: 6, name: "ADDS",  description: "R = sat_8(X + Y); 8bpp only (see note)"}
+  - {value: 7, name: "SUBS",  description: "R = sat_8(X - Y); 8bpp only (see note)"}
+  - {value: 8, name: "MSK",   description: "R = (X & B) | (Y & ~B); third operand B from PEN"}
+  - {value: "9..15", name: "RESERVED", description: "SUB, MIN, MAX, NOT, AVG, HALF — future"}
+notes:
+  - "ADDS/SUBS saturate to 255/0 for 8bpp. For 1/2/4bpp they behave as ADD/SUB mod 2^W (no saturation)."
+---
+# --- Pixel formats (from old file, unchanged; 8bpp is primary) ---
+kind: enum
+name: v2_channel_format
+title: "CHANNEL FORMAT (fmt, 3 bits; 8bpp is primary)"
+width: 3
+entries:
+  - {value: 0, name: "16 bpp",   description: "1 pixel per word (k=0)"}
+  - {value: 1, name: "8 bpp",    description: "2 pixels per word (k=1); pos 0 = low byte (even address) — PRIMARY"}
+  - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = low nibble"}
+  - {value: 3, name: "2 bpp",    description: "8 pixels per word (k=3); SOURCE ONLY, writes forbidden"}
+  - {value: 4, name: "1 bpp",    description: "16 pixels per word (k=4); SOURCE ONLY, writes forbidden"}
+  - {value: 5, name: "RESERVED", description: "Reserved, writes forbidden"}
+  - {value: 6, name: "RESERVED", description: "Reserved, writes forbidden"}
+  - {value: 7, name: "RESERVED", description: "Reserved, writes forbidden"}
+---
+# --- Memory map (single; was memory_map_2 duplicate) ---
+kind: memmap
+name: v2_memory_map
+title: "Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})"
+width: 24
+regions:
+  - {name: "PAGE 0x00",  start: 0x000000, end: 0x01FFFF, access: rw, purpose: "Page 0 (128 KB)"}
+  - {name: "...",        start: 0x020000, end: 0xFDFFFF, access: rw, purpose: "Pages 1..254 (each 128 KB)"}
+  - {name: "PAGE 0xFF",  start: 0xFE0000, end: 0xFFFFFF, access: rw, purpose: "Page 255 (last 128 KB)"}
+notes:
+  - "In RTL addr24 = {page[7:0], word[14:0], 1'b0}. Address space is 16 MB, divided into 256 pages of 128 KB each."

@@ -11,6 +11,8 @@
 - [J=0 I=1 LDI16](insn_ldi16.md) — `insn_ldi16`
 - [J=0 I=0 REG-REG](insn_reg.md) — `insn_reg`
 - [SHADOW Register Format](shadow_bitfield.md) — `shadow_bitfield`
+- [ALU_CTL (16 bits, PEN bank group 2)](v2_alu_ctl_bitfield.md) — `v2_alu_ctl_bitfield`
+- [Channel MODE (per channel; word written via SURF.MODE_PAGE)](v2_mode_bitfield.md) — `v2_mode_bitfield`
 
 ## enum
 
@@ -26,6 +28,14 @@
 - [Pixel Path Stages](pixel_path_stages.md) — `pixel_path_stages`
 - [Register file · R0–R31 (16 bit)](registers.md) — `registers`
 - [System Registers (32..38, 39 reserved)](sysregs.md) — `sysregs`
+- [CHANNEL FORMAT (fmt, 3 bits; 8bpp is primary)](v2_channel_format.md) — `v2_channel_format`
+- [Bank 0 POS — position (per scanline)](v2_operand_map_bank_0_pos.md) — `v2_operand_map_bank_0_pos`
+- [Bank 1 STEP — deltas (per primitive)](v2_operand_map_bank_1_step.md) — `v2_operand_map_bank_1_step`
+- [Bank 2 CLIP — clipping bounds (per window)](v2_operand_map_bank_2_clip.md) — `v2_operand_map_bank_2_clip`
+- [Bank 3 PEN — pen & ALU (per primitive)](v2_operand_map_bank_3_pen.md) — `v2_operand_map_bank_3_pen`
+- [Bank 4 SURF — surface (per surface)](v2_operand_map_bank_4_surf.md) — `v2_operand_map_bank_4_surf`
+- [Operand map (6 bits, 0..63)](v2_operand_map_top.md) — `v2_operand_map_top`
+- [Pixel ALU OP (4 bits)](v2_pixel_alu_ops.md) — `v2_pixel_alu_ops`
 
 ## encoding
 
@@ -38,6 +48,7 @@
 ## memmap
 
 - [Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})](memory_map.md) — `memory_map`
+- [Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})](v2_memory_map.md) — `v2_memory_map`
 
 ## timing
 

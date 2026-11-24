@@ -1885,10 +1885,11 @@ def expand(text, ctx, stack=()):
                 return ""
             parts = []
             if spec.get("_has_svg"):
-                parts.append(figure(arg))
+                title = spec.get("title", arg)
+                parts.append(f"![{title}]({ctx.rel(f'gen/{arg}.svg')})")
             if "_table_md" in spec:
                 parts.append(expand(table(arg), ctx, stack))
-            return "\n".join(parts)
+            return "\n\n".join(parts)
         if d == "const":
             if arg not in P.consts:
                 P.diag.err(ctx.where, f"const '{arg}' not found")

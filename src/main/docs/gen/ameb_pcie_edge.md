@@ -1,4 +1,4 @@
-**PCIe x1 — Edge connector**
+**PCIe x1 — Connector's edge**
 
 *edge, 2 row(s) × 18, pitch 2.54 mm, numbering rowwise, pin 1 at top-left, key slot after position 11, drawn rotated 0°*
 

@@ -9,7 +9,7 @@
 </defs>
 <style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
 <rect width="856" height="447.2" fill="#FFFFFF"/>
-<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">PCIe x1 — Edge connector</text>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">PCIe x1 — Connector&#x27;s edge</text>
 <text x="32" y="62" font-size="14" fill="#555555">edge · 2×18 · pitch 2.54 mm · key slot after 11 · rotate 0°</text>
 <g transform="translate(428,241)">
 <polygon points="-394,-52 394,-52 394,52 -394,52" fill="#FAFAFA" stroke="#000000" stroke-width="2"/>

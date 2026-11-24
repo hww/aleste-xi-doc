@@ -81,5 +81,5 @@
 
 ## connector
 
-- [PCIe x1 — Edge connector](ameb_pcie_edge.md) — `ameb_pcie_edge`
+- [PCIe x1 — Connector's edge](ameb_pcie_edge.md) — `ameb_pcie_edge`
 
