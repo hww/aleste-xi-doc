@@ -76,7 +76,7 @@ notes:
 ---
 kind: timing
 name: timing_gpu_cache
-title: "gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)"
+title: "gpu_cache: read hit (1 cyc ack), read miss (ST_IDLE -> ST_FILL -> ST_IDLE)"
 signals:
   - {name: clk,        type: clock}
   - {name: ch_stb_i,   states: ["0", "1", "1", "1", "1", "0", "1", "0"]}
@@ -86,23 +86,43 @@ signals:
   - {name: wb_ack_i,   states: ["0", "0", "0", "1", "0", "0", "0", "0"]}
   - {name: ack_o,      states: ["0", "0", "1", "0", "0", "1", "0", "1"]}
 notes:
-  - "Write-back 1-word-per-channel cache. Dirty lines are written back only on miss/eviction, page change, or FLUSH."
+  - "Write-back, one word per channel. Dirty words leave the entry on a miss, a page change or FLUSH."
+  - "A fill starts only when the posted write buffer is empty, so a read always sees the latest write."
+---
+kind: timing
+name: timing_gpu_cache_write
+title: "gpu_cache: write miss on a dirty entry (post + allocate in one cycle), then a write hit"
+signals:
+  - {name: clk,        type: clock}
+  - {name: ch_stb_i,   states: ["0", "1", "0", "1", "0", "0", "0"]}
+  - {name: ch_we_i,    states: ["-", "1", "-", "1", "-", "-", "-"]}
+  - {name: ch_hit_o,   states: ["-", "0", "-", "1", "-", "-", "-"]}
+  - {name: state,      states: ["ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_IDLE", "ST_IDLE"]}
+  - {name: wbuf_v,     states: ["0", "0", "1", "1", "1", "0", "0"]}
+  - {name: wb_cyc_o,   states: ["0", "0", "1", "1", "1", "0", "0"]}
+  - {name: wb_we_o,    states: ["0", "0", "1", "1", "1", "0", "0"]}
+  - {name: wb_ack_i,   states: ["0", "0", "0", "0", "1", "0", "0"]}
+  - {name: ack_o,      states: ["0", "0", "1", "0", "1", "0", "0"]}
+notes:
+  - "Cycle 1: the old dirty word goes to the write buffer and the new pixel takes the entry in the same cycle. No memory read."
+  - "The buffer drains on its own (wb_sel_o = dirty bytes); the channel goes on with write hits meanwhile."
 ---
 kind: timing
 name: timing_pixel_blender
-title: "pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)"
+title: "pixel_blender: combinational read; a write is one masked cache access"
 signals:
   - {name: clk,        type: clock}
-  - {name: cyc_stb,    states: ["0", "1", "0", "1", "1", "1", "0"]}
-  - {name: we_i,       states: ["0", "0", "0", "1", "1", "1", "0"]}
-  - {name: state,      states: ["IDLE", "IDLE", "IDLE", "IDLE", "RMW_READ", "RMW_WRITE", "IDLE"]}
-  - {name: rmw_req_o,  states: ["0", "0", "0", "0", "1", "1", "0"]}
-  - {name: rmw_we_o,   states: ["0", "0", "0", "0", "0", "1", "0"]}
-  - {name: ack_i,      states: ["0", "1", "0", "0", "1", "1", "0"]}
-  - {name: ack_o,      states: ["0", "1", "0", "0", "0", "0", "1"]}
+  - {name: cyc_stb,    states: ["0", "1", "0", "1", "0"]}
+  - {name: we_i,       states: ["0", "0", "0", "1", "0"]}
+  - {name: rmw_req_o,  states: ["0", "0", "0", "1", "0"]}
+  - {name: rmw_msk_o,  states: ["-", "-", "-", "00FF", "-"]}
+  - {name: ack_i,      states: ["0", "1", "0", "1", "0"]}
+  - {name: ack_o,      states: ["0", "1", "0", "1", "0"]}
 notes:
   - "Unpacks/packs pixels directly from raw frac_i using fmt_pkg masks (sh = ~frac_i & s_mask)."
-  - "Write-protected formats (1bpp, 2bpp) preserve word_r unchanged during RMW_WRITE."
+  - "Write: rmw_dat_o = (pixel << sh) & mask, rmw_msk_o = pix_mask << sh; the cache merges the pixel into its word. ack_o = ack_i."
+  - "Write-protected formats (1bpp, 2bpp, reserved) are acknowledged after one cycle without a cache access."
+  - "dat_o carries read data only, so it never depends on the pixel being written (no ALU -> blender -> operand loop)."
 ---
 kind: timing
 name: timing_alu_pipeline
@@ -122,19 +142,19 @@ notes:
 ---
 kind: timing
 name: timing_top_data
-title: "top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)"
+title: "top: DATA write (cache hit: one masked access -> ack)"
 signals:
   - {name: clk,           type: clock}
-  - {name: fu_pc,         states: ["101", "102", "102", "102", "103"]}
-  - {name: x_ins_r,       states: ["MOV DATA1,R2", "MOV DATA1,R2", "MOV DATA1,R2", "MOV DATA1,R2", "SUB R0,#1"]}
-  - {name: blend_state,   states: ["IDLE", "RMW_READ", "RMW_WRITE", "IDLE", "IDLE"]}
-  - {name: cache_stb,     states: ["0", "1", "1", "0", "0"]}
-  - {name: cache_we,      states: ["0", "0", "1", "0", "0"]}
-  - {name: cache_ack,     states: ["0", "0", "1", "0", "0"]}
-  - {name: ch_data_ack,   states: ["0", "0", "0", "1", "0"]}
-  - {name: x_busy,        states: ["1", "1", "1", "0", "0"]}
+  - {name: fu_pc,         states: ["102", "103", "103", "104"]}
+  - {name: x_ins_r,       states: ["ADD R2,R3", "MOV DATA1,R2", "MOV DATA1,R2", "SUB R0,#1"]}
+  - {name: cache_stb,     states: ["0", "1", "0", "0"]}
+  - {name: cache_we,      states: ["0", "1", "0", "0"]}
+  - {name: cache_ack,     states: ["0", "0", "1", "0"]}
+  - {name: ch_data_ack,   states: ["0", "0", "1", "0"]}
+  - {name: x_busy,        states: ["0", "1", "0", "0"]}
 notes:
-  - "t_ch_data_req stalls X (x_busy=1) until channel_unit asserts ch_data_ack (blend_ack && !req_done_r)."
+  - "t_ch_data_req stalls X (x_busy=1) until channel_unit asserts ch_data_ack (= blend_ack = cache ack)."
+  - "A write miss is acknowledged just as fast: the entry is allocated without reading memory."
 ---
 kind: timing
 name: timing_flush
@@ -154,3 +174,4 @@ signals:
 notes:
   - "t_ch_flush_req stalls X (x_busy=1) until flush_ack_o=1."
   - "If the channel is clean or invalid, flush_noop_c invalidates it and asserts flush_ack_o immediately."
+  - "FLUSH also waits until the posted write buffer is empty: after flush_ack_o everything written so far is in memory."

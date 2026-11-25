@@ -1,3 +1,3 @@
-**pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)**
+**pixel_blender: combinational read; a write is one masked cache access**
 
-![pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](timing_pixel_blender.svg)
+![pixel_blender: combinational read; a write is one masked cache access](timing_pixel_blender.svg)

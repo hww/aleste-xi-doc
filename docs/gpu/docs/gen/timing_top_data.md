@@ -1,3 +1,3 @@
-**top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)**
+**top: DATA write (cache hit: one masked access -> ack)**
 
-![top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)](timing_top_data.svg)
+![top: DATA write (cache hit: one masked access -> ack)](timing_top_data.svg)

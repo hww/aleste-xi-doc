@@ -1,8 +1,8 @@
-**DATA[0..3] (40..43)**
+**DATA[0..3] (44..47)**
 
 | Value | Name | Description |
 | --- | --- | --- |
-| 40 | <a id="DATA0"></a>**DATA0** | Pixel engine temporary register |
-| 41 | <a id="DATA1"></a>**DATA1** | Pixel engine temporary register |
-| 42 | <a id="DATA2"></a>**DATA2** | Pixel engine temporary register |
-| 43 | <a id="DATA3"></a>**DATA3** | Pixel engine temporary register |
+| 44 | <a id="DATA0"></a>**DATA0** | Pixel port of channel CH0 |
+| 45 | <a id="DATA1"></a>**DATA1** | Pixel port of channel CH1 |
+| 46 | <a id="DATA2"></a>**DATA2** | Pixel port of channel CH2 |
+| 47 | <a id="DATA3"></a>**DATA3** | Pixel port of channel CH3 |

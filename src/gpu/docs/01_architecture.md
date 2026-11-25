@@ -93,7 +93,7 @@ The 6-bit operand field selects 64 slots: R0..R31 (general-purpose), 32..41 (sys
 **Notes:**
 - `DATA[n]` is the pixel port of **channel n** (the low two bits of the operand select the channel). `IDX[n]`, `IDXH[n]`, `STEP[n]`, `MODEPAGE[n]` address the corresponding register of channel `n`.
 - Ports that are not readable/writable are rejected by the assembler.
-- Source advances on read, destination on write. Transparency: write the old pixel back (the blender performs the RMW in hardware).
+- Source advances on read, destination on write. Transparency: write the old pixel back (a single masked write: the cache merges the pixel into its word).
 - The special operand set has no separate `STM` slot; stream input is `DATA[0]` with CH0 presetted by the loader.
 
 ## 7. Register file

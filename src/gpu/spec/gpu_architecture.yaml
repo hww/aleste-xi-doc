@@ -55,49 +55,56 @@ entries:
 ---
 kind: enum
 name: sysregs
-title: "System Registers (32..38, 39 reserved)"
+title: "System Registers (32..41, 42..43 reserved)"
 width: 6
 entries:
   - {value: 32, name: "ZERO",     description: "Constant zero"}
   - {value: 33, name: "FLAGS",    description: "Flags V, C, N, Z (see flags_bitfield)"}
-  - {value: 34, name: "SHADOW",   description: "CALL/RET return address and flags (see shadow_bitfield)"}
-  - {value: 35, name: "LOOP_CNT", description: "Loop counter"}
-  - {value: 36, name: "LOOP_TGT", description: "Loop target"}
-  - {value: 37, name: "BUSY",     description: "Busy flags (see busy_bitfield)"}
-  - {value: 38, name: "MHI",      description: "Upper 16 bits of MUL"}
-  - {value: 39, name: "reserved", description: "-"}
+  - {value: 34, name: "BUSY",     description: "Channel status (see busy_bitfield)"}
+  - {value: 35, name: "SHADOW",   description: "CALL/RET return address and flags (see shadow_bitfield)"}
+  - {value: 36, name: "LOOP_CNT", description: "Loop counter"}
+  - {value: 37, name: "LOOP_TGT", description: "Loop target"}
+  - {value: 38, name: "ROML",     description: "ROM access, low 16 bits"}
+  - {value: 39, name: "ROMH",     description: "ROM access, high 16 bits (a read or a write increments ROMA)"}
+  - {value: 40, name: "ROMA",     description: "ROM access address (write only)"}
+  - {value: 41, name: "MHI",      description: "Upper 16 bits of MUL"}
 ---
 kind: enum
 name: channels
 title: "Pixel Engine Channels (48..63)"
 width: 6
 entries:
-  - {value: 48, name: "CH0_IDX",       description: "Pixel index"}
-  - {value: 52, name: "CH1_IDX",       description: "Pixel index"}
-  - {value: 56, name: "CH2_IDX",       description: "Pixel index"}
-  - {value: 60, name: "CH3_IDX",       description: "Pixel index"}
-  - {value: 49, name: "CH0_IDXH",      description: "Upper 3 bits of index"}
-  - {value: 53, name: "CH1_IDXH",      description: "Upper 3 bits of index"}
-  - {value: 57, name: "CH2_IDXH",      description: "Upper 3 bits of index"}
-  - {value: 61, name: "CH3_IDXH",      description: "Upper 3 bits of index"}
-  - {value: 50, name: "CH0_STEP",      description: "Step (12.4)"}
-  - {value: 54, name: "CH1_STEP",      description: "Step (12.4)"}
-  - {value: 58, name: "CH2_STEP",      description: "Step (12.4)"}
-  - {value: 62, name: "CH3_STEP",      description: "Step (12.4)"}
-  - {value: 51, name: "CH0_MODE_PAGE", description: "MODE and PAGE"}
-  - {value: 55, name: "CH1_MODE_PAGE", description: "MODE and PAGE"}
-  - {value: 59, name: "CH2_MODE_PAGE", description: "MODE and PAGE"}
-  - {value: 63, name: "CH3_MODE_PAGE", description: "MODE and PAGE"}
+  - {value: 48, name: "CH0_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 49, name: "CH1_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 50, name: "CH2_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 51, name: "CH3_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 52, name: "CH0_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 53, name: "CH1_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 54, name: "CH2_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 55, name: "CH3_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 56, name: "CH0_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 57, name: "CH1_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 58, name: "CH2_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 59, name: "CH3_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 60, name: "CH0_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+  - {value: 61, name: "CH1_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+  - {value: 62, name: "CH2_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+  - {value: 63, name: "CH3_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+notes:
+  - "The operand code is {2'b11, register[1:0], channel[1:0]}: IDX 48..51, IDXH 52..55, STEP 56..59, MODE_PAGE 60..63."
+  - "IDX, IDXH and STEP are written in whole pixels; the channel shifts them by the format (>>> k) into its 20-bit internal index (word + 4-bit position + page-overflow bit)."
+  - "IDXH must be written before IDX: writing IDX consumes IDXH and clears it."
+  - "The pixel index is a signed 19-bit value, so a 1 bpp channel only reaches the first 32 KB of its page."
 ---
 kind: enum
 name: data_regs
-title: "DATA[0..3] (40..43)"
+title: "DATA[0..3] (44..47)"
 width: 6
 entries:
-  - {value: 40, name: "DATA0", description: "Pixel engine temporary register"}
-  - {value: 41, name: "DATA1", description: "Pixel engine temporary register"}
-  - {value: 42, name: "DATA2", description: "Pixel engine temporary register"}
-  - {value: 43, name: "DATA3", description: "Pixel engine temporary register"}
+  - {value: 44, name: "DATA0", description: "Pixel port of channel CH0"}
+  - {value: 45, name: "DATA1", description: "Pixel port of channel CH1"}
+  - {value: 46, name: "DATA2", description: "Pixel port of channel CH2"}
+  - {value: 47, name: "DATA3", description: "Pixel port of channel CH3"}
 ---
 kind: bitfield
 name: channel_mode_page
@@ -121,13 +128,11 @@ fields:
 ---
 kind: bitfield
 name: busy_bitfield
-title: "BUSY Register"
+title: "BUSY Register (34)"
 width: 4
 fields:
-  - {name: HIT,         bit: 0, description: "Cache hit"}
-  - {name: ACCESS_DONE, bit: 1, description: "Pixel access complete (one-cycle strobe)"}
-  - {name: FLUSH_DONE,  bit: 2, description: "Flush complete (one-cycle strobe)"}
-  - {name: WB_CYC,      bit: 3, description: "Wishbone cycle active"}
+  - {name: PAGE_OVF, bit: 0, description: "Page overflow: bit 19 of the index of the channel in use"}
+  - {name: "-",      bits: [3,1], description: "Read as 0"}
 ---
 kind: enum
 name: channel_mode
@@ -157,20 +162,26 @@ notes:
 kind: fsm
 name: cache_fsm
 title: "Cache FSM"
-initial: C_IDLE
+initial: ST_IDLE
 states:
-  - {name: "C_IDLE",      description: "Waiting for access / prefetch / flush"}
-  - {name: "C_FILL_REQ",  description: "Read miss: wb_cyc=1 until wb_ack_i"}
-  - {name: "C_WB_REQ",    description: "Writeback of dirty channel: wb_cyc=1 until wb_ack_i"}
+  - {name: "ST_IDLE",      description: "Hits, write misses (allocate), posting to the write buffer, page changes, clean flushes"}
+  - {name: "ST_FILL",      description: "Read one word from memory (read miss, merge fill or lazy fill); waits until the write buffer is empty"}
+  - {name: "ST_WRITEBACK", description: "FLUSH of a dirty channel: blocking write, not through the write buffer"}
 transitions:
-  - {from: "C_IDLE",     to: "C_FILL_REQ", when: "access && !hit || prefetch_req && !hit"}
-  - {from: "C_FILL_REQ", to: "C_IDLE",     when: "wb_ack_i"}
-  - {from: "C_IDLE",     to: "C_WB_REQ",   when: "flush_req && valid && dirty"}
-  - {from: "C_WB_REQ",   to: "C_IDLE",     when: "wb_ack_i"}
-  - {from: "C_IDLE",     to: "C_IDLE",     when: "flush_req && !(valid && dirty)", do: "valid=0, dirty=0, flush_done=1"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "write miss, entry clean", do: "allocate: TAG, DATA = pixel, DMASK = written nibbles; ack"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "write miss, entry dirty, buffer free", do: "post old word to the buffer and allocate, same cycle; ack"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "page change pending, entry dirty, buffer free", do: "post old word to the buffer"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "page change pending, entry clean", do: "apply the new page, invalidate"}
+  - {from: "ST_IDLE",      to: "ST_FILL",      when: "read miss or read of a partial entry, buffer empty"}
+  - {from: "ST_IDLE",      to: "ST_FILL",      when: "dirty entry with a half-written byte must be evicted", do: "lazy fill of its own word"}
+  - {from: "ST_FILL",      to: "ST_IDLE",      when: "wb_ack_i && buffer empty", do: "DATA = memory word with dirty nibbles kept; FULL = 1"}
+  - {from: "ST_IDLE",      to: "ST_WRITEBACK", when: "FLUSH && dirty && buffer empty"}
+  - {from: "ST_WRITEBACK", to: "ST_IDLE",      when: "wb_ack_i", do: "DMASK = 0, invalidate, flush_ack"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "FLUSH && !dirty && buffer empty", do: "invalidate, flush_ack (flush_noop)"}
 notes:
-  - "C_IDLE -> C_IDLE is flush_noop: flush requested but channel invalid or clean, no WB needed."
-  - "gc is a 4-channel single-word buffer, not a classic cache. Writing N consecutive words requires FLUSH after each word."
+  - "The posted write buffer (one word, shared by the four channels) drains to memory on its own, in any state. While it is busy, Wishbone carries its write; ST_FILL and ST_WRITEBACK wait for it."
+  - "Order of priority in ST_IDLE: pending page change, then FLUSH, then the channel access."
+  - "The cache is a 4-channel single-word buffer, not a classic cache. Consecutive words can be written without FLUSH: each eviction goes to the write buffer."
 ---
 
 kind: enum
@@ -182,10 +193,10 @@ columns:
   - {key: name, title: "Signal"}
   - {key: description, title: "Description"}
 entries:
-  - {value: 1, name: "idx_stored",   description: "19-bit index (15 integer, 4 fractional)"}
+  - {value: 1, name: "idx_stored",   description: "20-bit index (15 word, 4 position, 1 page overflow)"}
   - {value: 2, name: "word_out",     description: "15-bit word (integer part)"}
   - {value: 3, name: "gc_rdata",     description: "16-bit data from cache"}
-  - {value: 4, name: "pb_pixel_out", description: "16-bit pixel from blender"}
+  - {value: 4, name: "pb_pixel_out", description: "16-bit pixel from blender (read); on a write the blender sends pixel + bit mask to the cache"}
   - {value: 5, name: "wdata",        description: "Written to destination register"}
 ---
 # 32-bit microinstruction. Four formats selected by (J, I).

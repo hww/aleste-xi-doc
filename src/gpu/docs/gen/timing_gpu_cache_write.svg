@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1001.8" height="600" viewBox="0 0 1001.8 600">
+<defs>
+<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="6" height="6" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="6" stroke="#B0B0B0" stroke-width="2"/></pattern>
+<pattern id="xpat" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect width="8" height="8" fill="#FFFFFF"/><path d="M0 0L8 8M8 0L0 8" stroke="#C07070" stroke-width="1"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10z" fill="#000000"/></marker>
+</defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
+<rect width="1001.8" height="600" fill="#FFFFFF"/>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">gpu_cache: write miss on a dirty entry (post + allocate in one cycle), then a write hit</text>
+<text x="32" y="62" font-size="14" fill="#555555">7 ticks</text>
+<line x1="102.4" y1="108" x2="102.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="138.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T1</text>
+<line x1="174.4" y1="108" x2="174.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="210.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T2</text>
+<line x1="246.4" y1="108" x2="246.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="282.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T3</text>
+<line x1="318.4" y1="108" x2="318.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="354.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T4</text>
+<line x1="390.4" y1="108" x2="390.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="426.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T5</text>
+<line x1="462.4" y1="108" x2="462.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="498.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T6</text>
+<line x1="534.4" y1="108" x2="534.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="570.4" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">T7</text>
+<line x1="606.4" y1="108" x2="606.4" y2="572" stroke="#CCCCCC" stroke-width="1"/>
+<text x="90.4" y="140" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">clk</text>
+<path d="M102.4 149 L102.4 121 L138.4 121 L138.4 149 L174.4 149 M174.4 149 L174.4 121 L210.4 121 L210.4 149 L246.4 149 M246.4 149 L246.4 121 L282.4 121 L282.4 149 L318.4 149 M318.4 149 L318.4 121 L354.4 121 L354.4 149 L390.4 149 M390.4 149 L390.4 121 L426.4 121 L426.4 149 L462.4 149 M462.4 149 L462.4 121 L498.4 121 L498.4 149 L534.4 149 M534.4 149 L534.4 121 L570.4 121 L570.4 149 L606.4 149" fill="none" stroke="#000000" stroke-width="2"/>
+<text x="90.4" y="186" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">ch_stb_i</text>
+<line x1="102.4" y1="195" x2="174.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="167" x2="246.4" y2="167" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="167" x2="174.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="195" x2="318.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="167" x2="246.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="167" x2="390.4" y2="167" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="167" x2="318.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="195" x2="462.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="167" x2="390.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="195" x2="534.4" y2="195" stroke="#000000" stroke-width="2"/>
+<line x1="534.4" y1="195" x2="606.4" y2="195" stroke="#000000" stroke-width="2"/>
+<text x="90.4" y="232" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">ch_we_i</text>
+<polygon points="108.4,213 168.4,213 174.4,227 168.4,241 108.4,241 102.4,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="138.4" y="231.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<line x1="174.4" y1="213" x2="246.4" y2="213" stroke="#000000" stroke-width="2"/>
+<polygon points="252.4,213 312.4,213 318.4,227 312.4,241 252.4,241 246.4,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="282.4" y="231.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<line x1="318.4" y1="213" x2="390.4" y2="213" stroke="#000000" stroke-width="2"/>
+<polygon points="396.4,213 456.4,213 462.4,227 456.4,241 396.4,241 390.4,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="426.4" y="231.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="468.4,213 528.4,213 534.4,227 528.4,241 468.4,241 462.4,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="498.4" y="231.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="540.4,213 600.4,213 606.4,227 600.4,241 540.4,241 534.4,227" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="570.4" y="231.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<text x="90.4" y="278" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">ch_hit_o</text>
+<polygon points="108.4,259 168.4,259 174.4,273 168.4,287 108.4,287 102.4,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="138.4" y="277.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<line x1="174.4" y1="287" x2="246.4" y2="287" stroke="#000000" stroke-width="2"/>
+<polygon points="252.4,259 312.4,259 318.4,273 312.4,287 252.4,287 246.4,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="282.4" y="277.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<line x1="318.4" y1="259" x2="390.4" y2="259" stroke="#000000" stroke-width="2"/>
+<polygon points="396.4,259 456.4,259 462.4,273 456.4,287 396.4,287 390.4,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="426.4" y="277.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="468.4,259 528.4,259 534.4,273 528.4,287 468.4,287 462.4,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="498.4" y="277.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<polygon points="540.4,259 600.4,259 606.4,273 600.4,287 540.4,287 534.4,273" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="570.4" y="277.2" font-size="12" text-anchor="middle" fill="#000000">-</text>
+<text x="90.4" y="324" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">state</text>
+<polygon points="108.4,305 168.4,305 174.4,319 168.4,333 108.4,333 102.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="138.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<polygon points="180.4,305 240.4,305 246.4,319 240.4,333 180.4,333 174.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="210.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<polygon points="252.4,305 312.4,305 318.4,319 312.4,333 252.4,333 246.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="282.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<polygon points="324.4,305 384.4,305 390.4,319 384.4,333 324.4,333 318.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="354.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<polygon points="396.4,305 456.4,305 462.4,319 456.4,333 396.4,333 390.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="426.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<polygon points="468.4,305 528.4,305 534.4,319 528.4,333 468.4,333 462.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="498.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<polygon points="540.4,305 600.4,305 606.4,319 600.4,333 540.4,333 534.4,319" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<text x="570.4" y="323.2" font-size="12" text-anchor="middle" fill="#000000">ST_IDLE</text>
+<text x="90.4" y="370" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wbuf_v</text>
+<line x1="102.4" y1="379" x2="174.4" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="379" x2="246.4" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="351" x2="318.4" y2="351" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="351" x2="246.4" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="351" x2="390.4" y2="351" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="351" x2="462.4" y2="351" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="379" x2="534.4" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="351" x2="462.4" y2="379" stroke="#000000" stroke-width="2"/>
+<line x1="534.4" y1="379" x2="606.4" y2="379" stroke="#000000" stroke-width="2"/>
+<text x="90.4" y="416" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wb_cyc_o</text>
+<line x1="102.4" y1="425" x2="174.4" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="425" x2="246.4" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="397" x2="318.4" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="397" x2="246.4" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="397" x2="390.4" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="397" x2="462.4" y2="397" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="425" x2="534.4" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="397" x2="462.4" y2="425" stroke="#000000" stroke-width="2"/>
+<line x1="534.4" y1="425" x2="606.4" y2="425" stroke="#000000" stroke-width="2"/>
+<text x="90.4" y="462" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wb_we_o</text>
+<line x1="102.4" y1="471" x2="174.4" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="471" x2="246.4" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="443" x2="318.4" y2="443" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="443" x2="246.4" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="443" x2="390.4" y2="443" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="443" x2="462.4" y2="443" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="471" x2="534.4" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="443" x2="462.4" y2="471" stroke="#000000" stroke-width="2"/>
+<line x1="534.4" y1="471" x2="606.4" y2="471" stroke="#000000" stroke-width="2"/>
+<text x="90.4" y="508" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">wb_ack_i</text>
+<line x1="102.4" y1="517" x2="174.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="517" x2="246.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="517" x2="318.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="517" x2="390.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="489" x2="462.4" y2="489" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="489" x2="390.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="517" x2="534.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="489" x2="462.4" y2="517" stroke="#000000" stroke-width="2"/>
+<line x1="534.4" y1="517" x2="606.4" y2="517" stroke="#000000" stroke-width="2"/>
+<text x="90.4" y="554" font-size="13" text-anchor="end" fill="#000000" font-weight="700" class="m">ack_o</text>
+<line x1="102.4" y1="563" x2="174.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="174.4" y1="563" x2="246.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="535" x2="318.4" y2="535" stroke="#000000" stroke-width="2"/>
+<line x1="246.4" y1="535" x2="246.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="563" x2="390.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="318.4" y1="535" x2="318.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="535" x2="462.4" y2="535" stroke="#000000" stroke-width="2"/>
+<line x1="390.4" y1="535" x2="390.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="563" x2="534.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="462.4" y1="535" x2="462.4" y2="563" stroke="#000000" stroke-width="2"/>
+<line x1="534.4" y1="563" x2="606.4" y2="563" stroke="#000000" stroke-width="2"/>
+</svg>

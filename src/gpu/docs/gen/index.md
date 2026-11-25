@@ -2,7 +2,7 @@
 
 ## bitfield
 
-- [BUSY Register](busy_bitfield.md) — `busy_bitfield`
+- [BUSY Register (34)](busy_bitfield.md) — `busy_bitfield`
 - [CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])](channel_mode_page.md) — `channel_mode_page`
 - [FLAGS Register](flags_bitfield.md) — `flags_bitfield`
 - [J=1 I=0 CONTROL (R=0: JMP/CALL/RET/HALT/IRQ/FLUSH)](insn_ctrl_jmp.md) — `insn_ctrl_jmp`
@@ -21,13 +21,13 @@
 - [Pixel Engine Channels (48..63)](channels.md) — `channels`
 - [COND (4 bits, ARM-style)](conditions.md) — `conditions`
 - [CTRL OP (J=1, I=0)](ctrl_ops.md) — `ctrl_ops`
-- [DATA[0..3] (40..43)](data_regs.md) — `data_regs`
+- [DATA[0..3] (44..47)](data_regs.md) — `data_regs`
 - [GPU Commands](gpu_interface_commands.md) — `gpu_interface_commands`
 - [Loader packet headers](gpu_interface_package.md) — `gpu_interface_package`
 - [Operand map (6 bits, 0..63)](operand_map.md) — `operand_map`
 - [Pixel Path Stages](pixel_path_stages.md) — `pixel_path_stages`
 - [Register file · R0–R31 (16 bit)](registers.md) — `registers`
-- [System Registers (32..38, 39 reserved)](sysregs.md) — `sysregs`
+- [System Registers (32..41, 42..43 reserved)](sysregs.md) — `sysregs`
 - [CHANNEL FORMAT (fmt, 3 bits); W = operand width of the pixel ALU](v2_channel_format.md) — `v2_channel_format`
 - [Bank 0 POS - position (per scanline). 16.16 two's complement integer / unsigned fraction](v2_operand_map_bank_0_pos.md) — `v2_operand_map_bank_0_pos`
 - [Bank 1 STEP - added to position after every DATA access (per primitive)](v2_operand_map_bank_1_step.md) — `v2_operand_map_bank_1_step`
@@ -56,12 +56,13 @@
 - [alu: combinational compute (0 cyc), MHI registered on MUL (1 cyc)](timing_alu.md) — `timing_alu`
 - [ALU instruction in F -> D -> X pipeline (D reads regfile, X computes & writes back)](timing_alu_pipeline.md) — `timing_alu_pipeline`
 - [FLUSH: blocking X-stage until ST_WRITEBACK completes and flush_ack_o strobes](timing_flush.md) — `timing_flush`
-- [gpu_cache: hit (1 cyc ack), miss/fill (ST_IDLE -> ST_FILL -> ST_IDLE)](timing_gpu_cache.md) — `timing_gpu_cache`
+- [gpu_cache: read hit (1 cyc ack), read miss (ST_IDLE -> ST_FILL -> ST_IDLE)](timing_gpu_cache.md) — `timing_gpu_cache`
+- [gpu_cache: write miss on a dirty entry (post + allocate in one cycle), then a write hit](timing_gpu_cache_write.md) — `timing_gpu_cache_write`
 - [microcode_rom: synchronous read on fetch_en_i (1 cyc latency, held on stall)](timing_microcode_rom.md) — `timing_microcode_rom`
-- [pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](timing_pixel_blender.md) — `timing_pixel_blender`
+- [pixel_blender: combinational read; a write is one masked cache access](timing_pixel_blender.md) — `timing_pixel_blender`
 - [regfile: write mem[wa] on posedge; synchronous read on rd_en_i with write-through bypass](timing_regfile.md) — `timing_regfile`
 - [fetch_unit: 3-stage pipeline F -> D -> X (1 cyc/insn, 1 bubble on D-branch/L-loop)](timing_sequencer.md) — `timing_sequencer`
-- [top: DATA RMW write (cache hit: RMW_READ -> RMW_WRITE -> ack)](timing_top_data.md) — `timing_top_data`
+- [top: DATA write (cache hit: one masked access -> ack)](timing_top_data.md) — `timing_top_data`
 
 ## fsm
 

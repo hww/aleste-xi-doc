@@ -27,8 +27,25 @@ ROM stores the program. Synchronous, 1-cycle latency: the fetch output register 
 
 ## Cache
 
-The cache is 4-channel, one entry per pixel engine channel. Each entry stores TAG (15 bits), DATA (16 bits), PAGE (8 bits), plus valid, dirty and pending-page-change flags. States and transitions are described in the GPU cache section.
+The cache is 4-channel, one word per pixel engine channel, plus a one-word posted write buffer shared by the channels. Each entry stores TAG (15 bits), DATA (16 bits), PAGE (8 bits), VALID, FULL, a 4-bit dirty mask per nibble, and the pending page change. Writes never read memory first. See the GPU cache section.
 
 ## Wishbone
 
-The cache is a Wishbone master. It drives `wb_cyc`, `wb_stb`, `wb_we`, `wb_adr`, `wb_dat_o` and waits for `wb_ack`. The master state machine is `ST_IDLE / ST_FILL / ST_WRITEBACK`; a dirty eviction or a `FLUSH` performs `ST_WRITEBACK`, a miss performs `ST_FILL`.
+The cache is a Wishbone master. It drives `wb_cyc`, `wb_stb`, `wb_we`, `wb_adr`, `wb_dat_o`, `wb_sel` (byte enables of a write) and waits for `wb_ack`. The state machine is `ST_IDLE / ST_FILL / ST_WRITEBACK`: a read miss performs `ST_FILL`, a `FLUSH` of a dirty channel performs `ST_WRITEBACK`, and any other dirty eviction goes to the write buffer, which drains on its own.
+
+## On the Aleste LX (MiSTer)
+
+On the Aleste LX the GPU shares the SDRAM with the CPU and video through `memory_arbiter` and `sdram_wishbone`.
+
+- **SDRAM controller** (`OPEN_PAGE=1`):
+  - one open row per bank, with no auto-precharge;
+  - a request to the open row of its bank goes straight to READ/WRITE; another row costs PRECHARGE + ACTIVE;
+  - writes are acknowledged 2 cycles after their command, and `wb_sel` drives DQM;
+  - refresh runs in idle gaps: up to 7 refreshes can be pending, and one is forced with 4 pending, so it never delays a video read past its deadline.
+- **Address map** (`memory_arbiter`):
+  - bank = the two low bits of the 64 KB page (`addr[17:16]`);
+  - row = `{addr[23:18], addr[15:10]}`;
+  - column = `addr[9:1]`.
+
+  Consecutive words share a 1 KB row, and consecutive pages fall in different banks: C4 → bank 0, C5 → 1, C6 → 2, C7 → 3.
+- **Rule for software:** keep textures, tiles and fonts out of the banks of the framebuffers being drawn (`page & 3`). Otherwise every read of a graphic closes the row of the screen being written. Moving GPUDEMO's graphics from pages 21h–26h to 27h/28h made the tile scene 10% faster and the parallax scene 6% faster.

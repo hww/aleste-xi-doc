@@ -4,7 +4,7 @@ The pixel engine (`ch_addr_gen`, instance `u_pe`) holds a pixel index (20 bits: 
 
 ## Formats
 
-Five packed formats are supported: 1, 2, 4, 8, and 16 bpp, plus two pass-through modes (LO8/HI8). Slot 7 is reserved. The format defines `k` (shift) and `mask` (position mask). Each format has its own pixels-per-word count. 1 bpp and 2 bpp are read-only in the RTL (`wr_en=0` in `get_fmt_info`).
+Five packed formats are supported: 1, 2, 4, 8, and 16 bpp. Codes 5..7 are reserved (read like 16 bpp, writes ignored). The format defines `k` (shift) and `mask` (position mask). Each format has its own pixels-per-word count. 1 bpp and 2 bpp are read-only in the RTL (`wr_en=0` in `get_fmt_info`).
 
 **Table 1 — CHANNEL FORMAT (fmt, 3 bits)**
 
@@ -34,10 +34,10 @@ The pixel path goes through several stages, from index to destination register.
 
 | Stage | Signal | Description |
 | --- | --- | --- |
-| 1 | <a id="idx_stored"></a>**idx_stored** | 19-bit index (15 integer, 4 fractional) |
+| 1 | <a id="idx_stored"></a>**idx_stored** | 20-bit index (15 word, 4 position, 1 page overflow) |
 | 2 | <a id="word_out"></a>**word_out** | 15-bit word (integer part) |
 | 3 | <a id="gc_rdata"></a>**gc_rdata** | 16-bit data from cache |
-| 4 | <a id="pb_pixel_out"></a>**pb_pixel_out** | 16-bit pixel from blender |
+| 4 | <a id="pb_pixel_out"></a>**pb_pixel_out** | 16-bit pixel from blender (read); on a write the blender sends pixel + bit mask to the cache |
 | 5 | <a id="wdata"></a>**wdata** | Written to destination register |
 
 
@@ -47,8 +47,13 @@ The timing diagram below shows a single pixel read operation.
 
 ![Pixel Read Timing](gen/pixel_read_timing.svg)
 
-The blender (`ch_blender`) is a 3-state FSM used for writes: `IDLE → RMW_READ → RMW_WRITE → IDLE`. In `IDLE` a write request (`cyc_i && stb_i && we_i`) captures `mode`, `frac` and the source pixel; `RMW_READ` reads the target word from the cache; `RMW_WRITE` blends the pixel into the word and writes it back. Reads bypass the FSM: `dat_o` is the combinatorially unpacked pixel and `ack_o = ack_i` from the cache.
+The blender (`ch_blender`) converts between the pixel and the 16-bit word. It has no state machine and does no read-modify-write:
 
-![pixel_blender: combinational read; RMW write FSM (IDLE -> RMW_READ -> RMW_WRITE)](gen/timing_pixel_blender.svg)
+- **Read:** the cache word is unpacked combinationally, `pixel = (word >> shift) & pix_mask`, and `ack_o` is the cache's ack.
+- **Write:** a pixel write is a single cache access. The blender shifts the pixel into place (`rmw_dat_o = (pixel << shift) & mask`) and sends the mask of the bits it replaces (`rmw_msk_o = pix_mask << shift`). The cache merges the pixel into its word (see the GPU cache section); a write never reads memory first.
+- **Write-protected formats** (1 bpp, 2 bpp and the reserved codes) are acknowledged after one cycle without touching the cache.
+- `dat_o` carries read data only. It must not depend on the pixel being written, otherwise ALU → blender → operand mux would form a combinational loop.
 
-*Fig. 14. Pixel read timing.*
+![pixel_blender: combinational read; a write is one masked cache access](gen/timing_pixel_blender.svg)
+
+*Fig. 14. Pixel blender timing.*

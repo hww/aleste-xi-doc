@@ -52,48 +52,62 @@ A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cy
 
 ## System Registers
 
-System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, ROM access, and the MUL high half.
+System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, channel status, CALL/RET shadow, loop counter, ROM access, and the MUL high half.
 
-**Table 2 — System Registers (32..38, 39 reserved)**
+**Table 2 — System Registers (32..41, 42..43 reserved)**
 
 | Value | Name | Description |
 | --- | --- | --- |
 | 32 | <a id="ZERO"></a>**ZERO** | Constant zero |
 | 33 | <a id="FLAGS"></a>**FLAGS** | Flags V, C, N, Z (see flags_bitfield) |
-| 34 | <a id="SHADOW"></a>**SHADOW** | CALL/RET return address and flags (see shadow_bitfield) |
-| 35 | <a id="LOOP_CNT"></a>**LOOP_CNT** | Loop counter |
-| 36 | <a id="LOOP_TGT"></a>**LOOP_TGT** | Loop target |
-| 37 | <a id="BUSY"></a>**BUSY** | Busy flags (see busy_bitfield) |
-| 38 | <a id="MHI"></a>**MHI** | Upper 16 bits of MUL |
-| 39 | <a id="reserved"></a>**reserved** | - |
+| 34 | <a id="BUSY"></a>**BUSY** | Channel status (see busy_bitfield) |
+| 35 | <a id="SHADOW"></a>**SHADOW** | CALL/RET return address and flags (see shadow_bitfield) |
+| 36 | <a id="LOOP_CNT"></a>**LOOP_CNT** | Loop counter |
+| 37 | <a id="LOOP_TGT"></a>**LOOP_TGT** | Loop target |
+| 38 | <a id="ROML"></a>**ROML** | ROM access, low 16 bits |
+| 39 | <a id="ROMH"></a>**ROMH** | ROM access, high 16 bits (a read or a write increments ROMA) |
+| 40 | <a id="ROMA"></a>**ROMA** | ROM access address (write only) |
+| 41 | <a id="MHI"></a>**MHI** | Upper 16 bits of MUL |
 
 
 *Fig. 6. System registers.*
 
 ## Pixel Engine Channels
 
-Channels (48..63) are 4 sets of 4 registers each: IDX (48..51), IDXH (52..55), STEP (56..59), MODE_PAGE (60..63), one slot per channel CH0..CH3. They are write-only via `MOV`.
+Channels (48..63) are 4 sets of 4 registers each: IDX (48..51), IDXH (52..55), STEP (56..59), MODE_PAGE (60..63), one slot per channel CH0..CH3 (the low two bits of the operand select the channel). They are write-only via `MOV`.
+
+IDX, IDXH and STEP are given in whole pixels; the channel shifts them by its format into the internal index. Two rules:
+
+- **IDXH must be written before IDX.** Writing IDX consumes IDXH and clears it.
+- **A 1 bpp channel only reaches the first 32 KB of its page**, because the pixel index is a signed 19-bit value.
 
 **Table 3 — Pixel Engine Channels (48..63)**
 
 | Value | Name | Description |
 | --- | --- | --- |
-| 48 | <a id="CH0_IDX"></a>**CH0_IDX** | Pixel index |
-| 52 | <a id="CH1_IDX"></a>**CH1_IDX** | Pixel index |
-| 56 | <a id="CH2_IDX"></a>**CH2_IDX** | Pixel index |
-| 60 | <a id="CH3_IDX"></a>**CH3_IDX** | Pixel index |
-| 49 | <a id="CH0_IDXH"></a>**CH0_IDXH** | Upper 3 bits of index |
-| 53 | <a id="CH1_IDXH"></a>**CH1_IDXH** | Upper 3 bits of index |
-| 57 | <a id="CH2_IDXH"></a>**CH2_IDXH** | Upper 3 bits of index |
-| 61 | <a id="CH3_IDXH"></a>**CH3_IDXH** | Upper 3 bits of index |
-| 50 | <a id="CH0_STEP"></a>**CH0_STEP** | Step (12.4) |
-| 54 | <a id="CH1_STEP"></a>**CH1_STEP** | Step (12.4) |
-| 58 | <a id="CH2_STEP"></a>**CH2_STEP** | Step (12.4) |
-| 62 | <a id="CH3_STEP"></a>**CH3_STEP** | Step (12.4) |
-| 51 | <a id="CH0_MODE_PAGE"></a>**CH0_MODE_PAGE** | MODE and PAGE |
-| 55 | <a id="CH1_MODE_PAGE"></a>**CH1_MODE_PAGE** | MODE and PAGE |
-| 59 | <a id="CH2_MODE_PAGE"></a>**CH2_MODE_PAGE** | MODE and PAGE |
-| 63 | <a id="CH3_MODE_PAGE"></a>**CH3_MODE_PAGE** | MODE and PAGE |
+| 48 | <a id="CH0_IDX"></a>**CH0_IDX** | Pixel index, low 16 bits, in pixels (signed). Clears IDXH |
+| 49 | <a id="CH1_IDX"></a>**CH1_IDX** | Pixel index, low 16 bits, in pixels (signed). Clears IDXH |
+| 50 | <a id="CH2_IDX"></a>**CH2_IDX** | Pixel index, low 16 bits, in pixels (signed). Clears IDXH |
+| 51 | <a id="CH3_IDX"></a>**CH3_IDX** | Pixel index, low 16 bits, in pixels (signed). Clears IDXH |
+| 52 | <a id="CH0_IDXH"></a>**CH0_IDXH** | Pixel index, bits 18..16 (write before IDX) |
+| 53 | <a id="CH1_IDXH"></a>**CH1_IDXH** | Pixel index, bits 18..16 (write before IDX) |
+| 54 | <a id="CH2_IDXH"></a>**CH2_IDXH** | Pixel index, bits 18..16 (write before IDX) |
+| 55 | <a id="CH3_IDXH"></a>**CH3_IDXH** | Pixel index, bits 18..16 (write before IDX) |
+| 56 | <a id="CH0_STEP"></a>**CH0_STEP** | Step in pixels (signed 16 bits) |
+| 57 | <a id="CH1_STEP"></a>**CH1_STEP** | Step in pixels (signed 16 bits) |
+| 58 | <a id="CH2_STEP"></a>**CH2_STEP** | Step in pixels (signed 16 bits) |
+| 59 | <a id="CH3_STEP"></a>**CH3_STEP** | Step in pixels (signed 16 bits) |
+| 60 | <a id="CH0_MODE_PAGE"></a>**CH0_MODE_PAGE** | MODE [10:8] and PAGE [7:0] |
+| 61 | <a id="CH1_MODE_PAGE"></a>**CH1_MODE_PAGE** | MODE [10:8] and PAGE [7:0] |
+| 62 | <a id="CH2_MODE_PAGE"></a>**CH2_MODE_PAGE** | MODE [10:8] and PAGE [7:0] |
+| 63 | <a id="CH3_MODE_PAGE"></a>**CH3_MODE_PAGE** | MODE [10:8] and PAGE [7:0] |
+
+**Notes:**
+
+- The operand code is {2'b11, register[1:0], channel[1:0]}: IDX 48..51, IDXH 52..55, STEP 56..59, MODE_PAGE 60..63.
+- IDX, IDXH and STEP are written in whole pixels; the channel shifts them by the format (>>> k) into its 20-bit internal index (word + 4-bit position + page-overflow bit).
+- IDXH must be written before IDX: writing IDX consumes IDXH and clears it.
+- The pixel index is a signed 19-bit value, so a 1 bpp channel only reaches the first 32 KB of its page.
 
 
 *Fig. 7. Pixel engine channels.*
@@ -102,14 +116,14 @@ Channels (48..63) are 4 sets of 4 registers each: IDX (48..51), IDXH (52..55), S
 
 DATA[0..3] (44..47) are the pixel ports of channels CH0..CH3 (the low two bits of the operand select the channel). Reading triggers a pixel read operation; writing triggers a pixel write operation.
 
-**Table 4 — DATA[0..3] (40..43)**
+**Table 4 — DATA[0..3] (44..47)**
 
 | Value | Name | Description |
 | --- | --- | --- |
-| 40 | <a id="DATA0"></a>**DATA0** | Pixel engine temporary register |
-| 41 | <a id="DATA1"></a>**DATA1** | Pixel engine temporary register |
-| 42 | <a id="DATA2"></a>**DATA2** | Pixel engine temporary register |
-| 43 | <a id="DATA3"></a>**DATA3** | Pixel engine temporary register |
+| 44 | <a id="DATA0"></a>**DATA0** | Pixel port of channel CH0 |
+| 45 | <a id="DATA1"></a>**DATA1** | Pixel port of channel CH1 |
+| 46 | <a id="DATA2"></a>**DATA2** | Pixel port of channel CH2 |
+| 47 | <a id="DATA3"></a>**DATA3** | Pixel port of channel CH3 |
 
 
 *Fig. 8. DATA registers.*

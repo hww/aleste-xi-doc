@@ -16,7 +16,7 @@ A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cy
 
 ## System Registers
 
-System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, CALL/RET shadow, loop counter, ROM access, and the MUL high half.
+System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, channel status, CALL/RET shadow, loop counter, ROM access, and the MUL high half.
 
 {{auto:sysregs}}
 
@@ -24,7 +24,12 @@ System registers (32..41, 42..43 reserved) are available as a source in any inst
 
 ## Pixel Engine Channels
 
-Channels (48..63) are 4 sets of 4 registers each: IDX (48..51), IDXH (52..55), STEP (56..59), MODE_PAGE (60..63), one slot per channel CH0..CH3. They are write-only via `MOV`.
+Channels (48..63) are 4 sets of 4 registers each: IDX (48..51), IDXH (52..55), STEP (56..59), MODE_PAGE (60..63), one slot per channel CH0..CH3 (the low two bits of the operand select the channel). They are write-only via `MOV`.
+
+IDX, IDXH and STEP are given in whole pixels; the channel shifts them by its format into the internal index. Two rules:
+
+- **IDXH must be written before IDX.** Writing IDX consumes IDXH and clears it.
+- **A 1 bpp channel only reaches the first 32 KB of its page**, because the pixel index is a signed 19-bit value.
 
 {{auto:channels}}
 

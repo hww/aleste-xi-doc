@@ -4,7 +4,7 @@ The pixel engine (`ch_addr_gen`, instance `u_pe`) holds a pixel index (20 bits: 
 
 ## Formats
 
-Five packed formats are supported: 1, 2, 4, 8, and 16 bpp, plus two pass-through modes (LO8/HI8). Slot 7 is reserved. The format defines `k` (shift) and `mask` (position mask). Each format has its own pixels-per-word count. 1 bpp and 2 bpp are read-only in the RTL (`wr_en=0` in `get_fmt_info`).
+Five packed formats are supported: 1, 2, 4, 8, and 16 bpp. Codes 5..7 are reserved (read like 16 bpp, writes ignored). The format defines `k` (shift) and `mask` (position mask). Each format has its own pixels-per-word count. 1 bpp and 2 bpp are read-only in the RTL (`wr_en=0` in `get_fmt_info`).
 
 {{auto:channel_mode}}
 
@@ -26,8 +26,13 @@ The timing diagram below shows a single pixel read operation.
 
 {{auto:pixel_read_timing}}
 
-The blender (`ch_blender`) is a 3-state FSM used for writes: `IDLE → RMW_READ → RMW_WRITE → IDLE`. In `IDLE` a write request (`cyc_i && stb_i && we_i`) captures `mode`, `frac` and the source pixel; `RMW_READ` reads the target word from the cache; `RMW_WRITE` blends the pixel into the word and writes it back. Reads bypass the FSM: `dat_o` is the combinatorially unpacked pixel and `ack_o = ack_i` from the cache.
+The blender (`ch_blender`) converts between the pixel and the 16-bit word. It has no state machine and does no read-modify-write:
+
+- **Read:** the cache word is unpacked combinationally, `pixel = (word >> shift) & pix_mask`, and `ack_o` is the cache's ack.
+- **Write:** a pixel write is a single cache access. The blender shifts the pixel into place (`rmw_dat_o = (pixel << shift) & mask`) and sends the mask of the bits it replaces (`rmw_msk_o = pix_mask << shift`). The cache merges the pixel into its word (see the GPU cache section); a write never reads memory first.
+- **Write-protected formats** (1 bpp, 2 bpp and the reserved codes) are acknowledged after one cycle without touching the cache.
+- `dat_o` carries read data only. It must not depend on the pixel being written, otherwise ALU → blender → operand mux would form a combinational loop.
 
 {{auto:timing_pixel_blender}}
 
-*Fig. 14. Pixel read timing.*
+*Fig. 14. Pixel blender timing.*
