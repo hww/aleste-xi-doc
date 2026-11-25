@@ -28,14 +28,14 @@
 - [Pixel Path Stages](pixel_path_stages.md) — `pixel_path_stages`
 - [Register file · R0–R31 (16 bit)](registers.md) — `registers`
 - [System Registers (32..38, 39 reserved)](sysregs.md) — `sysregs`
-- [CHANNEL FORMAT (fmt, 3 bits; 8bpp is primary)](v2_channel_format.md) — `v2_channel_format`
-- [Bank 0 POS — position (per scanline)](v2_operand_map_bank_0_pos.md) — `v2_operand_map_bank_0_pos`
-- [Bank 1 STEP — deltas (per primitive)](v2_operand_map_bank_1_step.md) — `v2_operand_map_bank_1_step`
-- [Bank 2 CLIP — clipping bounds (per window)](v2_operand_map_bank_2_clip.md) — `v2_operand_map_bank_2_clip`
-- [Bank 3 PEN — pen & ALU (per primitive)](v2_operand_map_bank_3_pen.md) — `v2_operand_map_bank_3_pen`
-- [Bank 4 SURF — surface (per surface)](v2_operand_map_bank_4_surf.md) — `v2_operand_map_bank_4_surf`
+- [CHANNEL FORMAT (fmt, 3 bits); W = operand width of the pixel ALU](v2_channel_format.md) — `v2_channel_format`
+- [Bank 0 POS - position (per scanline). 16.16 two's complement integer / unsigned fraction](v2_operand_map_bank_0_pos.md) — `v2_operand_map_bank_0_pos`
+- [Bank 1 STEP - added to position after every DATA access (per primitive)](v2_operand_map_bank_1_step.md) — `v2_operand_map_bank_1_step`
+- [Bank 2 CLIP - inclusive signed clip rectangle on integer position (per window)](v2_operand_map_bank_2_clip.md) — `v2_operand_map_bank_2_clip`
+- [Bank 3 PEN - pen & ALU (per primitive)](v2_operand_map_bank_3_pen.md) — `v2_operand_map_bank_3_pen`
+- [Bank 4 SURF - surface (per surface)](v2_operand_map_bank_4_surf.md) — `v2_operand_map_bank_4_surf`
 - [Operand map (6 bits, 0..63)](v2_operand_map_top.md) — `v2_operand_map_top`
-- [Pixel ALU OP (4 bits)](v2_pixel_alu_ops.md) — `v2_pixel_alu_ops`
+- [Pixel ALU OP (4 bits), W-bit unsigned](v2_pixel_alu_ops.md) — `v2_pixel_alu_ops`
 
 ## encoding
 
@@ -48,7 +48,7 @@
 ## memmap
 
 - [Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})](memory_map.md) — `memory_map`
-- [Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})](v2_memory_map.md) — `v2_memory_map`
+- [Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0}); 64 KB per page](v2_memory_map.md) — `v2_memory_map`
 
 ## timing
 
