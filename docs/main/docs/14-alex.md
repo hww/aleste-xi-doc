@@ -103,48 +103,50 @@ The placement was designed by function, independently of PCIe. The placement rul
 - The +/-12 V rails are a symmetric pair, one contact each, enough for the planning current.
 
 
-![Alex slot connector (PCIe x1, 36 contacts; key between positions 11 and 12)](gen/alex_connector.svg)
+![PCIe x1 — Connector's edge](gen/alex_pcie_edge.svg)
 
-**Table 4 — Alex slot connector (PCIe x1, 36 contacts; key between positions 11 and 12)**
+**Table 4 — PCIe x1 — Connector's edge**
 
-| Name | Pin | Dir | Width | Group | Description |
-| --- | --- | --- | --- | --- | --- |
-| <a id="AGND"></a>**AGND** | B1 | gnd | 1 | ground_analog | — |
-| <a id="_12V"></a>**+12V** | B2 | pwr | 1 | power_analog | Analog supply +12 V |
-| <a id="AGND__2"></a>**AGND** | B3 | gnd | 1 | ground_analog | — |
-| <a id="DGND"></a>**DGND** | B4 | gnd | 1 | ground_digital | — |
-| <a id="_3V3"></a>**+3V3** | B5 | pwr | 1 | power_digital | Digital supply +3.3 V |
-| <a id="RSV0"></a>**RSV0** | B6 | nc | 1 | reserve | Reserved |
-| <a id="I2C_SCL"></a>**I2C_SCL** | B7 | inout | 1 | i2c | — |
-| <a id="DETECT_N"></a>**~DETECT_N** | B8 | in | 1 | control | Module present (tied to DGND on the module) |
-| <a id="INT_N"></a>**~INT_N** | B9 | in | 1 | control | Module interrupt request |
-| <a id="GPIO0_DREQ_N"></a>**~GPIO0_DREQ_N** | B10 | in | 1 | gpio | Module ready for data exchange |
-| <a id="SPI_CS_N"></a>**~SPI_CS_N** | B11 | out | 1 | spi | Module chip select |
-| <a id="AGND__3"></a>**AGND** | A1 | gnd | 1 | ground_analog | — |
-| <a id="-12V"></a>**-12V** | A2 | pwr | 1 | power_analog | Analog supply -12 V |
-| <a id="AGND__4"></a>**AGND** | A3 | gnd | 1 | ground_analog | — |
-| <a id="_3V3__2"></a>**+3V3** | A4 | pwr | 1 | power_digital | — |
-| <a id="_3V3__3"></a>**+3V3** | A5 | pwr | 1 | power_digital | — |
-| <a id="DGND__2"></a>**DGND** | A6 | gnd | 1 | ground_digital | — |
-| <a id="I2C_SDA"></a>**I2C_SDA** | A7 | inout | 1 | i2c | — |
-| <a id="PERIPH_RST_N"></a>**~PERIPH_RST_N** | A8 | out | 1 | control | Module reset, one per slot |
-| <a id="GPIO1"></a>**GPIO1** | A9 | inout | 1 | gpio | Module specific |
-| <a id="RSV1"></a>**RSV1** | A10 | nc | 1 | reserve | Reserved |
-| <a id="RSV2"></a>**RSV2** | A11 | nc | 1 | reserve | Reserved |
-| <a id="SPI_SCK"></a>**SPI_SCK** | B12 | out | 1 | spi | — |
-| <a id="DGND__3"></a>**DGND** | B13 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_BCLK"></a>**AUDIO_BCLK** | B14 | out | 1 | audio | 24.576 MHz bit clock |
-| <a id="DGND__4"></a>**DGND** | B15 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_FS"></a>**AUDIO_FS** | B16 | out | 1 | audio | Frame sync, 48 kHz |
-| <a id="DGND__5"></a>**DGND** | B17 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_MCLK"></a>**AUDIO_MCLK** | B18 | out | 1 | audio | 12.288 MHz master clock |
-| <a id="SPI_MOSI"></a>**SPI_MOSI** | A12 | out | 1 | spi | — |
-| <a id="SPI_MISO"></a>**SPI_MISO** | A13 | in | 1 | spi | — |
-| <a id="DGND__6"></a>**DGND** | A14 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_DOUT"></a>**AUDIO_DOUT** | A15 | out | 1 | audio | Audio, host to module |
-| <a id="DGND__7"></a>**DGND** | A16 | gnd | 1 | ground_digital | — |
-| <a id="AUDIO_DIN"></a>**AUDIO_DIN** | A17 | in | 1 | audio | Audio, module to host |
-| <a id="DGND__8"></a>**DGND** | A18 | gnd | 1 | ground_digital | — |
+*edge, 2 row(s) × 18, pitch 2.54 mm, numbering rowwise, pin 1 at top-left, key slot after position 11, drawn rotated 0°*
+
+| Pin | Signal | Dir | Group | Description |
+| --- | --- | --- | --- | --- |
+| B1 | <a id="AGND"></a>**AGND** | gnd | ground_analog | — |
+| B2 | <a id="_12V"></a>**+12V** | pwr | power_analog | Analog supply +12 V |
+| B3 | **AGND** | gnd | ground_analog | — |
+| B4 | <a id="DGND"></a>**DGND** | gnd | ground_digital | — |
+| B5 | <a id="_3V3"></a>**+3V3** | pwr | power_digital | Digital supply +3.3 V |
+| B6 | **RSV0** | NC | reserve | Reserved |
+| B7 | <a id="I2C_SCL"></a>**I2C_SCL** | inout | i2c | — |
+| B8 | <a id="DETECT_N"></a>**DETECT_N** | in | control | Module present (tied to DGND on the module) |
+| B9 | <a id="INT_N"></a>**INT_N** | in | control | Module interrupt request |
+| B10 | <a id="GPIO0_DREQ_N"></a>**GPIO0_DREQ_N** | in | gpio | Module ready for data exchange |
+| B11 | <a id="SPI_CS_N"></a>**SPI_CS_N** | out | spi | Module chip select |
+| B12 | <a id="SPI_SCK"></a>**SPI_SCK** | out | spi | — |
+| B13 | **DGND** | gnd | ground_digital | — |
+| B14 | <a id="AUDIO_BCLK"></a>**AUDIO_BCLK** | out | audio | 24.576 MHz bit clock |
+| B15 | **DGND** | gnd | ground_digital | — |
+| B16 | <a id="AUDIO_FS"></a>**AUDIO_FS** | out | audio | Frame sync, 48 kHz |
+| B17 | **DGND** | gnd | ground_digital | — |
+| B18 | <a id="AUDIO_MCLK"></a>**AUDIO_MCLK** | out | audio | 12.288 MHz master clock |
+| A1 | **AGND** | gnd | ground_analog | — |
+| A2 | <a id="-12V"></a>**-12V** | pwr | power_analog | Analog supply -12 V |
+| A3 | **AGND** | gnd | ground_analog | — |
+| A4 | **+3V3** | pwr | power_digital | — |
+| A5 | **+3V3** | pwr | power_digital | — |
+| A6 | **DGND** | gnd | ground_digital | — |
+| A7 | <a id="I2C_SDA"></a>**I2C_SDA** | inout | i2c | — |
+| A8 | <a id="PERIPH_RST_N"></a>**PERIPH_RST_N** | out | control | Module reset, one per slot |
+| A9 | <a id="GPIO1"></a>**GPIO1** | inout | gpio | Module specific |
+| A10 | **RSV1** | NC | reserve | Reserved |
+| A11 | **RSV2** | NC | reserve | Reserved |
+| A12 | <a id="SPI_MOSI"></a>**SPI_MOSI** | out | spi | — |
+| A13 | <a id="SPI_MISO"></a>**SPI_MISO** | in | spi | — |
+| A14 | **DGND** | gnd | ground_digital | — |
+| A15 | <a id="AUDIO_DOUT"></a>**AUDIO_DOUT** | out | audio | Audio, host to module |
+| A16 | **DGND** | gnd | ground_digital | — |
+| A17 | <a id="AUDIO_DIN"></a>**AUDIO_DIN** | in | audio | Audio, module to host |
+| A18 | **DGND** | gnd | ground_digital | — |
 
 
 The contact budget is given in **Table 5 — Connector contact budget**
