@@ -1418,16 +1418,24 @@ def v_pins(spec, P):
         if not isinstance(p, dict) or "name" not in p:
             P.diag.err(where, f"pin needs 'name': {p!r}")
             continue
-        check_keys(p, ["name", "dir", "width", "description", "group", "active_low", "pin"], f"{where} pin '{p['name']}'", P, "pin key")
+        check_keys(p, ["name", "dir", "width", "description", "group", "active_low", "pin", "unique"], f"{where} pin '{p['name']}'", P, "pin key")
         d = str(p.get("dir", "in")).lower()
-        if d not in ("in", "out", "inout", "power", "gnd", "nc"):
+        if d not in ("in", "out", "inout", "pwr", "power", "gnd", "nc"):
             P.diag.err(where, f"pin '{p['name']}': dir must be in | out | inout | power | gnd | nc")
             d = "in"
-        if str(p["name"]) in seen:
-            P.diag.err(where, f"duplicate pin '{p['name']}'")
+        # unique: false разрешает повтор имени (DGND x4, VDD x2 и т.п.).
+        # Для power/gnd по умолчанию unique = false — это физическая норма.
+        default_unique = d not in ("pwr", "power", "gnd")
+        unique = p.get("unique", default_unique)
+        if not isinstance(unique, bool):
+            P.diag.err(where, f"pin '{p['name']}': 'unique' must be true/false")
+            unique = default_unique
+        if unique and str(p["name"]) in seen:
+            P.diag.err(where, f"duplicate pin '{p['name']}' (use unique: false for power/ground/multi-pad signals)")
         seen.add(str(p["name"]))
-        pins.append(NS(name=str(p["name"]), dir=d, width=as_int(p.get("width")) or 1, desc=p.get("description"),
-                       group=p.get("group"), low=bool(p.get("active_low")), pin=p.get("pin")))
+        pins.append(NS(name=str(p["name"]), dir=d, width=as_int(p.get("width")) or 1,
+                       desc=p.get("description"), group=p.get("group"),
+                       low=bool(p.get("active_low")), pin=p.get("pin"), unique=unique))            
     if not pins:
         P.diag.err(where, "'pins' must be non-empty")
         return
@@ -1505,10 +1513,13 @@ def t_pins(spec, P):
     hg = any(p.group for p in pins)
     hp = any(p.pin is not None for p in pins)
     hd = ["Name"] + (["Pin"] if hp else []) + ["Dir", "Width"] + (["Group"] if hg else []) + ["Description"]
+    used = {}
     rows = []
     for p in pins:
         nm = ("~" if p.low else "") + p.name
-        row = [f'<a id="{anchor_id(p.name)}"></a>**{nm}**'] + ([fmt_pin(p.pin) if p.pin is not None else None] if hp else []) + [p.dir, p.width] + ([p.group] if hg else []) + [p.desc]
+        used[p.name] = used.get(p.name, 0) + 1
+        aid = anchor_id(p.name) if used[p.name] == 1 else f"{anchor_id(p.name)}__{used[p.name]}"
+        row = [f'<a id="{aid}"></a>**{nm}**'] + ([fmt_pin(p.pin) if p.pin is not None else None] if hp else []) + [p.dir, p.width] + ([p.group] if hg else []) + [p.desc]
         rows.append(row)
     return md_table(hd, rows) + notes_md(spec)
 

@@ -28,131 +28,33 @@ The platform combines the flexibility of software with specialised hardware assi
 
 The documentation is organised into the following chapters.
 
-### 01. History
+- [The Aleste Story](./docs/main/docs/01-history.md)
+- [LX Terminology](./docs/main/docs/02-terminology.md)
+- [LX — Architecture Overview](./docs/main/docs/03-overview.md)
+- [LX Legacy: CPC 6128 and Aleste 520EX](./docs/main/docs/04-legacy.md)
+- [LX I/O: Native and Legacy I/O Map](./docs/main/docs/05-io.md)
+- [LX RTL Reference](./docs/main/docs/06-rtl-reference.md)
+- [LX MMU: Native and Legacy Memory Management](./docs/main/docs/07-mmu.md)
+- [LX MMU API](./docs/main/docs/08-mmu-api.md)
+- [LX Mode Switching Mechanisms](./docs/main/docs/09-syscall.md)
+- [Aleste LX: Interrupts, Syscalls, Drivers, and Takeover Mode](./docs/main/docs/10-syscall-details.md)
+- [LX IPC Mailbox — Legacy RTL Reference](./docs/main/docs/11-ipc.md)
+- [LX PIC Controller](./docs/main/docs/12-pic.md)
+- [LX DMA / Blitter](./docs/main/docs/13-dma.md)
+- [LX Modular Expansion Bus (AMEB)](./docs/main/docs/14-alex.md)
+- [LX BIOS: Driver Architecture Specification](./docs/main/docs/15-bios-spec.md)
+- [LX Minimal Supervisor BIOS — example](./docs/main/docs/16-bios-example.md)
+- [Hardware System Timer](./docs/main/docs/17-systime.md)
 
-[The Aleste Story](./docs/main/docs/01-history.md)
+### Magic Sound 2 
 
-Describes the historical development of the Aleste architecture, from the original Aleste 520EX through XiAleste to the Aleste LX design.
+- [Aleste LX Video Subsystem — Programmer's Documentation](./docs/sm/docs/lx_ms2_rev_a.md)
+- [Aleste LX Video Subsystem — Programmer's Documentation](./docs/sm/docs/lx_ms2_rev_c.md)
 
-Explains the background, motivations, and architectural decisions that influenced the evolution of the platform.
+### Graphics and Video
 
-### 02. Terminology
-
-[LX Terminology](./docs/main/docs/02-terminology.md)
-
-Defines the terminology, concepts, and naming conventions used throughout the documentation.
-
-Provides a common vocabulary for understanding the architecture and its components.
-
-### 03. Architecture Overview
-
-[LX — Architecture Overview](./docs/main/docs/03-overview.md)
-
-Introduces the overall Aleste LX architecture and its fundamental design principles.
-
-Describes the relationships between the processor, memory system, hardware subsystems, firmware, and applications.
-
-This is the recommended starting point for understanding the platform.
-
-### 04. Legacy Architecture
-
-[LX Legacy: CPC 6128 and Aleste 520EX](./docs/main/docs/04-legacy.md)
-
-Describes the legacy architecture and compatibility mechanisms inherited from earlier Aleste and CPC systems.
-
-Explains how the original programming environment and hardware capabilities relate to the extended LX architecture.
-
-### 05. Input/Output Architecture
-
-[LX I/O: Native and Legacy I/O Map](./docs/main/docs/05-io.md)
-
-Describes the I/O architecture and the mechanisms used to access hardware resources and peripheral devices.
-
-### 06. RTL Reference
-
-[LX RTL Reference](./docs/main/docs/06-rtl-reference.md)
-
-Provides a reference to the hardware description and RTL-level architectural elements.
-
-Documents the relevant hardware structures and their organisation.
-
-### 07. Memory Management Unit
-
-[LX MMU: Native and Legacy Memory Management](./docs/main/docs/07-mmu.md)
-
-Describes the Memory Management Unit (MMU), including address translation, memory mapping, and the organisation of the extended memory space.
-
-### 08. MMU API
-
-[LX MMU API](./docs/main/docs/08-mmu-api.md)
-
-Describes the software interface for memory management.
-
-Defines the mechanisms available to system software for configuring and accessing the MMU.
-
-### 09. System Calls
-
-[LX Mode Switching Mechanisms](./docs/main/docs/09-syscall.md)
-
-Describes the system call architecture and the interface through which applications request operating system and BIOS services.
-
-### 10. System Call Details
-
-[Aleste LX: Interrupts, Syscalls, Drivers, and Takeover Mode](./docs/main/docs/10-syscall-details.md)
-
-Provides a detailed reference for individual system calls, including their parameters, operation, and expected results.
-
-### 11. Inter-Process Communication
-
-[LX IPC Mailbox — Legacy RTL Reference](./docs/main/docs/11-ipc.md)
-
-Describes the Inter-Process Communication (IPC) mechanisms used for communication between software components and independent execution contexts.
-
-### 12. Programmable Interrupt Controller
-
-[LX PIC Controller](./docs/main/docs/12-pic.md)
-
-Describes the interrupt controller architecture and the mechanisms used to manage hardware interrupts.
-
-### 13. Direct Memory Access
-
-[LX DMA / Blitter](./docs/main/docs/13-dma.md)
-
-Describes the DMA architecture and hardware-assisted data transfers.
-
-Explains how data can be moved between system resources without requiring the processor to perform every transfer operation itself.
-
-### 14. Expansion Bus
-
-[LX Modular Expansion Bus (AMEB)](./docs/main/docs/14-exp-bus.md)
-
-Describes the expansion bus architecture and the mechanisms for connecting external hardware devices to the platform.
-
-### 15. BIOS Specification
-
-[LX BIOS: Driver Architecture Specification](./docs/main/docs/15-bios-spec.md)
-
-Defines the BIOS architecture and its software-facing interfaces.
-
-Describes the driver model, method dispatch, and the contracts between applications, firmware, and hardware services.
-
-### 16. BIOS Examples
-
-[LX Minimal Supervisor BIOS — example](./docs/main/docs/16-bios-example.md)
-
-Provides practical examples illustrating the BIOS interfaces and their use by software components.
-
-### 17. BIOS Examples
-
-[Hardware System Timer](./docs/main/docs/17-systime.md)
-
-This document defines the requirements for the hardware system timer of the Alesta LX platform based on the Z80 CPU and FPGA.
-
-### Appendixes 
-
-[Aleste LX Video Subsystem — Programmer's Documentation](./docs/gfx/docs/README.md)
-
-[Aleste LX GPU — Programmer's Documentation](./docs/gpu/docs/README.md)
+- [Aleste LX Video Subsystem — Programmer's Documentation](./docs/gfx/docs/README.md)
+- [Aleste LX GPU — Programmer's Documentation](./docs/gpu/docs/README.md)
 
 ## Documentation Build System
 

@@ -9,7 +9,7 @@
 </defs>
 <style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}</style>
 <rect width="850" height="324" fill="#FFFFFF"/>
-<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">SPI, mode 0: single-byte transfer (per slot)</text>
+<text x="32" y="38" font-size="22" font-weight="700" fill="#000000">SPI mode 0: one byte exchange (per slot)</text>
 <text x="32" y="62" font-size="14" fill="#555555">10 ticks</text>
 <line x1="90" y1="108" x2="90" y2="296" stroke="#CCCCCC" stroke-width="1"/>
 <text x="126" y="100" font-size="11" text-anchor="middle" fill="#666666" class="m">idle</text>

@@ -4,20 +4,27 @@ A programmable 2D graphics coprocessor for the Z80. It has a 16-bit microcore, f
 
 ## Architecture
 
-- [00_history.md](00_history.md) — the philosophy of programmable graphics.
-- [01_architecture.md](01_architecture.md) — microinstruction format, ALU, control, operand map, register file, pixel formats, loader, reference loops.
-- [02_registers.md](02_registers.md) — GPRs, system registers, pixel engine channels, DATA.
-- [03_isa.md](03_isa.md) — instruction format, ALU/CTRL opcodes, conditions.
-- [04_memory.md](04_memory.md) — memory map, ROM, cache, Wishbone.
-- [05_pixel_engine.md](05_pixel_engine.md) — pixel formats, index/step, pixel path, timing.
-- [06_gpu_cache.md](06_gpu_cache.md) — cache structure, FSM.
-- [07_fpga_top.md](07_fpga_top.md) — block diagram, execution protocol.
-- [09_retro_gfx_rev2.md](09_retro_gfx_rev2.md) - retro graphics effects: technical reference
+- [Philosophy](00_history.md) — the philosophy of programmable graphics.
+- [Microinstruction](01_architecture.md) — microinstruction format, ALU, control, operand map, register file, pixel formats, loader, reference loops.
+- [Registers](02_registers.md) — GPRs, system registers, pixel engine channels, DATA.
+- [Channels V1](02_channels_v1.md) — GPRs, system registers, pixel engine channels, DATA (version 1).
+- [Channels V2](02_channels_v2.md) — GPRs, system registers, pixel engine channels, DATA (version 2).
+- [Instruction format](03_isa.md) — instruction format, ALU/CTRL opcodes, conditions.
+- [Memory map](04_memory.md) — memory map, ROM, cache, Wishbone.
+- [Pixel engine](05_pixel_engine.md) — pixel formats, index/step, pixel path, timing.
+- [Cache](06_gpu_cache.md) — cache structure, FSM.
+- [FPGA top](07_fpga_top.md) — block diagram, execution protocol.
+- [Retro GFX](09_retro_gfx_rev2.md) - retro graphics effects: technical reference
+
+## Testing
+
+- [Demo Scenario](./10_demo_sceenario.md) - GPU Demo and Benchmark Scenario.
+- [Demo Source Code](https://github.com/hww/aleste-xi-bio.../main/dos/demo) - The source code of the demo.
 
 ## Architecture (Russian)
 
-- [00_history.ru.md](00_history.ru.md) — the philosophy of programmable graphics.
-- [08_guide.ru.md](08_guide.ru.md) — user guide.
+- [История](00_history.ru.md) — the philosophy of programmable graphics.
+- [Архитектура](08_guide.ru.md) — user guide.
 
 ## What is intentionally not done
 

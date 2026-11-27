@@ -1,3 +1,3 @@
-**SPI, mode 0: single-byte transfer (per slot)**
+**SPI mode 0: one byte exchange (per slot)**
 
-![SPI, mode 0: single-byte transfer (per slot)](spi_mode0.svg)
+![SPI mode 0: one byte exchange (per slot)](spi_mode0.svg)

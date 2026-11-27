@@ -122,9 +122,10 @@ Describes the DMA architecture and hardware-assisted data transfers.
 
 Explains how data can be moved between system resources without requiring the processor to perform every transfer operation itself.
 
-### 14. Expansion Bus
+### 14. ALEX Expansion Bus
 
-[LX Modular Expansion Bus (AMEB)](./docs/14-exp-bus.md)
+[LX Modular Expansion Bus (V1)](./docs/14-alex-v1.md)
+[LX Modular Expansion Bus (V2)](./docs/14-alex-v2.md)
 
 Describes the expansion bus architecture and the mechanisms for connecting external hardware devices to the platform.
 
@@ -142,7 +143,7 @@ Describes the driver model, method dispatch, and the contracts between applicati
 
 Provides practical examples illustrating the BIOS interfaces and their use by software components.
 
-### 17. BIOS Examples
+### 17. System Timer
 
 [Hardware System Timer](./docs/17-systime.md)
 

@@ -1,0 +1,76 @@
+---
+kind: enum
+name: operand_map
+title: "Operand map (6 bits, 0..63)"
+width: 6
+radix: dec
+columns:
+  - {key: value, title: "Code"}
+  - {key: name, title: "Name"}
+  - {key: read, title: "Read"}
+  - {key: write, title: "Write"}
+entries:
+  - {value: "0..31", name: "R0..R31", read: "16-bit value", write: "16-bit value"}
+  - {value: 32, name: "ZERO",     read: "0", write: "Ignored"}
+  - {value: 33, name: "FLAGS",    read: "[3:0] = V C N Z", write: "[3:0]"}
+  - {value: 34, name: "BUSY",     read: "{wb_cyc, flush_done, access_done, hit}", write: "-"}
+  - {value: 35, name: "SHADOW",   read: "[15:12] flags, [11:0] PC+1", write: "[11:0] PC"}
+  - {value: 36, name: "LOOP_CNT", read: "Loop counter", write: "Loop counter"}
+  - {value: 37, name: "LOOP_TGT", read: "Loop target", write: "Loop target"}
+  - {value: 38, name: "ROML",     read: "Lover 16 bits of ROM", write: "Lover 16 bits of ROM"}
+  - {value: 39, name: "ROMH",     read: "Upper 16 bits of ROM", write: "Upper 16 bits of ROM, ROMA++"}
+  - {value: 40, name: "ROMA",     read: "-", write: "ROM Access address with"}
+  - {value: 41, name: "MHI",      read: "Upper 16 bits of MUL", write: "-"}
+  - {value: "42..43", name: "reserved",   read: "0", write: "-"}
+  - {value: "44..47", name: "DATA[0..3]", read: "pixel_out from channel ch", write: "pixel_in to channel ch, operand[1..0] is channel number"}
+  - {value: "48..51", name: "IDX[0..3]",  read: "-", write: "Write-only channel IDX registers, operand[1..0] is channel number"}
+  - {value: "52..55", name: "IDXH[0..3]", read: "-", write: "Write-only channel IDXH registers, operand[1..0] is channel number"}  
+  - {value: "56..59", name: "STEP[0..3]", read: "-", write: "Write-only channel STEP registers, operand[1..0] is channel number"}
+  - {value: "60..63", name: "MODE_PAGE[0..3]", read: "-", write: "Write-only channel PAGE registers, operand[1..0] is channel number"}
+---
+kind: enum
+name: channels
+title: "Pixel Engine Channels (48..63)"
+width: 6
+entries:
+  - {value: 48, name: "CH0_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 49, name: "CH1_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 50, name: "CH2_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 51, name: "CH3_IDX", description: "Pixel index, low 16 bits, in pixels (signed). Clears IDXH"}
+  - {value: 52, name: "CH0_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 53, name: "CH1_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 54, name: "CH2_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 55, name: "CH3_IDXH", description: "Pixel index, bits 18..16 (write before IDX)"}
+  - {value: 56, name: "CH0_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 57, name: "CH1_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 58, name: "CH2_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 59, name: "CH3_STEP", description: "Step in pixels (signed 16 bits)"}
+  - {value: 60, name: "CH0_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+  - {value: 61, name: "CH1_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+  - {value: 62, name: "CH2_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+  - {value: 63, name: "CH3_MODE_PAGE", description: "MODE [10:8] and PAGE [7:0]"}
+notes:
+  - "The operand code is {2'b11, register[1:0], channel[1:0]}: IDX 48..51, IDXH 52..55, STEP 56..59, MODE_PAGE 60..63."
+  - "IDX, IDXH and STEP are written in whole pixels; the channel shifts them by the format (>>> k) into its 20-bit internal index (word + 4-bit position + page-overflow bit)."
+  - "IDXH must be written before IDX: writing IDX consumes IDXH and clears it."
+  - "The pixel index is a signed 19-bit value, so a 1 bpp channel only reaches the first 32 KB of its page."
+---
+kind: enum
+name: data_regs
+title: "DATA[0..3] (44..47)"
+width: 6
+entries:
+  - {value: 44, name: "DATA0", description: "Pixel port of channel CH0"}
+  - {value: 45, name: "DATA1", description: "Pixel port of channel CH1"}
+  - {value: 46, name: "DATA2", description: "Pixel port of channel CH2"}
+  - {value: 47, name: "DATA3", description: "Pixel port of channel CH3"}
+---
+kind: bitfield
+name: channel_mode_page
+title: "CHANNEL MODE_PAGE (11 bits: MODE[2:0] + PAGE[7:0])"
+width: 11
+fields:
+  - {name: PAGE, bits: [7,0], description: "Page number (8 bits)"}
+  - {name: FMT,  bits: [10,8], description: "Channel format (3 bits)"}
+notes:
+  - "In RTL, MODE and PAGE are two separate registers: mode_r[ch] (3 bits) and page_ebr[ch] (8 bits). MODE_PAGE is their logical concatenation."

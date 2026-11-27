@@ -1,4 +1,4 @@
-# GPU Demo and Benchmark Scenario (`18-demo-scenario.md`)
+# GPU Demo and Benchmark Scenario
 
 ## Goal and Test Philosophy
 

@@ -1,0 +1,491 @@
+# Alex · Aleste LX eXpansion bus · generator input
+# Items marked ASSUMPTION need confirmation.
+
+kind: const
+name: alex_params
+title: "Alex parameters"
+values:
+  - {name: N_SLOTS,            value: 4,      description: "Number of expansion slots"}
+  - {name: PINS,               value: 36,     description: "Connector contacts (PCIe x1 edge connector)"}
+  - {name: BCLK_MHZ,           value: 24.576, description: "AUDIO_BCLK frequency, MHz"}
+  - {name: MCLK_MHZ,           value: 12.288, description: "AUDIO_MCLK = 256*fs, MHz (ASSUMPTION: separate frequency)"}
+  - {name: FS_KHZ,             value: 48,     description: "AUDIO_FS frame rate, kHz (48 kHz family only)"}
+  - {name: TDM_SLOTS,          value: 16,     description: "TDM time slots per frame on each data line"}
+  - {name: SLOT_BITS,          value: 32,     description: "Bits per TDM time slot"}
+  - {name: FRAME_BITS,         value: 512,    description: "Bits per frame (16 x 32)"}
+  - {name: I2C_KHZ,            value: 100,    description: "I2C clock, kHz (fixed)"}
+  - {name: I_3V3_MA,           value: 300,    description: "Planning figure: +3.3 V current per slot, mA (ASSUMPTION, not calculated)"}
+  - {name: I_12V_MA,           value: 50,     description: "Planning figure: current per slot on each of the +/-12 V rails, mA (ASSUMPTION, not calculated)"}
+  - {name: DMA_CHANNELS,       value: 8,      description: "SysDMA channels"}
+  - {name: DMA_CPU_CHANNELS,   value: 4,      description: "SysDMA channels left to the CPU (0..3)"}
+  - {name: DMA_SPI_CHANNELS,   value: 4,      description: "SysDMA channels bound to the SPI slots (4..7)"}
+  - {name: FIFO_BYTES,         value: 16,     description: "SPI FIFO depth per direction, bytes"}
+  - {name: BURST_BYTES,        value: 8,      description: "Maximum bytes moved per DMA grant"}
+  - {name: BUS_PEAK_MBPS,      value: 10,     description: "Theoretical SysDMA bus bandwidth, MB/s"}
+  - {name: BUS_SUSTAINED_MBPS, value: 3,      description: "Planning figure: sustained bus bandwidth, MB/s (author's estimate)"}
+---
+# ASSUMPTION: "pin" takes strings "A1".."B18"; "dir" accepts pwr, gnd and nc.
+kind: pins
+name: alex_connector
+title: "Alex slot connector (PCIe x1, 36 contacts; key between positions 11 and 12)"
+symbol: ALEX_SLOT
+pins:
+  - {name: AGND, dir: gnd, pin: "B1", group: ground_analog}
+  - {name: "+12V", dir: pwr, pin: "B2", group: power_analog, description: "Analog supply +12 V"}
+  - {name: AGND, dir: gnd, pin: "B3", group: ground_analog}
+  - {name: DGND, dir: gnd, pin: "B4", group: ground_digital}
+  - {name: "+3V3", dir: pwr, pin: "B5", group: power_digital, description: "Digital supply +3.3 V"}
+  - {name: RSV0, dir: nc, pin: "B6", group: reserve, description: "Reserved"}
+  - {name: I2C_SCL, dir: inout, pin: "B7", group: i2c}
+  - {name: DETECT_N, dir: in, pin: "B8", group: control, active_low: true, description: "Module present (tied to DGND on the module)"}
+  - {name: INT_N, dir: in, pin: "B9", group: control, active_low: true, description: "Module interrupt request"}
+  - {name: GPIO0_DREQ_N, dir: in, pin: "B10", group: gpio, active_low: true, description: "Module ready for data exchange"}
+  - {name: SPI_CS_N, dir: out, pin: "B11", group: spi, active_low: true, description: "Module chip select"}
+  - {name: AGND, dir: gnd, pin: "A1", group: ground_analog}
+  - {name: "-12V", dir: pwr, pin: "A2", group: power_analog, description: "Analog supply -12 V"}
+  - {name: AGND, dir: gnd, pin: "A3", group: ground_analog}
+  - {name: "+3V3", dir: pwr, pin: "A4", group: power_digital}
+  - {name: "+3V3", dir: pwr, pin: "A5", group: power_digital}
+  - {name: DGND, dir: gnd, pin: "A6", group: ground_digital}
+  - {name: I2C_SDA, dir: inout, pin: "A7", group: i2c}
+  - {name: PERIPH_RST_N, dir: out, pin: "A8", group: control, active_low: true, description: "Module reset, one per slot"}
+  - {name: GPIO1, dir: inout, pin: "A9", group: gpio, description: "Module specific"}
+  - {name: RSV1, dir: nc, pin: "A10", group: reserve, description: "Reserved"}
+  - {name: RSV2, dir: nc, pin: "A11", group: reserve, description: "Reserved"}
+  - {name: SPI_SCK, dir: out, pin: "B12", group: spi}
+  - {name: DGND, dir: gnd, pin: "B13", group: ground_digital}
+  - {name: AUDIO_BCLK, dir: out, pin: "B14", group: audio, description: "24.576 MHz bit clock"}
+  - {name: DGND, dir: gnd, pin: "B15", group: ground_digital}
+  - {name: AUDIO_FS, dir: out, pin: "B16", group: audio, description: "Frame sync, 48 kHz"}
+  - {name: DGND, dir: gnd, pin: "B17", group: ground_digital}
+  - {name: AUDIO_MCLK, dir: out, pin: "B18", group: audio, description: "12.288 MHz master clock"}
+  - {name: SPI_MOSI, dir: out, pin: "A12", group: spi}
+  - {name: SPI_MISO, dir: in, pin: "A13", group: spi}
+  - {name: DGND, dir: gnd, pin: "A14", group: ground_digital}
+  - {name: AUDIO_DOUT, dir: out, pin: "A15", group: audio, description: "Audio, host to module"}
+  - {name: DGND, dir: gnd, pin: "A16", group: ground_digital}
+  - {name: AUDIO_DIN, dir: in, pin: "A17", group: audio, description: "Audio, module to host"}
+  - {name: DGND, dir: gnd, pin: "A18", group: ground_digital}
+---
+kind: const
+name: pin_groups
+title: "Connector contact budget"
+width: 6
+radix: dec
+values:
+  - {value: 1,  name: "+12 V",   description: "B2"}
+  - {value: 1,  name: "-12 V",   description: "A2"}
+  - {value: 4,  name: "AGND",    description: "B1, B3, A1, A3 (around the +/-12 V pair)"}
+  - {value: 3,  name: "+3.3 V",  description: "B5, A4, A5"}
+  - {value: 8,  name: "DGND",    description: "B4, A6 (zone 1); B13, B15, B17, A14, A16, A18 (zone 2)"}
+  - {value: 16, name: "Signals", description: "SPI 4, I2C 2, control 3, GPIO 2, audio 5"}
+  - {value: 3,  name: "Reserve", description: "B6, A10, A11"}
+notes:
+  - "36 contacts in total."
+  - "If MCLK turns out to be unnecessary, B18 can become DGND."
+  - "Position numbering and the key location are quoted from memory; verify against the connector datasheet."
+---
+kind: enum
+name: slot_zones
+title: "Connector zones and placement rules"
+width: 4
+columns:
+  - {key: value, title: "Pos."}
+  - {key: name, title: "Zone"}
+  - {key: description, title: "Contents"}
+entries:
+  - {value: "1-3",   name: "Analog block",     description: "+12 V (B2) opposite -12 V (A2), AGND on both sides (B1, B3, A1, A3)"}
+  - {value: "4-6",   name: "Digital power",    description: "+3.3 V (B5, A4, A5), DGND (B4, A6), reserve (B6)"}
+  - {value: "7-9",   name: "Management",       description: "I2C (B7, A7), DETECT_N (B8), PERIPH_RST_N (A8), INT_N (B9), GPIO1 (A9)"}
+  - {value: "10-11", name: "SPI handshake",    description: "DREQ_N (B10), CS_N (B11), reserve (A10, A11), next to the key"}
+  - {value: "12-18", name: "Fast path",        description: "SCK, MOSI, MISO, BCLK, FS, MCLK, DOUT, DIN with six DGND; every clock line sits between DGND contacts"}
+notes:
+  - "The analog block and the fast path are at opposite ends of the connector, with the key between them."
+  - "Each clock line (BCLK, FS, MCLK) is opposite a DGND contact on the other face of the module."
+  - "SPI_SCK opposite SPI_MOSI is the only exception; without MCLK zone 2 becomes a perfect signal/ground checkerboard."
+  - "The +/-12 V rails are a symmetric pair, one contact each, enough for the planning current."
+---
+kind: fsm
+name: slot_power
+title: "Slot power-up sequence"
+initial: OFF
+states:
+  - {name: OFF,       output: "3V3=0 12V=0 RST=0",   description: "Slot unpowered, host outputs Hi-Z"}
+  - {name: DETECTED,  output: "3V3=0 12V=0",         description: "Module detected"}
+  - {name: P3V3,      output: "3V3=1 RST=0",         description: "+3.3 V applied, module held in reset"}
+  - {name: ID_CHECK,  output: "3V3=1 RST=1",         description: "Reading the ID EEPROM over I2C"}
+  - {name: P12,       output: "3V3=1 12V=1",         description: "+/-12 V applied"}
+  - {name: READY,     output: "ready=1",             description: "Slot ready, signals active"}
+  - {name: FAULT,     output: "3V3=0 12V=0 fault=1", description: "Hardware protection tripped"}
+transitions:
+  - {from: OFF,      to: DETECTED, when: "DETECT_N == 0"}
+  - {from: DETECTED, to: P3V3,     when: "EN3V3 = 1 & DETECT_N == 0", do: "enable +3.3 V"}
+  - {from: DETECTED, to: OFF,      when: "DETECT_N == 1"}
+  - {from: P3V3,     to: ID_CHECK, when: "PG3V3 & RST_REL = 1",       do: "release PERIPH_RST_N"}
+  - {from: P3V3,     to: OFF,      when: "DETECT_N == 1"}
+  - {from: ID_CHECK, to: P12,      when: "id_ok & EN12 = 1",          do: "enable +/-12 V"}
+  - {from: ID_CHECK, to: OFF,      when: "id_bad | timeout",          do: "disable +3.3 V"}
+  - {from: P12,      to: READY,    when: "PG12 & PG3V3"}
+  - {from: P12,      to: FAULT,    when: "overcurrent"}
+  - {from: READY,    to: FAULT,    when: "overcurrent"}
+  - {from: READY,    to: OFF,      when: "DETECT_N == 1"}
+  - {from: FAULT,    to: OFF,      when: "clear"}
+---
+kind: timing
+name: slot_power_seq
+title: "Slot power-up sequence"
+subtitle: "+/-12 V are applied only after the ID EEPROM has been verified"
+ticks: ["off", "detect", "3V3", "reset off", "ID read", "+/-12V", "ready"]
+signals:
+  - {name: DETECT_N,     wave: "10....."}
+  - {name: V3V3,         wave: "001...."}
+  - {name: PERIPH_RST_N, wave: "0001..."}
+  - {name: I2C_ACTIVE,   wave: "000010."}
+  - {name: V12,          wave: "000001."}
+  - {name: READY,        wave: "0000001"}
+arrows:
+  - {from: [DETECT_N, 1],   to: [V3V3, 2], text: "t_pwr"}
+  - {from: [I2C_ACTIVE, 4], to: [V12, 5],  text: "ID valid"}
+---
+kind: bitfield
+name: slot_ctrl
+title: "SLOTn_CTRL · 8 bits"
+width: 8
+fields:
+  - {name: EN3V3,   bit: 0,      access: rw, reset: 0, description: "Enable the slot +3.3 V (still gated in hardware by DETECT_N)"}
+  - {name: RST_REL, bit: 1,      access: rw, reset: 0, description: "1 = release PERIPH_RST_N"}
+  - {name: EN12,    bit: 2,      access: rw, reset: 0, description: "Enable +/-12 V (allowed only after ID_CHECK succeeded)"}
+  - {name: RSV,     bits: [7,3], reserved: true}
+---
+kind: bitfield
+name: slot_stat
+title: "SLOTn_STAT · 8 bits"
+width: 8
+fields:
+  - {name: PRESENT, bit: 0,      access: ro,  reset: 0, description: "DETECT_N == 0"}
+  - {name: PG3V3,   bit: 1,      access: ro,  reset: 0, description: "+3.3 V power good"}
+  - {name: PG12,    bit: 2,      access: ro,  reset: 0, description: "+/-12 V power good"}
+  - {name: FAULT,   bit: 3,      access: w1c, reset: 0, description: "Overcurrent protection tripped"}
+  - {name: READY,   bit: 4,      access: rw,  reset: 0, description: "Software marks the module as ready"}
+  - {name: INT,     bit: 5,      access: ro,  reset: 0, description: "INT_N level (1 = request)"}
+  - {name: RSV,     bits: [7,6], reserved: true}
+---
+kind: regmap
+name: alex_slots
+title: "Slot control registers"
+width: 8
+view: [table]
+registers:
+  - {offset: 0x00, name: SLOT0_CTRL, access: rw, description: "Slot 0 control", ref: slot_ctrl}
+  - {offset: 0x01, name: SLOT1_CTRL, access: rw, description: "Slot 1 control", ref: slot_ctrl}
+  - {offset: 0x02, name: SLOT2_CTRL, access: rw, description: "Slot 2 control", ref: slot_ctrl}
+  - {offset: 0x03, name: SLOT3_CTRL, access: rw, description: "Slot 3 control", ref: slot_ctrl}
+  - {offset: 0x04, name: SLOT0_STAT, access: rw, description: "Slot 0 status",  ref: slot_stat}
+  - {offset: 0x05, name: SLOT1_STAT, access: rw, description: "Slot 1 status",  ref: slot_stat}
+  - {offset: 0x06, name: SLOT2_STAT, access: rw, description: "Slot 2 status",  ref: slot_stat}
+  - {offset: 0x07, name: SLOT3_STAT, access: rw, description: "Slot 3 status",  ref: slot_stat}
+---
+kind: bitfield
+name: i2c_cmd
+title: "I2C_CMD · 8 bits (a write starts the operation)"
+width: 8
+fields:
+  - {name: START, bit: 0,      access: wo, reset: 0, description: "Issue START (or repeated START)"}
+  - {name: STOP,  bit: 1,      access: wo, reset: 0, description: "Issue STOP"}
+  - {name: WR,    bit: 2,      access: wo, reset: 0, description: "Transmit the byte in I2C_DATA"}
+  - {name: RD,    bit: 3,      access: wo, reset: 0, description: "Receive a byte into I2C_DATA"}
+  - {name: NACK,  bit: 4,      access: wo, reset: 0, description: "With RD: answer NACK (last byte)"}
+  - {name: RSV,   bits: [7,5], reserved: true}
+---
+kind: bitfield
+name: i2c_status
+title: "I2C_STATUS · 8 bits"
+width: 8
+fields:
+  - {name: BUSY, bit: 0,      access: ro,  reset: 0, description: "Operation in progress"}
+  - {name: NACK, bit: 1,      access: ro,  reset: 0, description: "Last answer from the module was NACK"}
+  - {name: DONE, bit: 2,      access: w1c, reset: 0, description: "Byte completed"}
+  - {name: RSV,  bits: [7,3], reserved: true}
+---
+kind: bitfield
+name: i2c_ctrl
+title: "I2C_CTRL · 8 bits"
+width: 8
+fields:
+  - {name: SLOT, bits: [1,0], access: rw, reset: 0, description: "Slot number for the multiplexer (0..3)"}
+  - {name: EN,   bit: 2,      access: rw, reset: 0, description: "Enable the controller"}
+  - {name: IRQE, bit: 3,      access: rw, reset: 0, description: "Interrupt on DONE"}
+  - {name: RSV,  bits: [7,4], reserved: true}
+---
+kind: regmap
+name: alex_i2c
+title: "I2C controller registers (one controller, four-slot multiplexer)"
+width: 8
+view: [diagram, table]
+registers:
+  - {offset: 0x00, name: I2C_DATA,   access: rw, description: "Byte to transmit / received byte", fields: [{name: D, bits: [7,0]}]}
+  - {offset: 0x01, name: I2C_CMD,    access: wo, description: "Command: START, STOP, WR, RD, NACK", ref: i2c_cmd}
+  - {offset: 0x02, name: I2C_STATUS, access: rw, description: "Status", ref: i2c_status}
+  - {offset: 0x03, name: I2C_CTRL,   access: rw, description: "Slot select and enable", ref: i2c_ctrl}
+---
+kind: timing
+name: i2c_byte_write
+title: "I2C: START, address byte write, ACK, STOP"
+subtitle: "Address 0x50 + W = 0xA0 (ID EEPROM)"
+ticks: ["idle", "START", "b7", "b6", "b5", "b4", "b3", "b2", "b1", "b0", "ACK", "STOP"]
+signals:
+  - {name: SCL, wave: "11ppppppppp1"}
+  - {name: SDA, wave: "10========01", data: ["1", "0", "1", "0", "0", "0", "0", "0"]}
+arrows:
+  - {from: [SDA, 1],  to: [SCL, 2],  text: "t_HD;STA"}
+  - {from: [SCL, 10], to: [SDA, 10], text: "ACK from module"}
+---
+kind: enum
+name: alex_spi_modes
+title: "SPI transfer modes (SPI_CMD.MODE)"
+width: 2
+entries:
+  - {value: 0, name: TX_ONLY, description: "Transmit only; received bytes are discarded (one DMA stream)"}
+  - {value: 1, name: RX_ONLY, description: "Receive only; SPI_FILL is sent on MOSI (one DMA stream)"}
+  - {value: 2, name: DUPLEX,  description: "Full duplex: TX buffer out, RX buffer in (two DMA streams)"}
+  - {value: 3, name: reserved, description: "Reserved"}
+---
+kind: bitfield
+name: spi_cmd
+title: "SPIn_CMD · 8 bits (write-only; START launches a job)"
+width: 8
+fields:
+  - {name: MODE,       bits: [1,0], access: wo, reset: 0, enum: alex_spi_modes, description: "Transfer mode"}
+  - {name: FIRST,      bit: 2,      access: wo, reset: 0, description: "Assert CS_N before the first byte (packet start)"}
+  - {name: LAST,       bit: 3,      access: wo, reset: 0, description: "Release CS_N after the last byte (packet end)"}
+  - {name: WAIT_DREQ,  bit: 4,      access: wo, reset: 0, description: "Wait for GPIO0_DREQ_N = 0 before the first byte"}
+  - {name: START,      bit: 5,      access: wo, reset: 0, description: "Start the job"}
+  - {name: ABORT,      bit: 6,      access: wo, reset: 0, description: "Abort the job and flush both FIFOs"}
+  - {name: RSV,        bit: 7,      reserved: true}
+---
+kind: bitfield
+name: spi_ctrl
+title: "SPIn_CTRL · 8 bits"
+width: 8
+fields:
+  - {name: EN,   bit: 0,      access: rw, reset: 0,   description: "Enable the controller"}
+  - {name: DIV,  bits: [4,1], access: rw, reset: 0xF, description: "SCK divider: f = f_sys / (2 * (DIV + 1))"}
+  - {name: CPOL, bit: 5,      access: rw, reset: 0,   description: "Clock polarity"}
+  - {name: CPHA, bit: 6,      access: rw, reset: 0,   description: "Clock phase"}
+  - {name: IRQE, bit: 7,      access: rw, reset: 0,   description: "Interrupt on DONE"}
+---
+kind: bitfield
+name: spi_status
+title: "SPIn_STATUS · 8 bits"
+width: 8
+fields:
+  - {name: BUSY,  bit: 0,      access: ro,  reset: 0, description: "Job in progress"}
+  - {name: DONE,  bit: 1,      access: w1c, reset: 0, description: "Job finished and the RX FIFO has been drained to memory"}
+  - {name: STALL, bit: 2,      access: w1c, reset: 0, description: "SCK was stopped at least once because DMA could not keep up"}
+  - {name: DREQ,  bit: 3,      access: ro,  reset: 0, description: "GPIO0_DREQ_N level (0 = module ready)"}
+  - {name: CSA,   bit: 4,      access: ro,  reset: 0, description: "CS_N is currently asserted"}
+  - {name: RSV,   bits: [7,5], reserved: true}
+---
+kind: regmap
+name: alex_spi
+title: "SPI controller registers (four instances, one per slot)"
+width: 8
+view: [diagram, table]
+registers:
+  - {offset: 0x00, name: SPI_DATA,   access: rw, description: "Direct CPU access: a write pushes the TX FIFO, a read pops the RX FIFO", fields: [{name: D, bits: [7,0]}]}
+  - {offset: 0x01, name: SPI_CMD,    access: wo, description: "Job command", ref: spi_cmd}
+  - {offset: 0x02, name: SPI_LEN_L,  access: rw, description: "Job length in bytes [7:0]", fields: [{name: LEN, bits: [7,0]}]}
+  - {offset: 0x03, name: SPI_LEN_H,  access: rw, description: "Job length in bytes [15:8]", fields: [{name: LEN, bits: [7,0]}]}
+  - {offset: 0x04, name: SPI_CTRL,   access: rw, description: "Control", ref: spi_ctrl}
+  - {offset: 0x05, name: SPI_STATUS, access: rw, description: "Status", ref: spi_status}
+  - {offset: 0x06, name: SPI_FILL,   access: rw, reset: 0xFF, description: "Byte sent on MOSI in RX_ONLY mode", fields: [{name: FILL, bits: [7,0]}]}
+  - {offset: 0x07, name: SPI_RSV,    access: ro, description: "Reserved", fields: [{name: RSV, bits: [7,0], reserved: true}]}
+---
+kind: fsm
+name: spi_job
+title: "SPI job controller"
+initial: IDLE
+states:
+  - {name: IDLE,       output: "sck=0",           description: "No job"}
+  - {name: CS_SETUP,   output: "cs_n=0",          description: "Asserting CS_N (FIRST)"}
+  - {name: WAIT_DREQ,  output: "sck=0",           description: "Waiting for the module"}
+  - {name: SHIFT,      output: "sck=run",         description: "Shifting one byte per 8 SCK clocks"}
+  - {name: STALL,      output: "sck=0 stall=1",   description: "TX FIFO empty or RX FIFO full: SCK held at a byte boundary"}
+  - {name: CS_RELEASE, output: "cs_n=1",          description: "Releasing CS_N (LAST)"}
+  - {name: DONE,       output: "done=1",          description: "Job complete"}
+transitions:
+  - {from: IDLE,       to: CS_SETUP,   when: "START & FIRST"}
+  - {from: IDLE,       to: WAIT_DREQ,  when: "START & !FIRST & WAIT_DREQ"}
+  - {from: IDLE,       to: SHIFT,      when: "START & !FIRST & !WAIT_DREQ"}
+  - {from: CS_SETUP,   to: WAIT_DREQ,  when: "WAIT_DREQ"}
+  - {from: CS_SETUP,   to: SHIFT,      when: "!WAIT_DREQ"}
+  - {from: WAIT_DREQ,  to: SHIFT,      when: "DREQ_N == 0"}
+  - {from: WAIT_DREQ,  to: IDLE,       when: "ABORT"}
+  - {from: SHIFT,      to: SHIFT,      when: "bytes_left > 0 & fifo_ok", do: "shift byte"}
+  - {from: SHIFT,      to: STALL,      when: "tx_empty | rx_full"}
+  - {from: SHIFT,      to: CS_RELEASE, when: "bytes_left == 0 & LAST"}
+  - {from: SHIFT,      to: DONE,       when: "bytes_left == 0 & !LAST"}
+  - {from: SHIFT,      to: IDLE,       when: "ABORT"}
+  - {from: STALL,      to: SHIFT,      when: "fifo_ok"}
+  - {from: STALL,      to: IDLE,       when: "ABORT"}
+  - {from: CS_RELEASE, to: DONE}
+  - {from: DONE,       to: IDLE}
+---
+kind: timing
+name: spi_mode0
+title: "SPI mode 0: one byte exchange (per slot)"
+ticks: ["idle", "b7", "b6", "b5", "b4", "b3", "b2", "b1", "b0", "end"]
+signals:
+  - {name: SCK,  wave: "0p.......0"}
+  - {name: CS_N, wave: "10.......1"}
+  - {name: MOSI, wave: "x========x", data: ["1", "0", "1", "1", "0", "0", "1", "0"]}
+  - {name: MISO, wave: "z========z", data: ["0", "1", "1", "0", "1", "0", "0", "1"]}
+arrows:
+  - {from: [CS_N, 1],  to: [SCK, 1],   text: "t_CSS"}
+  - {from: [MOSI, 1],  to: [SCK, 1.5], text: "t_su"}
+  - {from: [SCK, 8.5], to: [CS_N, 9],  text: "t_CSH"}
+---
+kind: timing
+name: spi_packet
+title: "SPI packet made of two jobs (CS_N stays low between them)"
+subtitle: "Job 1 carries FIRST, job 2 carries LAST"
+ticks: ["idle", "job 1", "job 1", "gap", "job 2", "job 2", "end"]
+signals:
+  - {name: SCK,   wave: "0pp0pp0"}
+  - {name: CS_N,  wave: "10....1"}
+  - {name: START, wave: "0100100"}
+arrows:
+  - {from: [START, 1], to: [CS_N, 1], text: "FIRST: CS_N low"}
+  - {from: [START, 4], to: [CS_N, 6], text: "LAST: CS_N high"}
+---
+kind: timing
+name: tdm_frame
+title: "Audio TDM: start of a frame (16 slots x 32 bits)"
+subtitle: "AUDIO_FS is one BCLK wide; the MSB of slot 0 follows on the next BCLK (ASSUMPTION: DSP mode A)"
+ticks: ["F", "0", "1", "2", "...", "31", "32", "33", "...", "63"]
+signals:
+  - {name: AUDIO_BCLK, wave: "p........."}
+  - {name: AUDIO_FS,   wave: "10........"}
+  - {name: AUDIO_DOUT, wave: "x=========", data: ["S0:31", "S0:30", "S0:29", "...", "S0:0", "S1:31", "S1:30", "...", "S1:0"]}
+  - {name: AUDIO_DIN,  wave: "x=========", data: ["S0:31", "S0:30", "S0:29", "...", "S0:0", "S1:31", "S1:30", "...", "S1:0"]}
+arrows:
+  - {from: [AUDIO_FS, 0], to: [AUDIO_DOUT, 1], text: "1 BCLK"}
+---
+kind: enum
+name: alex_dma_channels
+title: "SysDMA channel allocation"
+width: 3
+radix: dec
+columns:
+  - {key: value, title: "Channel"}
+  - name
+  - {key: description, title: "Use"}
+entries:
+  - {value: 0, name: CPU0, description: "Memory to memory, programmed by the CPU"}
+  - {value: 1, name: CPU1, description: "Memory to memory, programmed by the CPU"}
+  - {value: 2, name: CPU2, description: "Memory to memory, programmed by the CPU"}
+  - {value: 3, name: CPU3, description: "Memory to memory, programmed by the CPU"}
+  - {value: 4, name: SPI0, description: "Slot 0: SRC_ADDR feeds the TX FIFO, the RX FIFO drains to DST_ADDR"}
+  - {value: 5, name: SPI1, description: "Slot 1: same scheme"}
+  - {value: 6, name: SPI2, description: "Slot 2: same scheme"}
+  - {value: 7, name: SPI3, description: "Slot 3: same scheme"}
+notes:
+  - "An SPI channel uses the same SRC_ADDR and DST_ADDR registers as a CPU channel; the peripheral side is hard-wired."
+  - "For SPI channels COUNT is ignored: the job length comes from SPI_LEN."
+  - "One channel carries both directions: in DUPLEX mode it raises a TX request and an RX request, and each grant moves one burst in one direction."
+  - "SRC_CTRL / DST_CTRL codes of the existing SysDMA are not decoded in the register map yet (see open items)."
+---
+kind: bitfield
+name: dma_prio
+title: "PRIO[ch] · 8 bits"
+width: 8
+fields:
+  - {name: MASK, bits: [2,0], access: rw, reset: 0, description: "Priority mask; a larger mask wins, ties go to the lower channel number"}
+  - {name: RSV,  bits: [7,3], reserved: true}
+---
+kind: regmap
+name: alex_dma_ext
+title: "SysDMA extension registers (ASSUMPTION: offset 0x50 is free)"
+width: 8
+view: [table]
+registers:
+  - {offset: 0x50, name: "PRIO[ch]", access: rw, description: "Per-channel arbitration mask, one register per channel", ref: dma_prio}
+---
+kind: enum
+name: dma_arb
+title: "SysDMA arbitration rules"
+width: 4
+columns:
+  - {key: value, title: "Rule"}
+  - name
+  - {key: description, title: "Description"}
+entries:
+  - {value: 1, name: Key,         description: "Each requesting channel presents the key {MASK[2:0], ~CH[2:0]}; the larger key wins"}
+  - {value: 2, name: Elimination, description: "Equivalent to NuBus bitwise elimination: the key is compared from the MSB down and losers drop out; implemented as a 8-to-1 maximum tree"}
+  - {value: 3, name: Granularity, description: "One grant moves up to BURST_BYTES bytes, then the arbiter runs again"}
+  - {value: 4, name: Default,     description: "All MASK = 0: the lower channel number wins, so CPU channels outrank SPI channels"}
+  - {value: 5, name: Override,    description: "A driver can raise MASK of an SPI channel while it talks to a latency-sensitive module"}
+notes:
+  - "Masks are not merged with a bitwise OR: OR would produce a value no channel owns. The arbiter selects the winning key."
+  - "Arbitration against the audio engine and the GPU on the shared memory path is outside this table (see open items)."
+---
+kind: enum
+name: spi_load
+title: "SysDMA bus load of one duplex SPI slot"
+width: 4
+columns:
+  - {key: value, title: "SCK"}
+  - {key: name, title: "One slot, duplex"}
+  - {key: description, title: "Four slots, duplex"}
+entries:
+  - {value: "12 MHz", name: "3.0 MB/s",  description: "12 MB/s, does not fit"}
+  - {value: "4 MHz",  name: "1.0 MB/s",  description: "4 MB/s, does not fit the sustained estimate"}
+  - {value: "2 MHz",  name: "0.5 MB/s",  description: "2 MB/s, fits the sustained estimate"}
+  - {value: "1 MHz",  name: "0.25 MB/s", description: "1 MB/s"}
+notes:
+  - "Load = 2 memory accesses per byte (read TX buffer, write RX buffer) = SCK_MHz / 4 MB/s per duplex slot; half that in TX_ONLY or RX_ONLY."
+  - "The SPI side does not use the 8-bit bus: FIFOs connect to SysDMA through an internal port."
+  - "If DMA cannot keep up, SCK stops at a byte boundary (STALL) instead of losing data."
+---
+kind: memmap
+name: alex_io
+title: "Alex I/O port map (draft)"
+width: 8
+regions:
+  - {name: SLOTS, start: 0x00, end: 0x07, access: rw, purpose: "Slot power and status",       group: control}
+  - {name: I2C,   start: 0x08, end: 0x0B, access: rw, purpose: "I2C controller",              group: control}
+  - {name: SPI0,  start: 0x10, end: 0x17, access: rw, purpose: "SPI, slot 0",                 group: spi}
+  - {name: SPI1,  start: 0x18, end: 0x1F, access: rw, purpose: "SPI, slot 1",                 group: spi}
+  - {name: SPI2,  start: 0x20, end: 0x27, access: rw, purpose: "SPI, slot 2",                 group: spi}
+  - {name: SPI3,  start: 0x28, end: 0x2F, access: rw, purpose: "SPI, slot 3",                 group: spi}
+  - {name: AUDIO, start: 0x30, end: 0x3F, access: rw, purpose: "Audio routing and control (TBD)", group: audio}
+---
+kind: enum
+name: open_items
+title: "Open items"
+width: 4
+columns:
+  - {key: value, title: "#"}
+  - name
+  - {key: description, title: "To be decided"}
+entries:
+  - {value: 1, name: "Connector", description: "Verify PCIe position assignments, current per contact and insertion cycle rating against the datasheet"}
+  - {value: 2, name: "Power",     description: "Real +/-12 V and +3.3 V currents per slot and the +5 V budget"}
+  - {value: 3, name: "Audio",     description: "TDM frame format, bit depth, channels per slot; I2S as baseline profile; whether MCLK is needed"}
+  - {value: 4, name: "SysDMA",    description: "Decode SRC_CTRL / DST_CTRL, Demand-mode handshake per burst, internal FIFO port width, DONE/ERROR semantics for SPI channels"}
+  - {value: 5, name: "Arbitration", description: "Priority of SysDMA against the audio engine and the GPU on the shared memory path"}
+  - {value: 6, name: "Blitter",   description: "Removal of the blitter and compatibility with the MiSTer port"}
+  - {value: 7, name: "I2C",       description: "Four-pair multiplexer in the FPGA or an external one; EEPROM addresses"}
+  - {value: 8, name: "ESD",       description: "TVS arrays, 22-33 ohm series resistors, contact mating sequence"}
+---
+# type: edge — два ряда контактов (сторона B сверху, A снизу), позиции вида B14/A3,
+# gap_after: 11 — прорезь-ключ между позициями 11 и 12
+kind: connector
+name: alex_pcie_edge
+title: "PCIe x1 — Connector's edge"
+pins: alex_connector
+type: edge
+sides: [B, A]            # верхний ряд — B, нижний — A
+per_row: 18
+gap_after: 11
+orientation: horizontal

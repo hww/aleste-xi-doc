@@ -1,0 +1,41 @@
+kind: fsm
+name: cache_fsm
+title: "Cache FSM"
+initial: ST_IDLE
+states:
+  - {name: "ST_IDLE",      description: "Hits, write misses (allocate), posting to the write buffer, page changes, clean flushes"}
+  - {name: "ST_FILL",      description: "Read one word from memory (read miss, merge fill or lazy fill); waits until the write buffer is empty"}
+  - {name: "ST_WRITEBACK", description: "FLUSH of a dirty channel: blocking write, not through the write buffer"}
+transitions:
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "write miss, entry clean", do: "allocate: TAG, DATA = pixel, DMASK = written nibbles; ack"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "write miss, entry dirty, buffer free", do: "post old word to the buffer and allocate, same cycle; ack"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "page change pending, entry dirty, buffer free", do: "post old word to the buffer"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "page change pending, entry clean", do: "apply the new page, invalidate"}
+  - {from: "ST_IDLE",      to: "ST_FILL",      when: "read miss or read of a partial entry, buffer empty"}
+  - {from: "ST_IDLE",      to: "ST_FILL",      when: "dirty entry with a half-written byte must be evicted", do: "lazy fill of its own word"}
+  - {from: "ST_FILL",      to: "ST_IDLE",      when: "wb_ack_i && buffer empty", do: "DATA = memory word with dirty nibbles kept; FULL = 1"}
+  - {from: "ST_IDLE",      to: "ST_WRITEBACK", when: "FLUSH && dirty && buffer empty"}
+  - {from: "ST_WRITEBACK", to: "ST_IDLE",      when: "wb_ack_i", do: "DMASK = 0, invalidate, flush_ack"}
+  - {from: "ST_IDLE",      to: "ST_IDLE",      when: "FLUSH && !dirty && buffer empty", do: "invalidate, flush_ack (flush_noop)"}
+notes:
+  - "The posted write buffer (one word, shared by the four channels) drains to memory on its own, in any state. While it is busy, Wishbone carries its write; ST_FILL and ST_WRITEBACK wait for it."
+  - "Order of priority in ST_IDLE: pending page change, then FLUSH, then the channel access."
+  - "The cache is a 4-channel single-word buffer, not a classic cache. Consecutive words can be written without FLUSH: each eviction goes to the write buffer."
+---
+
+kind: enum
+name: pixel_path_stages
+title: "Pixel Path Stages"
+width: 3
+columns:
+  - {key: value, title: "Stage"}
+  - {key: name, title: "Signal"}
+  - {key: description, title: "Description"}
+entries:
+  - {value: 1, name: "idx_stored",   description: "20-bit index (15 word, 4 position, 1 page overflow)"}
+  - {value: 2, name: "word_out",     description: "15-bit word (integer part)"}
+  - {value: 3, name: "gc_rdata",     description: "16-bit data from cache"}
+  - {value: 4, name: "pb_pixel_out", description: "16-bit pixel from blender (read); on a write the blender sends pixel + bit mask to the cache"}
+  - {value: 5, name: "wdata",        description: "Written to destination register"}
+---
+
