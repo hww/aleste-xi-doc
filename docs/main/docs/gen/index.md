@@ -20,6 +20,7 @@
 - [SPIn_CMD · 8 bits (write-only; START launches a job)](spi_cmd.md) — `spi_cmd`
 - [SPIn_CTRL · 8 bits](spi_ctrl.md) — `spi_ctrl`
 - [SPIn_STATUS · 8 bits](spi_status.md) — `spi_status`
+- [Timer F6 bit layout](timer_f6_bits.md) — `timer_f6_bits`
 
 ## enum
 
@@ -43,6 +44,7 @@
 - [PPI 8255 Ports](io_ppi_ports.md) — `io_ppi_ports`
 - [native_mode (GLOBAL_CTRL[1])](native_mode_vals.md) — `native_mode_vals`
 - [Open items](open_items.md) — `open_items`
+- [PIC COMMAND opcodes (bit7 = 0)](pic_command_ops_v2.md) — `pic_command_ops_v2`
 - [Connector zones and placement rules](slot_zones.md) — `slot_zones`
 - [SysDMA bus load of one duplex SPI slot](spi_load.md) — `spi_load`
 - [supervisor_mode (GLOBAL_CTRL[0])](supervisor_mode_vals.md) — `supervisor_mode_vals`
@@ -59,6 +61,8 @@
 - [Internal Mapper Registers (16 × 8-bit)](mmu_mapper_regs.md) — `mmu_mapper_regs`
 - [Control Registers (Ports F0–FF, E0–EF)](mmu_ports.md) — `mmu_ports`
 - [PIC Register Map (wb_z80_pic.sv)](pic_regmap.md) — `pic_regmap`
+- [PIC Register Map (lx_sys.sv)](pic_regmap_v2.md) — `pic_regmap_v2`
+- [System Timer Port Map (lx_sys.sv)](timer_regmap.md) — `timer_regmap`
 
 ## memmap
 

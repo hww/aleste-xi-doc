@@ -1,0 +1,53 @@
+kind: regmap
+name: timer_regmap
+title: "System Timer Port Map (lx_sys.sv)"
+width: 8
+
+registers:
+  - offset: "0xF4"
+    name: "RT_LO / CMP_LO"
+    access: rw
+    fields:
+      - {name: "RT_LO",  bits: [7,0],
+         description: "R: low byte of RT_SNAPSHOT; latches the full 16-bit RT"}
+      - {name: "CMP_LO", bits: [7,0], overlay: true,
+         description: "W: buffer low byte of COMPARE (supervisor only)"}
+
+  - offset: "0xF5"
+    name: "RT_HI / CMP_HI"
+    access: rw
+    fields:
+      - {name: "RT_HI",  bits: [7,0],
+         description: "R: high byte of RT_SNAPSHOT"}
+      - {name: "CMP_HI", bits: [7,0], overlay: true,
+         description: "W: commit high byte; full 16-bit COMPARE is written atomically (supervisor only)"}
+
+  - offset: "0xF6"
+    name: "STATUS / CONTROL"
+    access: rw
+    fields:
+      - {name: "ENABLE", bit: 0,
+         description: "R: comparison enabled. W: 1 = enable, 0 = disable (supervisor only)"}
+      - {name: "ARMED",  bit: 1,
+         description: "R: target timestamp has been committed. W: ignored"}
+      - {name: "WINDOW", bit: 2,
+         description: "R: two-byte access window is open (blocks INT, not NMI). W: ignored"}
+      - {name: "DUE",    bit: 3,
+         description: "R: live comparator output (ARMED & ~delta[15]). W: ignored"}
+      - {name: "RSV",    bits: [7,4], reserved: true}
+
+---
+kind: bitfield
+name: timer_f6_bits
+title: "Timer F6 bit layout"
+width: 8
+fields:
+  - {bit: 0, name: ENABLE,
+     description: "R: comparison enabled. W: 1 = enable, 0 = disable (supervisor only)"}
+  - {bit: 1, name: ARMED,
+     description: "R: target timestamp has been committed. W: ignored"}
+  - {bit: 2, name: WINDOW,
+     description: "R: two-byte access window is open (blocks INT, not NMI). W: ignored"}
+  - {bit: 3, name: DUE,
+     description: "R: live comparator output (ARMED & ~delta[15]). W: ignored"}
+  - {bits: [7,4], name: RSV, reserved: true}

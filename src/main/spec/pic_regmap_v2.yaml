@@ -1,0 +1,98 @@
+kind: regmap
+name: pic_regmap_v2
+title: "PIC Register Map (lx_sys.sv)"
+width: 8
+
+registers:
+  - offset: "0x0"
+    name: "COMMAND"
+    access: w
+    fields:
+      - {name: "PAYLOAD", bits: [7,0],
+         description: "bit7=0: {opcode[6:4], channel[3:0]}; bit7=1: {1, prio[6:4], channel[3:0]}. Supervisor only."}
+
+  - offset: "0x1"
+    name: "CLAIM"
+    access: r
+    fields:
+      - {name: "VALID",   bit: 7,  description: "A channel was captured (latch valid)"}
+      - {name: "REPEAT",  bit: 6,  description: "Captured channel had REPEAT set"}
+      - {name: "RSV",     bits: [5,4], reserved: true}
+      - {name: "CHANNEL", bits: [3,0], description: "Captured channel ID (0..15)"}
+
+  - offset: "0x2"
+    name: "VECTOR"
+    access: rw
+    fields:
+      - {name: "VEC", bits: [7,0], reset: "0xFF",
+         description: "Base vector for IM 2 (reset = 0xFF, RST 38h). Write: supervisor only."}
+
+  - offset: "0x3"
+    name: "PENDING_L"
+    access: r
+    fields: [{name: "IRQ_0_7",  bits: [7,0], description: "Pending, lines 0–7"}]
+
+  - offset: "0x4"
+    name: "PENDING_H"
+    access: r
+    fields: [{name: "IRQ_8_15", bits: [7,0], description: "Pending, lines 8–15"}]
+
+  - offset: "0x5"
+    name: "REPEAT_L"
+    access: r
+    fields: [{name: "REP_0_7",  bits: [7,0], description: "Overrun flag, lines 0–7"}]
+
+  - offset: "0x6"
+    name: "REPEAT_H"
+    access: r
+    fields: [{name: "REP_8_15", bits: [7,0], description: "Overrun flag, lines 8–15"}]
+
+  - offset: "0x7"
+    name: "IN_SERVICE_L"
+    access: r
+    fields: [{name: "ISR_0_7",  bits: [7,0], description: "In service, lines 0–7"}]
+
+  - offset: "0x8"
+    name: "IN_SERVICE_H"
+    access: r
+    fields: [{name: "ISR_8_15", bits: [7,0], description: "In service, lines 8–15"}]
+
+  - offset: "0x9"
+    name: "ENABLE_L"
+    access: r
+    fields: [{name: "EN_0_7",   bits: [7,0], description: "Enabled, lines 0–7"}]
+
+  - offset: "0xA"
+    name: "ENABLE_H"
+    access: r
+    fields: [{name: "EN_8_15",  bits: [7,0], description: "Enabled, lines 8–15"}]
+
+  - offset: "0xB"
+    name: "STATUS_L"
+    access: r
+    fields: [{name: "ELIG_0_7", bits: [7,0],
+              description: "PENDING & ENABLE & ~IN_SERVICE, lines 0–7 (drives INT)"}]
+
+  - offset: "0xC"
+    name: "STATUS_H"
+    access: r
+    fields: [{name: "ELIG_8_15", bits: [7,0],
+              description: "PENDING & ENABLE & ~IN_SERVICE, lines 8–15"}]
+---
+kind: enum
+name: pic_command_ops_v2
+title: "PIC COMMAND opcodes (bit7 = 0)"
+columns:
+  - {name: "Opcode", key: "op", width: 3}
+  - {name: "Name",   key: "name"}
+  - {name: "Effect", key: "effect"}
+
+entries:
+  - {value: 0, name: NOP,           effect: "No operation"}
+  - {value: 1, name: COMPLETE,      effect: "Clear IN_SERVICE for the selected channel"}
+  - {value: 2, name: ENABLE,        effect: "Set ENABLE for the selected channel"}
+  - {value: 3, name: DISABLE,       effect: "Clear ENABLE for the selected channel"}
+  - {value: 4, name: CLEAR_PENDING, effect: "Clear PENDING; a simultaneous new edge is preserved"}
+  - {value: 5, name: CLEAR_REPEAT,  effect: "Clear REPEAT; a simultaneous new overrun is preserved"}
+  - {value: 6, name: CLEAR_BOTH,    effect: "Clear PENDING and REPEAT; a simultaneous new edge becomes fresh PENDING"}
+  - {value: 7, name: RESERVED,      effect: "Reserved"}
