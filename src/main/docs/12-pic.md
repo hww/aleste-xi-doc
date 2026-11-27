@@ -73,16 +73,59 @@ when the CPU acknowledges (`int_ack_i`).
 **✔ By design (RTL):** `int_req_o <= 1` when `any_irq`, `int_req_o <= 0`
 when `int_ack_i`.
 
----
+### 3.4. Repeat / overrun flag (NEW)
+
+Each IRQ line carries a second state bit, `REPEAT`. It records that a
+second (or further) request arrived on the same line while `PENDING` was
+already asserted and had not yet been serviced. `REPEAT` is a boolean
+overrun flag, not an event counter.
+
+**✔ By design (RTL):** per line:
+
+- new request, `PENDING = 0` → `PENDING = 1`
+- new request, `PENDING = 1` → `REPEAT = 1`
+- acknowledge, `REPEAT = 1` → `PENDING` stays `1`, `REPEAT = 0`
+- acknowledge, `REPEAT = 0` → `PENDING = 0`
+- simultaneous acknowledge and new request → **set-dominant**
+  (the new request is never lost)
+
+`REPEAT` is exposed at `REPEAT_L`/`REPEAT_H` (`0x9`/`0xA`) and cleared by
+writing 1 to `CLEAR_REPEAT_L`/`CLEAR_REPEAT_H` (`0xB`/`0xC`). Masking a
+line blocks delivery to the CPU but does **not** clear `PENDING` or
+`REPEAT`.
+
+This implements the PIC side of the `Pending`/`Repeat` contract from
+`Alesta LX Hardware System Timer` Rev 5 §11.
+
+### 3.5. Acknowledge vs. software clear (NEW)
+
+Two ways to retire a request are supported:
+
+- **`int_ack_i`** — CPU acknowledge; applies the `Pending`/`Repeat`
+  contract above (used in IM 2 / vectored flows).
+- **`CLEAR_L`/`CLEAR_H`** — software writes 1 to the bit; clears
+  `PENDING` directly (used in the IM 1 "read status, then clear" flow).
+
+Both are set-dominant against a request arriving in the same cycle, so no
+request is ever lost. If the platform does not drive `int_ack_i`, tie it
+to `0` and use `CLEAR_*` exclusively; `INT` then drops when software
+clears `PENDING`.
 
 ## 4. Interrupt vector (IM 2)
 
-The `VECTOR` register holds the base vector for IM 2 mode. The RTL does
-not generate the vector automatically; the CPU reads the `PENDING`
-registers and the kernel dispatches.
+The `VECTOR` register holds the base vector for IM 2 mode. Reset value is
+`0xFF` (RST 38h).
 
 **✔ By design (RTL):** `irq_vector` is a single 8-bit register,
 default `0xFF` (RST 38h).
+
+> **⚠ Spec:** an earlier RTL revision generated `int_vec_o = VECTOR +
+> 2 * top_priority_line` in hardware. The current `LX PIC Controller`
+> contract is that **the PIC does not generate the vector
+> automatically**: the CPU reads `PENDING`/`REPEAT` (and `VECTOR`) and
+> the kernel dispatches. If a platform still needs the hardware
+> auto-vector, it must be re-added as an explicit, documented extension
+> (`int_vec_o`), not assumed.
 
 ---
 

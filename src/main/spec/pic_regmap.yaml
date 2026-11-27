@@ -12,22 +12,34 @@ registers:
     fields: [{name: "IRQ_8_15", bits: [7,0], description: "Mask, lines 8–15 (1 = enabled)"}]
   - offset: "0x2"
     name: "VECTOR"
-    fields: [{name: "VEC", bits: [7,0], description: "Base vector for IM 2 (default 0xFF)"}]
+    fields: [{name: "VEC", bits: [7,0], description: "Base vector for IM 2 (reset = 0xFF, RST 38h)"}]
   - offset: "0x3"
     name: "STATUS_L"
-    fields: [{name: "IRQ_0_7", bits: [7,0], description: "Status, lines 0–7"}]
+    fields: [{name: "IRQ_0_7", bits: [7,0], description: "Status, lines 0–7 (pending & mask)"}]
   - offset: "0x4"
     name: "STATUS_H"
-    fields: [{name: "IRQ_8_15", bits: [7,0], description: "Status, lines 8–15"}]
+    fields: [{name: "IRQ_8_15", bits: [7,0], description: "Status, lines 8–15 (pending & mask)"}]
   - offset: "0x5"
     name: "PENDING_L"
-    fields: [{name: "IRQ_0_7", bits: [7,0], description: "Pending, lines 0–7"}]
+    fields: [{name: "IRQ_0_7", bits: [7,0], description: "Pending, lines 0–7 (unmasked)"}]
   - offset: "0x6"
     name: "PENDING_H"
-    fields: [{name: "IRQ_8_15", bits: [7,0], description: "Pending, lines 8–15"}]
+    fields: [{name: "IRQ_8_15", bits: [7,0], description: "Pending, lines 8–15 (unmasked)"}]
   - offset: "0x7"
     name: "CLEAR_L"
-    fields: [{name: "CLR_0_7", bits: [7,0], description: "Clear pending, lines 0–7"}]
+    fields: [{name: "CLR_0_7", bits: [7,0], description: "Clear pending, lines 0–7 (write 1 = clear; set-dominant vs. new edge)"}]
   - offset: "0x8"
     name: "CLEAR_H"
-    fields: [{name: "CLR_8_15", bits: [7,0], description: "Clear pending, lines 8–15"}]
+    fields: [{name: "CLR_8_15", bits: [7,0], description: "Clear pending, lines 8–15 (write 1 = clear; set-dominant vs. new edge)"}]
+  - offset: "0x9"
+    name: "REPEAT_L"
+    fields: [{name: "REP_0_7", bits: [7,0], description: "Overrun flag, lines 0–7: a second request arrived while Pending=1"}]
+  - offset: "0xA"
+    name: "REPEAT_H"
+    fields: [{name: "REP_8_15", bits: [7,0], description: "Overrun flag, lines 8–15: a second request arrived while Pending=1"}]
+  - offset: "0xB"
+    name: "CLEAR_REPEAT_L"
+    fields: [{name: "CLRREP_0_7", bits: [7,0], description: "Clear Repeat, lines 0–7 (write 1 = clear; set-dominant vs. new overrun)"}]
+  - offset: "0xC"
+    name: "CLEAR_REPEAT_H"
+    fields: [{name: "CLRREP_8_15", bits: [7,0], description: "Clear Repeat, lines 8–15 (write 1 = clear; set-dominant vs. new overrun)"}]

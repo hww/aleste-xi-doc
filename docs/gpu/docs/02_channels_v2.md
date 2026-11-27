@@ -64,8 +64,6 @@ Changes with respect to the first draft:
 | 2 | <a id="4_bpp"></a>**4 bpp** | W=4, 4 pixels per word (k=2); pos 0 = low nibble |
 | 3 | <a id="2_bpp"></a>**2 bpp** | W=2, 8 pixels per word (k=3); SOURCE ONLY, writes forbidden |
 | 4 | <a id="1_bpp"></a>**1 bpp** | W=1, 16 pixels per word (k=4); SOURCE ONLY, writes forbidden |
-| 5 | <a id="LO8"></a>**LO8** | W=8, 1 pixel per word in the LOW byte (k=0), high byte preserved on write |
-| 6 | <a id="HI8"></a>**HI8** | W=8, 1 pixel per word in the HIGH byte (k=0), low byte preserved on write |
 | 7 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
 
 

@@ -51,6 +51,10 @@ the base address.
 | `0x06` | <a id="PENDING_H"></a>**PENDING_H** | — |
 | `0x07` | <a id="CLEAR_L"></a>**CLEAR_L** | — |
 | `0x08` | <a id="CLEAR_H"></a>**CLEAR_H** | — |
+| `0x09` | <a id="REPEAT_L"></a>**REPEAT_L** | — |
+| `0x0A` | <a id="REPEAT_H"></a>**REPEAT_H** | — |
+| `0x0B` | <a id="CLEAR_REPEAT_L"></a>**CLEAR_REPEAT_L** | — |
+| `0x0C` | <a id="CLEAR_REPEAT_H"></a>**CLEAR_REPEAT_H** | — |
 
 **MASK_L** (`0x00`)
 
@@ -68,43 +72,67 @@ the base address.
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="VEC"></a>**VEC** | [7:0] | 8 | Base vector for IM 2 (default 0xFF) |
+| <a id="VEC"></a>**VEC** | [7:0] | 8 | Base vector for IM 2 (reset = 0xFF, RST 38h) |
 
 **STATUS_L** (`0x03`)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="IRQ_0_7"></a>**IRQ_0_7** | [7:0] | 8 | Status, lines 0–7 |
+| <a id="IRQ_0_7"></a>**IRQ_0_7** | [7:0] | 8 | Status, lines 0–7 (pending & mask) |
 
 **STATUS_H** (`0x04`)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="IRQ_8_15"></a>**IRQ_8_15** | [7:0] | 8 | Status, lines 8–15 |
+| <a id="IRQ_8_15"></a>**IRQ_8_15** | [7:0] | 8 | Status, lines 8–15 (pending & mask) |
 
 **PENDING_L** (`0x05`)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="IRQ_0_7"></a>**IRQ_0_7** | [7:0] | 8 | Pending, lines 0–7 |
+| <a id="IRQ_0_7"></a>**IRQ_0_7** | [7:0] | 8 | Pending, lines 0–7 (unmasked) |
 
 **PENDING_H** (`0x06`)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="IRQ_8_15"></a>**IRQ_8_15** | [7:0] | 8 | Pending, lines 8–15 |
+| <a id="IRQ_8_15"></a>**IRQ_8_15** | [7:0] | 8 | Pending, lines 8–15 (unmasked) |
 
 **CLEAR_L** (`0x07`)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="CLR_0_7"></a>**CLR_0_7** | [7:0] | 8 | Clear pending, lines 0–7 |
+| <a id="CLR_0_7"></a>**CLR_0_7** | [7:0] | 8 | Clear pending, lines 0–7 (write 1 = clear; set-dominant vs. new edge) |
 
 **CLEAR_H** (`0x08`)
 
 | Field | Bits | Width | Description |
 | --- | --- | --- | --- |
-| <a id="CLR_8_15"></a>**CLR_8_15** | [7:0] | 8 | Clear pending, lines 8–15 |
+| <a id="CLR_8_15"></a>**CLR_8_15** | [7:0] | 8 | Clear pending, lines 8–15 (write 1 = clear; set-dominant vs. new edge) |
+
+**REPEAT_L** (`0x09`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="REP_0_7"></a>**REP_0_7** | [7:0] | 8 | Overrun flag, lines 0–7: a second request arrived while Pending=1 |
+
+**REPEAT_H** (`0x0A`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="REP_8_15"></a>**REP_8_15** | [7:0] | 8 | Overrun flag, lines 8–15: a second request arrived while Pending=1 |
+
+**CLEAR_REPEAT_L** (`0x0B`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CLRREP_0_7"></a>**CLRREP_0_7** | [7:0] | 8 | Clear Repeat, lines 0–7 (write 1 = clear; set-dominant vs. new overrun) |
+
+**CLEAR_REPEAT_H** (`0x0C`)
+
+| Field | Bits | Width | Description |
+| --- | --- | --- | --- |
+| <a id="CLRREP_8_15"></a>**CLRREP_8_15** | [7:0] | 8 | Clear Repeat, lines 8–15 (write 1 = clear; set-dominant vs. new overrun) |
 
 
 **✔ By design (RTL):** the register layout matches `wb_z80_pic.sv`.
@@ -140,16 +168,59 @@ when the CPU acknowledges (`int_ack_i`).
 **✔ By design (RTL):** `int_req_o <= 1` when `any_irq`, `int_req_o <= 0`
 when `int_ack_i`.
 
----
+### 3.4. Repeat / overrun flag (NEW)
+
+Each IRQ line carries a second state bit, `REPEAT`. It records that a
+second (or further) request arrived on the same line while `PENDING` was
+already asserted and had not yet been serviced. `REPEAT` is a boolean
+overrun flag, not an event counter.
+
+**✔ By design (RTL):** per line:
+
+- new request, `PENDING = 0` → `PENDING = 1`
+- new request, `PENDING = 1` → `REPEAT = 1`
+- acknowledge, `REPEAT = 1` → `PENDING` stays `1`, `REPEAT = 0`
+- acknowledge, `REPEAT = 0` → `PENDING = 0`
+- simultaneous acknowledge and new request → **set-dominant**
+  (the new request is never lost)
+
+`REPEAT` is exposed at `REPEAT_L`/`REPEAT_H` (`0x9`/`0xA`) and cleared by
+writing 1 to `CLEAR_REPEAT_L`/`CLEAR_REPEAT_H` (`0xB`/`0xC`). Masking a
+line blocks delivery to the CPU but does **not** clear `PENDING` or
+`REPEAT`.
+
+This implements the PIC side of the `Pending`/`Repeat` contract from
+`Alesta LX Hardware System Timer` Rev 5 §11.
+
+### 3.5. Acknowledge vs. software clear (NEW)
+
+Two ways to retire a request are supported:
+
+- **`int_ack_i`** — CPU acknowledge; applies the `Pending`/`Repeat`
+  contract above (used in IM 2 / vectored flows).
+- **`CLEAR_L`/`CLEAR_H`** — software writes 1 to the bit; clears
+  `PENDING` directly (used in the IM 1 "read status, then clear" flow).
+
+Both are set-dominant against a request arriving in the same cycle, so no
+request is ever lost. If the platform does not drive `int_ack_i`, tie it
+to `0` and use `CLEAR_*` exclusively; `INT` then drops when software
+clears `PENDING`.
 
 ## 4. Interrupt vector (IM 2)
 
-The `VECTOR` register holds the base vector for IM 2 mode. The RTL does
-not generate the vector automatically; the CPU reads the `PENDING`
-registers and the kernel dispatches.
+The `VECTOR` register holds the base vector for IM 2 mode. Reset value is
+`0xFF` (RST 38h).
 
 **✔ By design (RTL):** `irq_vector` is a single 8-bit register,
 default `0xFF` (RST 38h).
+
+> **⚠ Spec:** an earlier RTL revision generated `int_vec_o = VECTOR +
+> 2 * top_priority_line` in hardware. The current `LX PIC Controller`
+> contract is that **the PIC does not generate the vector
+> automatically**: the CPU reads `PENDING`/`REPEAT` (and `VECTOR`) and
+> the kernel dispatches. If a platform still needs the hardware
+> auto-vector, it must be re-added as an explicit, documented extension
+> (`int_vec_o`), not assumed.
 
 ---
 
