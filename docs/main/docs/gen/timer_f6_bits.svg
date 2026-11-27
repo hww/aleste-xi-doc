@@ -12,23 +12,25 @@
 <text x="32" y="38" font-size="22" font-weight="700" fill="#000000">Timer F6 bit layout</text>
 <text x="32" y="62" font-size="14" fill="#555555">8-bit register</text>
 <text x="50" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">7</text>
+<text x="122" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">5</text>
 <text x="158" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">4</text>
 <text x="194" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">3</text>
 <text x="230" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">2</text>
 <text x="266" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">1</text>
 <text x="302" y="96" font-size="11" text-anchor="middle" fill="#444444" class="m">0</text>
 <rect x="32" y="104" width="288" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
-<rect x="32" y="104" width="144" height="50" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
-<text x="104" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
+<rect x="32" y="104" width="108" height="50" fill="url(#hatch)" stroke="#000000" stroke-width="1.5"/>
+<text x="86" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700" style="paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round">RSV</text>
 <line x1="68" y1="104" x2="68" y2="111" stroke="#000000" stroke-width="1"/>
 <line x1="104" y1="104" x2="104" y2="111" stroke="#000000" stroke-width="1"/>
-<line x1="140" y1="104" x2="140" y2="111" stroke="#000000" stroke-width="1"/>
-<rect x="176" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<rect x="140" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<text x="158" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700">FIRED</text>
+<rect x="176" y="104" width="36" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="194" y="133.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">DUE</text>
-<rect x="212" y="104" width="36" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<rect x="212" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
 <text x="230" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700" transform="rotate(-90 230 132.2)">WINDOW</text>
-<rect x="248" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
+<rect x="248" y="104" width="36" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="266" y="132.8" font-size="11" text-anchor="middle" fill="#000000" font-weight="700" transform="rotate(-90 266 132.8)">ARMED</text>
-<rect x="284" y="104" width="36" height="50" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
+<rect x="284" y="104" width="36" height="50" fill="#E0E0E0" stroke="#000000" stroke-width="1.5"/>
 <text x="302" y="132.2" font-size="9" text-anchor="middle" fill="#000000" font-weight="700" transform="rotate(-90 302 132.2)">ENABLE</text>
 </svg>

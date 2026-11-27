@@ -325,15 +325,19 @@ The `VECTOR` register holds the base vector for IM 2 mode. Reset value is
 `0xFF` (RST 38h).
 
 **✎ By design (RTL):** `vector` is a single 8-bit register, reset
-`0xFF` (RST 38h), written by supervisor mode only.
+`0xFF` (RST 38h), written by supervisor mode only. It is output on
+`vector_o`, which the system places on the data bus during the
+interrupt acknowledge cycle (`M1` with `IORQ`): in IM 2 it is the low
+byte of the table address, in IM 0 the instruction (`0xFF` = RST 38h).
+In IM 1 it is ignored. The kernel then dispatches with `CLAIM`.
 
 > **⚠ Spec:** an earlier RTL revision generated `int_vec_o = VECTOR +
 > 2 * top_priority_line` in hardware. The current `LX PIC Controller`
 > contract is that **the PIC does not generate the vector
-> automatically**: the CPU reads `PENDING`/`REPEAT` (and `VECTOR`) and
-> the kernel dispatches. If a platform still needs the hardware
-> auto-vector, it must be re-added as an explicit, documented extension
-> (`int_vec_o`), not assumed.
+> automatically**: `vector_o` is always `VECTOR`, whatever line is
+> requesting, and the kernel dispatches with `CLAIM`. If a platform
+> still needs a per-line hardware vector, it must be re-added as an
+> explicit, documented extension, not assumed.
 
 ---
 

@@ -9,18 +9,18 @@ registers:
     access: rw
     fields:
       - {name: "RT_LO",  bits: [7,0],
-         description: "R: low byte of RT_SNAPSHOT; latches the full 16-bit RT"}
+         description: "R: latches the full 16-bit RT into the snapshot of the current mode (supervisor/user); returns its low byte"}
       - {name: "CMP_LO", bits: [7,0], overlay: true,
-         description: "W: buffer low byte of COMPARE (supervisor only)"}
+         description: "W: buffer low byte of COMPARE and open WINDOW (supervisor only)"}
 
   - offset: "0xF5"
     name: "RT_HI / CMP_HI"
     access: rw
     fields:
       - {name: "RT_HI",  bits: [7,0],
-         description: "R: high byte of RT_SNAPSHOT"}
+         description: "R: high byte of the current mode's RT_SNAPSHOT"}
       - {name: "CMP_HI", bits: [7,0], overlay: true,
-         description: "W: commit high byte; full 16-bit COMPARE is written atomically (supervisor only)"}
+         description: "W: commit high byte; full 16-bit COMPARE is written atomically; ARMED = ENABLE = 1, FIRED = 0, WINDOW = 0 (supervisor only)"}
 
   - offset: "0xF6"
     name: "STATUS / CONTROL"
@@ -31,10 +31,12 @@ registers:
       - {name: "ARMED",  bit: 1,
          description: "R: target timestamp has been committed. W: ignored"}
       - {name: "WINDOW", bit: 2,
-         description: "R: two-byte access window is open (blocks INT, not NMI). W: ignored"}
+         description: "R: COMPARE write in progress (F4 written, F5 not yet; blocks INT, not NMI). W: ignored"}
       - {name: "DUE",    bit: 3,
          description: "R: live comparator output (ARMED & ~delta[15]). W: ignored"}
-      - {name: "RSV",    bits: [7,4], reserved: true}
+      - {name: "FIRED",  bit: 4,
+         description: "R: the request for the current target has been sent; cleared by the F5 commit. W: ignored"}
+      - {name: "RSV",    bits: [7,5], reserved: true}
 
 ---
 kind: bitfield
@@ -48,7 +50,9 @@ fields:
   - {bit: 1, name: ARMED,
      description: "R: target timestamp has been committed. W: ignored"}
   - {bit: 2, name: WINDOW,
-     description: "R: two-byte access window is open (blocks INT, not NMI). W: ignored"}
+     description: "R: COMPARE write in progress (F4 written, F5 not yet; blocks INT, not NMI). W: ignored"}
   - {bit: 3, name: DUE,
      description: "R: live comparator output (ARMED & ~delta[15]). W: ignored"}
-  - {bits: [7,4], name: RSV, reserved: true}
+  - {bit: 4, name: FIRED,
+     description: "R: the request for the current target has been sent; cleared by the F5 commit. W: ignored"}
+  - {bits: [7,5], name: RSV, reserved: true}
