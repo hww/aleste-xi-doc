@@ -61,10 +61,10 @@ Changes with respect to the first draft:
 | --- | --- | --- |
 | 0 | <a id="16_bpp"></a>**16 bpp** | W=16, 1 pixel per word (k=0); reset default |
 | 1 | <a id="8_bpp"></a>**8 bpp** | W=8, 2 pixels per word (k=1); pos 0 = low byte (even address) - PRIMARY |
-| 2 | <a id="4_bpp"></a>**4 bpp** | W=4, 4 pixels per word (k=2); pos 0 = low nibble |
+| 2 | <a id="4_bpp"></a>**4 bpp** | W=4, 4 pixels per word (k=2); pos 0 = bits 7..4, pos 1 = bits 3..0, then 15..12, 11..8 |
 | 3 | <a id="2_bpp"></a>**2 bpp** | W=2, 8 pixels per word (k=3); SOURCE ONLY, writes forbidden |
 | 4 | <a id="1_bpp"></a>**1 bpp** | W=1, 16 pixels per word (k=4); SOURCE ONLY, writes forbidden |
-| 7 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
+| 5..7 | <a id="RESERVED"></a>**RESERVED** | Reserved: read like 16 bpp, writes forbidden |
 
 
 ## 2. Register Map & Banking
@@ -78,7 +78,7 @@ Changes with respect to the first draft:
 | 0..31 | <a id="R0..R31"></a>**R0..R31** | 16-bit value | 16-bit value |
 | 32 | <a id="ZERO"></a>**ZERO** | 0 | Ignored |
 | 33 | <a id="FLAGS"></a>**FLAGS** | [3:0] = V C N Z | [3:0] |
-| 34 | <a id="BUSY"></a>**BUSY** | {wb_cyc, flush_done, access_done, hit} | - |
+| 34 | <a id="BUSY"></a>**BUSY** | [0] page overflow of the channel in use, [3:1] = 0 | - |
 | 35 | <a id="SHADOW"></a>**SHADOW** | [15:12] flags, [11:0] PC+1 | [11:0] PC |
 | 36 | <a id="LOOP_CNT"></a>**LOOP_CNT** | Loop counter | Loop counter |
 | 37 | <a id="LOOP_TGT"></a>**LOOP_TGT** | Loop target | Loop target |
@@ -95,7 +95,8 @@ Changes with respect to the first draft:
 
 - BANK write takes effect on the next instruction (X-stage decode, in-order, no hold).
 - Banks 5..7 are reserved: writes to the window are ignored, no error.
-- RTL reference: 38 ROML, 39 ROMH, 40 ROMA, 41 MHI, 44..47 DATA (top.sv).
+- RTL reference: 38 ROML, 39 ROMH, 40 ROMA, 41 MHI, 42 BANK, 44..47 DATA (gpu_top.sv).
+- A DATA access waits until the channel's address is ready: one cycle after a write to its POS, CLIP or SURF registers, or after its previous access. A DATA write first latches A (one cycle), then makes the access.
 
 
 - `BANK` is **global** (one for the whole GPU): configuring several channels in the same bank needs no switches.
@@ -238,8 +239,16 @@ With `CLIP_ON = 1` a pixel is **inside** when (signed, inclusive):
 | write `DATA[ch]` | start pixel operation (§5) with `A = wdata` (low W bits); then `pos += step` |
 | read `DATA[ch]` | returns D (unpacked, zero-extended to 16 bits) or `KEY` if clipped; then `pos += step` |
 
-A `DATA` access after a position register write may need a few cycles for the address to be ready;
-the existing X-stage busy mechanism covers it, software sees no new rule.
+The address of every channel (word, fraction, page overflow, clip test, parity) is kept in registers and
+recomputed by one shared unit (the `YI x PITCH` multiplier) after the channel's `POS`, `CLIP` or `SURF`
+registers change, and after each access. A `DATA` access waits for it through the existing X-stage busy
+mechanism, so software sees no new rule:
+
+- the address is ready one cycle after the change; a channel accessed by every instruction waits one cycle,
+  two channels used alternately (copy loops) do not wait;
+- a `DATA` write first latches `A` (one cycle), then makes the access, so it costs one cycle more than a read.
+
+This keeps the multiplier and the core ALU out of the path of the cache access (54 MHz on the MiSTer).
 
 ## 4. Mode (per channel)
 
@@ -296,13 +305,13 @@ Written via `SURF.MODE_PAGE`:
 **Notes:**
 
 - Reset 0x0000 => OP=PASS, SX=A, REL=always, DEN=0: copy-A default.
-- NEED_D = (SX==D) | (SY==D) | (REL in 1..6 & CS != 0). If 0 and W=16: one cache access, no RMW.
-- All operands are unsigned W-bit values (W by FMT: 16/8/4/2/1; LO8/HI8 = 8); datapath 16 bits wide, bits above W forced to 0.
+- NEED_D = (SX==D) | (SY==D) | (REL in 1..6 & CS != 0). If 0: one masked cache write, no read, at every W.
+- All operands are unsigned W-bit values (W by FMT: 16/8/4/2/1); datapath 16 bits wide, bits above W forced to 0.
 
 
 ### 5.2 Operands and width
 
-All operands are **unsigned W-bit values**, W by FMT: 16bpp -> 16, 8bpp / LO8 / HI8 -> 8, 4bpp -> 4,
+All operands are **unsigned W-bit values**, W by FMT: 16bpp -> 16, 8bpp -> 8, 4bpp -> 4,
 2bpp -> 2, 1bpp -> 1 (the same mask the packer already uses). The datapath is 16 bits wide; bits above W
 are forced to 0 on entry and on the result. This is what keeps the reset default (16bpp, PASS A) bit-exact.
 
@@ -350,9 +359,9 @@ NEED_D = (SX == D) | (SY == D) | (REL in {==, !=, <, >=, >, <=} & CS != 0)
 
 (`REL = always / never` makes `CS` irrelevant; `CS = 0` compares A with K and needs no D.)
 
-- `NEED_D = 0` and W = 16: a plain word write, **one cache access, no RMW**.
-- W < 16: the containing word must be read to preserve neighbouring pixels (current behaviour). Removing
-  this needs lane write-enables in the cache (§7).
+- `NEED_D = 0`: **one masked cache write, no read**, at every W. The cache merges the pixel into its
+  word with a bit mask and writes back only the dirty bytes (see the cache page).
+- `NEED_D = 1`: PH_1 reads D, PH_2 evaluates the ALU and `REL` and writes R (or not).
 
 ### 5.7 Recipes
 
@@ -382,7 +391,7 @@ between components; component-wise results are the program's job (masks and shif
 
 - One W-bit adder / subtractor serves ADD, ADDS, SUBS and the `<`, `>=`, `>`, `<=` comparisons; `==` is XOR + reduce.
 - Two 4:1 muxes (X, Y), one 2:1 mux per operand for `SHR`, one 8:1 mux for `REL`. No DSP.
-- 1bpp / 2bpp write protection preserved. LO8 / HI8 (W = 8) work through the same path.
+- 1bpp / 2bpp write protection preserved. Formats 5..7 are reserved (read like 16 bpp, writes ignored).
 
 ## 6. Example: Rectangle Fill (8bpp)
 
@@ -405,12 +414,10 @@ Per primitive about 8 instructions; per scanline about 6.
 
 - A single-instruction `L` loop costs **one bubble per iteration** (fetch unit redirects in D), so the loop
   runs at most **one pixel per two clocks**; unrolling approaches one per clock.
-- The current blender needs a read phase and a write phase for each partial-word write (about 4-5 clocks including
-  registered acknowledges; confirm in simulation). Throughput is set by this sequence, not by the ALU.
-- **Suggested follow-up (not part of the base set):** lane write-enables in the cache (nibble / byte) and a
-  one-cycle read-modify-write on a cache hit when the cache read is combinational. That removes the RMW FSM
-  for W < 16 when D is not needed, and gives one-cycle ALU + write on hits.
-- Cache write-miss still reads the word (write-allocate); consecutive pixels in the same word hit.
+- A write with `NEED_D = 0` is one masked cache access at every W: the cache keeps a dirty mask per nibble
+  and writes back only the dirty bytes. A write miss takes the entry without reading memory.
+- A write with `NEED_D = 1` reads D first (PH_1), then writes (PH_2).
+- A `DATA` write costs one cycle more than a read (A is latched first, §3.4).
 
 ## 8. Open Questions
 
@@ -419,13 +426,14 @@ Per primitive about 8 instructions; per scanline about 6.
 3. **16bpp component-wise ops** (RGB565 AVG / HALF with an H mask): later, mask as a program constant in B / KEY.
 4. **MHI:** resolved - the RTL keeps `ROML=38, ROMH=39, ROMA=40, MHI=41`. Only `architecture.yaml` is stale.
 5. **DATA 40..43 -> 44..47:** resolved - the RTL (`top.sv`) and the bootloader already use `44..47`.
-6. **Address multiplier:** a 16x16 multiplier (one DSP) or **shift-add pitch**: `PITCH = {en2, s2[4:0], s1[4:0]}` giving
+6. **Address multiplier:** resolved for now - the RTL uses one 16x16 multiplier (one DSP) in a registered
+   address unit (§3.4). The alternative was a **shift-add pitch**: `PITCH = {en2, s2[4:0], s1[4:0]}` giving
    `Y*PITCH = (Y << s1) + (Y << s2)`, which covers 320 (256+64), 640 (512+128), 384, 768, 1024, ... with two barrel
    shifters and no DSP. Decide by target FPGA.
 7. **Surfaces larger than one 64 KB page** (320x240x8bpp = 75 KB): carry the high bits of the linear index into `PAGE`
    (page becomes a base), or keep the overflow error.
-8. **Storage of per-channel state** (about 270 bits per channel): flip-flops for all four channels, or BRAM with a
-   slower channel switch? Copy loops switch channel on every pixel.
+8. **Storage of per-channel state** (about 270 bits per channel): resolved - flip-flops for all four channels, so a
+   channel switch costs nothing.
 9. **Read outside clip** returns `KEY`; confirm this is the wanted convention.
 
 ## 9. Migration & Cleanup Checklist
@@ -433,6 +441,6 @@ Per primitive about 8 instructions; per scanline about 6.
 - Re-encode channel and top-level tests: `48..63` change meaning (`IDX`/`IDXH` become `XI`/`YI` at `48`/`52` in bank 0
   with `PITCH = 0`; `STEP` and `MODE_PAGE` moved to banks 1 and 4).
 - Add `BANK`, position generator, clip and `ALU_CTL` tests; keep every existing test unmodified in linear mode.
-- `architecture.yaml`: fix `sysregs` / `data_regs` (stale vs `operand_map` and RTL), pages are 64 KB, FMT 5 / 6 are
-  LO8 / HI8 (implemented and tested), record `BANK` (42) R/W, `43` spare, mode per §4, `ALU_CTL` per §5.1.
+- `architecture.yaml`: done - `sysregs` with `BANK` (42) R/W, `43` spare, pages are 64 KB, FMT 5..7 reserved
+  (LO8 / HI8 removed from the RTL).
 - Bootloader unchanged.

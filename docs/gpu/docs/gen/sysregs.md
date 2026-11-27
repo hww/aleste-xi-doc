@@ -1,4 +1,4 @@
-**System Registers (32..41, 42..43 reserved)**
+**System Registers (32..42, 43 reserved)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -12,3 +12,4 @@
 | 39 | <a id="ROMH"></a>**ROMH** | ROM access, high 16 bits (a read or a write increments ROMA) |
 | 40 | <a id="ROMA"></a>**ROMA** | ROM access address (write only) |
 | 41 | <a id="MHI"></a>**MHI** | Upper 16 bits of MUL |
+| 42 | <a id="BANK"></a>**BANK** | Bank of the channel window 48..63 (channels v2), R/W, 3 bits |

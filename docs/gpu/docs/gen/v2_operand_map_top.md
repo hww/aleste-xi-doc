@@ -5,7 +5,7 @@
 | 0..31 | <a id="R0..R31"></a>**R0..R31** | 16-bit value | 16-bit value |
 | 32 | <a id="ZERO"></a>**ZERO** | 0 | Ignored |
 | 33 | <a id="FLAGS"></a>**FLAGS** | [3:0] = V C N Z | [3:0] |
-| 34 | <a id="BUSY"></a>**BUSY** | {wb_cyc, flush_done, access_done, hit} | - |
+| 34 | <a id="BUSY"></a>**BUSY** | [0] page overflow of the channel in use, [3:1] = 0 | - |
 | 35 | <a id="SHADOW"></a>**SHADOW** | [15:12] flags, [11:0] PC+1 | [11:0] PC |
 | 36 | <a id="LOOP_CNT"></a>**LOOP_CNT** | Loop counter | Loop counter |
 | 37 | <a id="LOOP_TGT"></a>**LOOP_TGT** | Loop target | Loop target |
@@ -22,4 +22,5 @@
 
 - BANK write takes effect on the next instruction (X-stage decode, in-order, no hold).
 - Banks 5..7 are reserved: writes to the window are ignored, no error.
-- RTL reference: 38 ROML, 39 ROMH, 40 ROMA, 41 MHI, 44..47 DATA (top.sv).
+- RTL reference: 38 ROML, 39 ROMH, 40 ROMA, 41 MHI, 42 BANK, 44..47 DATA (gpu_top.sv).
+- A DATA access waits until the channel's address is ready: one cycle after a write to its POS, CLIP or SURF registers, or after its previous access. A DATA write first latches A (one cycle), then makes the access.

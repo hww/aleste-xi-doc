@@ -55,7 +55,7 @@ entries:
 ---
 kind: enum
 name: sysregs
-title: "System Registers (32..41, 42..43 reserved)"
+title: "System Registers (32..42, 43 reserved)"
 width: 6
 entries:
   - {value: 32, name: "ZERO",     description: "Constant zero"}
@@ -68,6 +68,7 @@ entries:
   - {value: 39, name: "ROMH",     description: "ROM access, high 16 bits (a read or a write increments ROMA)"}
   - {value: 40, name: "ROMA",     description: "ROM access address (write only)"}
   - {value: 41, name: "MHI",      description: "Upper 16 bits of MUL"}
+  - {value: 42, name: "BANK",     description: "Bank of the channel window 48..63 (channels v2), R/W, 3 bits"}
 
 ---
 kind: bitfield
@@ -95,7 +96,7 @@ width: 3
 entries:
   - {value: 0, name: "16 bpp",   description: "1 pixel per word (k=0)"}
   - {value: 1, name: "8 bpp",    description: "2 pixels per word (k=1); pos 0 = low byte (even address)"}
-  - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = low nibble"}
+  - {value: 2, name: "4 bpp",    description: "4 pixels per word (k=2); pos 0 = bits 7..4, pos 1 = bits 3..0"}
   - {value: 3, name: "2 bpp",    description: "8 pixels per word (k=3); SOURCE ONLY, writes forbidden"}
   - {value: 4, name: "1 bpp",    description: "16 pixels per word (k=4); SOURCE ONLY, writes forbidden"}
   - {value: 5, name: "RESERVED", description: "Reserved, writes forbidden"}
@@ -107,11 +108,11 @@ name: memory_map
 title: "Memory Map (24-bit physical address = {PAGE[7:0], WORD[14:0], 1'b0})"
 width: 24
 regions:
-  - {name: "PAGE 0x00",  start: 0x000000, end: 0x01FFFF, access: rw, purpose: "Page 0 (128 KB)"}
-  - {name: "...",        start: 0x020000, end: 0xFDFFFF, access: rw, purpose: "Pages 1..254 (each 128 KB)"}
-  - {name: "PAGE 0xFF",  start: 0xFE0000, end: 0xFFFFFF, access: rw, purpose: "Page 255 (last 128 KB)"}
+  - {name: "PAGE 0x00",  start: 0x000000, end: 0x00FFFF, access: rw, purpose: "Page 0 (64 KB)"}
+  - {name: "...",        start: 0x010000, end: 0xFEFFFF, access: rw, purpose: "Pages 1..254 (each 64 KB)"}
+  - {name: "PAGE 0xFF",  start: 0xFF0000, end: 0xFFFFFF, access: rw, purpose: "Page 255 (last 64 KB)"}
 notes:
-  - "In RTL addr24 = {page[7:0], word[14:0], 1'b0}. Address space is 16 MB, divided into 256 pages of 128 KB each."
+  - "In RTL addr24 = {page[7:0], word[14:0], 1'b0}. Address space is 16 MB, divided into 256 pages of 64 KB each."
 ---
 # 32-bit microinstruction. Four formats selected by (J, I).
 # Layout matches RTL: dst_code [28:23], WRITE [22], COND [21:18], F [17],
