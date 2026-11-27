@@ -48,6 +48,8 @@ The PIC is decoded on the low 5 bits of the bus address
 for the PIC to respond. Registers are 8 bits wide, at offsets `0x0`–`0xC`
 from the base address.
 
+![PIC Register Map (lx_sys.sv)](gen/pic_regmap_v2.svg)
+
 **Table 1 — PIC Register Map (lx_sys.sv)**
 
 | Offset | Name | Access | Description |

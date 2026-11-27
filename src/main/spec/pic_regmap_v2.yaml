@@ -2,7 +2,7 @@ kind: regmap
 name: pic_regmap_v2
 title: "PIC Register Map (lx_sys.sv)"
 width: 8
-
+view: [diagram, table]
 registers:
   - offset: "0x0"
     name: "COMMAND"

@@ -2,7 +2,7 @@ kind: regmap
 name: pic_regmap
 title: "PIC Register Map (wb_z80_pic.sv)"
 width: 8
-
+view: [diagram, table]
 registers:
   - offset: "0x0"
     name: "MASK_L"

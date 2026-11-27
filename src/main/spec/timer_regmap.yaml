@@ -2,7 +2,7 @@ kind: regmap
 name: timer_regmap
 title: "System Timer Port Map (lx_sys.sv)"
 width: 8
-
+view: [diagram, table]
 registers:
   - offset: "0xF4"
     name: "RT_LO / CMP_LO"
@@ -40,6 +40,7 @@ registers:
 kind: bitfield
 name: timer_f6_bits
 title: "Timer F6 bit layout"
+view: [diagram, table]
 width: 8
 fields:
   - {bit: 0, name: ENABLE,

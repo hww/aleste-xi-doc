@@ -85,6 +85,8 @@ The counter:
 
 Three I/O ports are used to access the timer.
 
+![System Timer Port Map (lx_sys.sv)](gen/timer_regmap.svg)
+
 **Table 1 — System Timer Port Map (lx_sys.sv)**
 
 | Offset | Name | Access | Description |
@@ -170,6 +172,8 @@ Writing `F5` is the final step of programming a target timestamp.
 ### 5.3. Port `F6` — Control and Status
 
 `F6` combines status reads and control writes.
+
+![Timer F6 bit layout](gen/timer_f6_bits.svg)
 
 **Table 2 — Timer F6 bit layout**
 

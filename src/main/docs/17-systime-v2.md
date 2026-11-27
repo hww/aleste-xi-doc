@@ -140,7 +140,7 @@ Writing `F5` is the final step of programming a target timestamp.
 
 `F6` combines status reads and control writes.
 
-{{table:timer_f6_bits}}
+{{auto:timer_f6_bits}}
 
 Writes to `F6` are permitted only in supervisor mode. Only bit 0 is used on write; all other bits are ignored.
 

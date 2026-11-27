@@ -119,7 +119,7 @@ COMMAND = 0 ooo cccc
           └───────── command form (bit7 = 0)
 ```
 
-{{table:pic_command_ops_v2}}
+{{auto:pic_command_ops_v2}}
 
 **✎ By design (RTL):** priority only orders simultaneous requests. It
 does **not** preempt an in-service channel. While a channel is in
