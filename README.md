@@ -29,32 +29,34 @@ The platform combines the flexibility of software with specialised hardware assi
 The documentation is organised into the following chapters.
 
 - [The Aleste Story](./docs/main/docs/01-history.md)
-- [LX Terminology](./docs/main/docs/02-terminology.md)
-- [LX — Architecture Overview](./docs/main/docs/03-overview.md)
-- [LX Legacy: CPC 6128 and Aleste 520EX](./docs/main/docs/04-legacy.md)
-- [LX I/O: Native and Legacy I/O Map](./docs/main/docs/05-io.md)
-- [LX RTL Reference](./docs/main/docs/06-rtl-reference.md)
-- [LX MMU: Native and Legacy Memory Management](./docs/main/docs/07-mmu.md)
-- [LX MMU API](./docs/main/docs/08-mmu-api.md)
-- [LX Mode Switching Mechanisms](./docs/main/docs/09-syscall.md)
-- [Aleste LX: Interrupts, Syscalls, Drivers, and Takeover Mode](./docs/main/docs/10-syscall-details.md)
-- [LX IPC Mailbox — Legacy RTL Reference](./docs/main/docs/11-ipc.md)
-- [LX PIC Controller](./docs/main/docs/12-pic.md)
-- [LX DMA / Blitter](./docs/main/docs/13-dma.md)
-- [LX Modular Expansion Bus (AMEB)](./docs/main/docs/14-alex.md)
-- [LX BIOS: Driver Architecture Specification](./docs/main/docs/15-bios-spec.md)
-- [LX Minimal Supervisor BIOS — example](./docs/main/docs/16-bios-example.md)
-- [Hardware System Timer](./docs/main/docs/17-systime.md)
+- [Terminology](./docs/main/docs/02-terminology.md)
+- [Architecture Overview](./docs/main/docs/03-overview.md)
+- [Legacy: CPC 6128 and Aleste 520EX](./docs/main/docs/04-legacy.md)
+- [I/O: Native and Legacy I/O Map](./docs/main/docs/05-io.md)
+- [RTL: Reference](./docs/main/docs/06-rtl-reference.md)
+- [MMU: Native and Legacy Memory Management](./docs/main/docs/07-mmu.md)
+- [MMU: API](./docs/main/docs/08-mmu-api.md)
+- [SYSCALL: Mode Switching Mechanisms](./docs/main/docs/09-syscall.md)
+- [SYSCALL: Interrupts, Syscalls, Drivers, and Takeover Mode](./docs/main/docs/10-syscall-details.md)
+- [IPC: Mailbox — Legacy RTL Reference](./docs/main/docs/11-ipc.md)
+- [PIC Controller](./docs/main/docs/12-pic.md)
+- [DMA](./docs/main/docs/13-dma.md) [WORK IN GPROGRESS]
+  - [DMA: System DMA](./docs/main/docs/13-sysdma.md)
+  - [DMA: Blitter](./docs/main/docs/13-blitter.md)
+- [ALEX: Expansion Bus](./docs/main/docs/14-alex.md)
+- [BIOS: Driver Architecture Specification](./docs/main/docs/15-bios-spec.md)
+- [BIOS: Minimal Supervisor — example](./docs/main/docs/16-bios-example.md)
+- [TIME: Hardware System Timer](./docs/main/docs/17-systime.md) [NOT IMPLEMENTED]
 
-### Magic Sound 2 
+### Magic Sound 2
 
-- [Aleste LX Video Subsystem — Programmer's Documentation](./docs/sm/docs/lx_ms2_rev_a.md)
-- [Aleste LX Video Subsystem — Programmer's Documentation](./docs/sm/docs/lx_ms2_rev_c.md)
+- [SM2: Magic Sound 2 (rev. A)](./docs/sm/docs/lx_ms2_rev_a.md)
+- [SM2: Magic Sound 2 (rev. C)](./docs/sm/docs/lx_ms2_rev_c.md)
 
 ### Graphics and Video
 
-- [Aleste LX Video Subsystem — Programmer's Documentation](./docs/gfx/docs/README.md)
-- [Aleste LX GPU — Programmer's Documentation](./docs/gpu/docs/README.md)
+- [GFX: Video Subsystem — Programmer's Documentation](./docs/gfx/docs/README.md)
+- [GPU: LX Graphics Processing Unit — Programmer's Documentation](./docs/gpu/docs/README.md)
 
 ## Documentation Build System
 
