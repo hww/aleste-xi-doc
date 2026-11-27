@@ -37,7 +37,7 @@ The platform combines the flexibility of software with specialised hardware assi
 - [SYSCALL: Interrupts, Syscalls, Drivers, and Takeover Mode](./docs/main/docs/10-syscall-details.md)
 - [IPC: Mailbox — Legacy RTL Reference](./docs/main/docs/11-ipc.md)
 - [PIC Controller (R1)](./docs/main/docs/12-pic-r1.md)
-- [PIC Controller (R2)](./docs/main/docs/12-pic-v2.md)
+- [PIC Controller (R2)](./docs/main/docs/12-pic-r2.md)
 - [DMA](./docs/main/docs/13-dma.md) [WORK IN GPROGRESS]
   - [DMA: System DMA](./docs/main/docs/13-sysdma.md)
   - [DMA: Blitter](./docs/main/docs/13-blitter.md)
