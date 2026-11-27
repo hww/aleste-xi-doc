@@ -36,16 +36,16 @@ The platform combines the flexibility of software with specialised hardware assi
 - [SYSCALL: Mode Switching Mechanisms](./docs/main/docs/09-syscall.md)
 - [SYSCALL: Interrupts, Syscalls, Drivers, and Takeover Mode](./docs/main/docs/10-syscall-details.md)
 - [IPC: Mailbox — Legacy RTL Reference](./docs/main/docs/11-ipc.md)
-- [PIC Controller](./docs/main/docs/12-pic-r1.md)
-- [PIC Controller](./docs/main/docs/12-pic-v2.md)
+- [PIC Controller (R1)](./docs/main/docs/12-pic-r1.md)
+- [PIC Controller (R2)](./docs/main/docs/12-pic-v2.md)
 - [DMA](./docs/main/docs/13-dma.md) [WORK IN GPROGRESS]
   - [DMA: System DMA](./docs/main/docs/13-sysdma.md)
   - [DMA: Blitter](./docs/main/docs/13-blitter.md)
 - [ALEX: Expansion Bus](./docs/main/docs/14-alex.md)
 - [BIOS: Driver Architecture Specification](./docs/main/docs/15-bios-spec.md)
 - [BIOS: Minimal Supervisor — example](./docs/main/docs/16-bios-example.md)
-- [TIME: Hardware System Timer (V1)](./docs/main/docs/17-systime-r5.md) [NOT IMPLEMENTED]
-- [TIME: Hardware System Timer (V2)](./docs/main/docs/17-systime-r6.md) [NOT IMPLEMENTED]
+- [TIME: Hardware System Timer (R5)](./docs/main/docs/17-systime-r5.md) [NOT IMPLEMENTED]
+- [TIME: Hardware System Timer (R6)](./docs/main/docs/17-systime-r6.md) [NOT IMPLEMENTED]
 
 ### Magic Sound 2
 
