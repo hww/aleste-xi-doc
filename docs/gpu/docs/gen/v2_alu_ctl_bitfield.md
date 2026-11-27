@@ -14,5 +14,5 @@
 **Notes:**
 
 - Reset 0x0000 => OP=PASS, SX=A, REL=always, DEN=0: copy-A default.
-- NEED_D = (SX==D) | (SY==D) | (REL in 1..6 & CS != 0). If 0 and W=16: one cache access, no RMW.
-- All operands are unsigned W-bit values (W by FMT: 16/8/4/2/1; LO8/HI8 = 8); datapath 16 bits wide, bits above W forced to 0.
+- NEED_D = (SX==D) | (SY==D) | (REL in 1..6 & CS != 0). If 0: one masked cache write, no read, at every W.
+- All operands are unsigned W-bit values (W by FMT: 16/8/4/2/1); datapath 16 bits wide, bits above W forced to 0.

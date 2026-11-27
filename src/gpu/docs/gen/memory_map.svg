@@ -13,20 +13,20 @@
 <text x="32" y="62" font-size="14" fill="#555555">24-bit address space</text>
 <rect x="103.6" y="96" width="340" height="58" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="273.6" y="121.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">PAGE 0xFF</text>
-<text x="273.6" y="137" font-size="11" text-anchor="middle" fill="#555555">Page 255 (last 128 KB)</text>
-<text x="455.6" y="129" font-size="11" text-anchor="start" fill="#555555">rw · 128 KiB</text>
+<text x="273.6" y="137" font-size="11" text-anchor="middle" fill="#555555">Page 255 (last 64 KB)</text>
+<text x="455.6" y="129" font-size="11" text-anchor="start" fill="#555555">rw · 64 KiB</text>
 <text x="95.6" y="107" font-size="12" text-anchor="end" fill="#000000" class="m">0xFFFFFF</text>
-<text x="95.6" y="151" font-size="12" text-anchor="end" fill="#000000" class="m">0xFE0000</text>
+<text x="95.6" y="151" font-size="12" text-anchor="end" fill="#000000" class="m">0xFF0000</text>
 <rect x="103.6" y="154" width="340" height="58" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="273.6" y="179.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">...</text>
-<text x="273.6" y="195" font-size="11" text-anchor="middle" fill="#555555">Pages 1..254 (each 128 KB)</text>
-<text x="455.6" y="187" font-size="11" text-anchor="start" fill="#555555">rw · 16128 KiB</text>
-<text x="95.6" y="165" font-size="12" text-anchor="end" fill="#000000" class="m">0xFDFFFF</text>
-<text x="95.6" y="209" font-size="12" text-anchor="end" fill="#000000" class="m">0x020000</text>
+<text x="273.6" y="195" font-size="11" text-anchor="middle" fill="#555555">Pages 1..254 (each 64 KB)</text>
+<text x="455.6" y="187" font-size="11" text-anchor="start" fill="#555555">rw · 16256 KiB</text>
+<text x="95.6" y="165" font-size="12" text-anchor="end" fill="#000000" class="m">0xFEFFFF</text>
+<text x="95.6" y="209" font-size="12" text-anchor="end" fill="#000000" class="m">0x010000</text>
 <rect x="103.6" y="212" width="340" height="58" fill="#F2F2F2" stroke="#000000" stroke-width="1.5"/>
 <text x="273.6" y="237.9" font-size="14" text-anchor="middle" fill="#000000" font-weight="700">PAGE 0x00</text>
-<text x="273.6" y="253" font-size="11" text-anchor="middle" fill="#555555">Page 0 (128 KB)</text>
-<text x="455.6" y="245" font-size="11" text-anchor="start" fill="#555555">rw · 128 KiB</text>
-<text x="95.6" y="223" font-size="12" text-anchor="end" fill="#000000" class="m">0x01FFFF</text>
+<text x="273.6" y="253" font-size="11" text-anchor="middle" fill="#555555">Page 0 (64 KB)</text>
+<text x="455.6" y="245" font-size="11" text-anchor="start" fill="#555555">rw · 64 KiB</text>
+<text x="95.6" y="223" font-size="12" text-anchor="end" fill="#000000" class="m">0x00FFFF</text>
 <text x="95.6" y="267" font-size="12" text-anchor="end" fill="#000000" class="m">0x000000</text>
 </svg>

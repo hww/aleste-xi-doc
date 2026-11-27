@@ -1,6 +1,6 @@
 # Register Map
 
-There are 64 operand slots (6 bits) in total. Slots 0..31 are general-purpose registers (R0..R31), 32..41 are system registers, 42..43 are reserved, 44..47 are DATA[0..3], 48..63 are pixel engine channels.
+There are 64 operand slots (6 bits) in total. Slots 0..31 are general-purpose registers (R0..R31), 32..42 are system registers, 43 is reserved, 44..47 are DATA[0..3], 48..63 are the pixel engine channel registers (a banked window in channels v2).
 
 ## General-Purpose Registers
 
@@ -52,9 +52,9 @@ A read takes one cycle (`q_a <= mem[ra]` on `posedge clk`), a write takes one cy
 
 ## System Registers
 
-System registers (32..41, 42..43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, channel status, CALL/RET shadow, loop counter, ROM access, and the MUL high half.
+System registers (32..42, 43 reserved) are available as a source in any instruction, and as a destination only in `MOV`. They provide access to flags, channel status, CALL/RET shadow, loop counter, ROM access, the MUL high half, and the channel register bank (`BANK`).
 
-**Table 2 — System Registers (32..41, 42..43 reserved)**
+**Table 2 — System Registers (32..42, 43 reserved)**
 
 | Value | Name | Description |
 | --- | --- | --- |
@@ -68,6 +68,7 @@ System registers (32..41, 42..43 reserved) are available as a source in any inst
 | 39 | <a id="ROMH"></a>**ROMH** | ROM access, high 16 bits (a read or a write increments ROMA) |
 | 40 | <a id="ROMA"></a>**ROMA** | ROM access address (write only) |
 | 41 | <a id="MHI"></a>**MHI** | Upper 16 bits of MUL |
+| 42 | <a id="BANK"></a>**BANK** | Bank of the channel window 48..63 (channels v2), R/W, 3 bits |
 
 
 *Fig. 6. System registers.*

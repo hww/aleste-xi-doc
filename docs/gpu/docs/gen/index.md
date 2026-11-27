@@ -27,7 +27,7 @@
 - [Operand map (6 bits, 0..63)](operand_map.md) — `operand_map`
 - [Pixel Path Stages](pixel_path_stages.md) — `pixel_path_stages`
 - [Register file · R0–R31 (16 bit)](registers.md) — `registers`
-- [System Registers (32..41, 42..43 reserved)](sysregs.md) — `sysregs`
+- [System Registers (32..42, 43 reserved)](sysregs.md) — `sysregs`
 - [CHANNEL FORMAT (fmt, 3 bits); W = operand width of the pixel ALU](v2_channel_format.md) — `v2_channel_format`
 - [Bank 0 POS - position (per scanline). 16.16 two's complement integer / unsigned fraction](v2_operand_map_bank_0_pos.md) — `v2_operand_map_bank_0_pos`
 - [Bank 1 STEP - added to position after every DATA access (per primitive)](v2_operand_map_bank_1_step.md) — `v2_operand_map_bank_1_step`

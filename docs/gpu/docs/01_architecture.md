@@ -8,7 +8,7 @@
 2. **Programmable core, not a hardwired state machine.** Microcode lives in BRAM; a new algorithm means new microcode, not new logic.
 3. **Only the hot path goes into hardware:** word buffers, pixel packing, address computation inside ports.
 4. **Screen coordinates inside, addresses outside are invisible.** The CPU says "draw at (x, y)"; the port turns a pixel index into a word address.
-5. **Pixel formats: 1, 2, 4, 8, 16 bpp; pass-through modes LO8/HI8/16.**
+5. **Pixel formats: 1, 2, 4, 8, 16 bpp.**
 6. **No hardware scrolling.** Replaced by fast block copying.
 7. **One instruction format, four classes** (`J`, `I`): reg-reg, reg-imm11, LDI16, control.
 8. **Flags Z, N, C, V.** ARM-style conditions. `CMP`/`TST` always write flags; others by `F=1`. Any ALU op can be issued with `WRITE=0` to discard the result while still updating flags.
@@ -285,7 +285,7 @@ The register file holds 32 general-purpose registers R0..R31. R0 is a normal reg
 
 ## 8. Pixel formats and channel mode
 
-The channel format (`MODE`) selects how many pixels per 16-bit word. Encoding (`gpu_fmt_pkg::get_fmt_info`): `0` = 16 bpp (1 px/word), `1` = 8 bpp (2), `2` = 4 bpp (4), `3` = 2 bpp (8), `4` = 1 bpp (16), `5` = LO8 pass-through (k=0, low byte), `6` = HI8 pass-through (k=0, high byte), `7` = reserved. 1 bpp and 2 bpp are **read-only** in the RTL (`wr_en=0` in `get_fmt_info`).
+The channel format (`MODE`) selects how many pixels per 16-bit word. Encoding (`gpu_fmt_pkg::get_fmt_info`): `0` = 16 bpp (1 px/word), `1` = 8 bpp (2), `2` = 4 bpp (4), `3` = 2 bpp (8), `4` = 1 bpp (16), `5`..`7` = reserved (read like 16 bpp, writes ignored). 1 bpp and 2 bpp are **read-only** in the RTL (`wr_en=0` in `get_fmt_info`).
 
 **Table 10 — CHANNEL FORMAT (fmt, 3 bits)**
 
@@ -293,7 +293,7 @@ The channel format (`MODE`) selects how many pixels per 16-bit word. Encoding (`
 | --- | --- | --- |
 | 0 | <a id="16_bpp"></a>**16 bpp** | 1 pixel per word (k=0) |
 | 1 | <a id="8_bpp"></a>**8 bpp** | 2 pixels per word (k=1); pos 0 = low byte (even address) |
-| 2 | <a id="4_bpp"></a>**4 bpp** | 4 pixels per word (k=2); pos 0 = low nibble |
+| 2 | <a id="4_bpp"></a>**4 bpp** | 4 pixels per word (k=2); pos 0 = bits 7..4, pos 1 = bits 3..0 |
 | 3 | <a id="2_bpp"></a>**2 bpp** | 8 pixels per word (k=3); SOURCE ONLY, writes forbidden |
 | 4 | <a id="1_bpp"></a>**1 bpp** | 16 pixels per word (k=4); SOURCE ONLY, writes forbidden |
 | 5 | <a id="RESERVED"></a>**RESERVED** | Reserved, writes forbidden |
@@ -563,7 +563,7 @@ Clipping registers (`CX0`, `CY0`, `CX1`, `CY1`) and affine increments (`SDX`, `S
 - Section 4: added the rule that **C/V update only on arithmetic class**; Z/N always on flag-write.
 - Section 5: `JMPR` is `JMP` with `REG=1`, not a separate opcode; refined branch-flush bubble counts (1 for D-stage, 2 for X-stage); `FLUSH` target is a 2-bit channel select, not a 4-bit mask.
 - Section 6: operand map rewritten to RTL layout (`44..47 DATA[0..3]`, `48..51 IDX`, `52..55 IDXH`, `56..59 STEP`, `60..63 MODEPAGE`); `DATA[n]` selects channel `n`; removed `STM` slot.
-- Section 8: mode encoding aligned to `gpu_fmt_pkg` (0=16bpp, 1=8bpp, 2=4bpp, 3=2bpp, 4=1bpp, 5=LO8, 6=HI8, 7=reserved; 1bpp/2bpp read-only); `MODE` is bits `[10:8]` of the `MODEPAGE` write, `PAGE` is bits `[7:0]`.
+- Section 8: mode encoding aligned to `gpu_fmt_pkg` (0=16bpp, 1=8bpp, 2=4bpp, 3=2bpp, 4=1bpp, 5..7=reserved; 1bpp/2bpp read-only); `MODE` is bits `[10:8]` of the `MODEPAGE` write, `PAGE` is bits `[7:0]`.
 - Section 9.3: `CODE` protection note refers to hardware `HALT 1`.
 - Section 9.5: `FLUSH 0..3` per channel instead of `FLUSH 0xF` mask.
 - Section 10: clarified hardware HALT codes (1 = ROM protect, 2 = channel error) vs loader `HALT 2`.

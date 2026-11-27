@@ -4,7 +4,7 @@ The processor has three memory levels: ROM (program memory), cache (4 channels),
 
 ## Memory Map
 
-The 24-bit address space is `{PAGE[7:0], WORD[14:0], 1'b0}` — 256 pages of 128 KB each. ROM is a separate BRAM (`core_rom`), not part of the Wishbone address space.
+The 24-bit address space is `{PAGE[7:0], WORD[14:0], 1'b0}` — 256 pages of 64 KB each. ROM is a separate BRAM (`core_rom`), not part of the Wishbone address space.
 
 {{auto:memory_map}}
 

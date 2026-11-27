@@ -17,7 +17,7 @@ entries:
   - {value: "0..31",  name: "R0..R31",    read: "16-bit value", write: "16-bit value"}
   - {value: 32,       name: "ZERO",       read: "0", write: "Ignored"}
   - {value: 33,       name: "FLAGS",      read: "[3:0] = V C N Z", write: "[3:0]"}
-  - {value: 34,       name: "BUSY",       read: "{wb_cyc, flush_done, access_done, hit}", write: "-"}
+  - {value: 34,       name: "BUSY",       read: "[0] page overflow of the channel in use, [3:1] = 0", write: "-"}
   - {value: 35,       name: "SHADOW",     read: "[15:12] flags, [11:0] PC+1", write: "[11:0] PC"}
   - {value: 36,       name: "LOOP_CNT",   read: "Loop counter", write: "Loop counter"}
   - {value: 37,       name: "LOOP_TGT",   read: "Loop target", write: "Loop target"}
@@ -32,7 +32,8 @@ entries:
 notes:
   - "BANK write takes effect on the next instruction (X-stage decode, in-order, no hold)."
   - "Banks 5..7 are reserved: writes to the window are ignored, no error."
-  - "RTL reference: 38 ROML, 39 ROMH, 40 ROMA, 41 MHI, 44..47 DATA (top.sv)."
+  - "RTL reference: 38 ROML, 39 ROMH, 40 ROMA, 41 MHI, 42 BANK, 44..47 DATA (gpu_top.sv)."
+  - "A DATA access waits until the channel's address is ready: one cycle after a write to its POS, CLIP or SURF registers, or after its previous access. A DATA write first latches A (one cycle), then makes the access."
 ---
 kind: enum
 name: v2_operand_map_bank_0_pos
@@ -148,8 +149,8 @@ fields:
   - {name: RSVD, bit: 15,       description: "reserved (0)"}
 notes:
   - "Reset 0x0000 => OP=PASS, SX=A, REL=always, DEN=0: copy-A default."
-  - "NEED_D = (SX==D) | (SY==D) | (REL in 1..6 & CS != 0). If 0 and W=16: one cache access, no RMW."
-  - "All operands are unsigned W-bit values (W by FMT: 16/8/4/2/1; LO8/HI8 = 8); datapath 16 bits wide, bits above W forced to 0."
+  - "NEED_D = (SX==D) | (SY==D) | (REL in 1..6 & CS != 0). If 0: one masked cache write, no read, at every W."
+  - "All operands are unsigned W-bit values (W by FMT: 16/8/4/2/1); datapath 16 bits wide, bits above W forced to 0."
 ---
 kind: enum
 name: v2_pixel_alu_ops
@@ -174,10 +175,10 @@ width: 3
 entries:
   - {value: 0, name: "16 bpp",   description: "W=16, 1 pixel per word (k=0); reset default"}
   - {value: 1, name: "8 bpp",    description: "W=8, 2 pixels per word (k=1); pos 0 = low byte (even address) - PRIMARY"}
-  - {value: 2, name: "4 bpp",    description: "W=4, 4 pixels per word (k=2); pos 0 = low nibble"}
+  - {value: 2, name: "4 bpp",    description: "W=4, 4 pixels per word (k=2); pos 0 = bits 7..4, pos 1 = bits 3..0, then 15..12, 11..8"}
   - {value: 3, name: "2 bpp",    description: "W=2, 8 pixels per word (k=3); SOURCE ONLY, writes forbidden"}
   - {value: 4, name: "1 bpp",    description: "W=1, 16 pixels per word (k=4); SOURCE ONLY, writes forbidden"}
-  - {value: 7, name: "RESERVED", description: "Reserved, writes forbidden"}
+  - {value: "5..7", name: "RESERVED", description: "Reserved: read like 16 bpp, writes forbidden"}
 ---
 kind: memmap
 name: v2_memory_map
